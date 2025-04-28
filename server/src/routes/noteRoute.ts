@@ -1,35 +1,21 @@
 import { Router } from "express";
-import { CreateNote, DeleteNote, GetAllNotes, GetNote, UpdateNote } from "../controllers/noteController";
-import { INote, Note } from "../models/noteModel";
+import { authHandler } from "../middlewares/authorization";
+import {
+    CreateNoteHandler,
+    DeleteNoteHandler,
+    GetAllNotesHandler,
+    GetNoteHandler,
+    UpdateNoteHandler
+} from "../controllers/noteController";
 
 const NoteRouter: Router = Router()
 
-NoteRouter.get('/note', async (req, res) => {
-    let notes: INote[] = await GetAllNotes();
-    res.send(notes);
-})
+NoteRouter.use(authHandler);
 
-NoteRouter.get('/note/:id', async (req, res) => {
-    const id: string = req.params.id;
-    let note: INote = await GetNote(id);
-    res.send(note);
-})
+NoteRouter.get('/api/note', GetAllNotesHandler)
+NoteRouter.get('/api/note/:id', GetNoteHandler)
+NoteRouter.post('/api/note', CreateNoteHandler)
+NoteRouter.delete('/api/note/:id', DeleteNoteHandler)
+NoteRouter.put('/api/note', UpdateNoteHandler)
 
-NoteRouter.post('/note', async (req, res) => {
-    const note: INote = req.body.note as INote;
-    await CreateNote(note);
-    res.sendStatus(200);
-})
-
-NoteRouter.delete('/note/:id', async (req, res) => {
-    const id: string = req.params.id;
-    await DeleteNote(id);
-    res.send(200);
-})
-
-NoteRouter.put('/note', async (req, res) => {
-    const note: Note = req.body as Note;
-    await UpdateNote(note);
-    res.sendStatus(200);
-})
 export { NoteRouter };
