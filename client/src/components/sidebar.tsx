@@ -1,49 +1,68 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router"
 import { faHouse } from "@fortawesome/free-solid-svg-icons/faHouse";
-import { faFile, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faFile, faMagnifyingGlass, faPlus, IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { Note } from "../models/note";
+import { useEffect, useState } from "react";
+import { GetNotes } from "../controllers/noteController";
 
-type Note = { name: string, id: string }
 
 export default function Sidebar() {
     // fetch notes
-    const notes: Note[] = [{ id: "aaa", name: "new note" }];
+    const [notes, setNotes] = useState<Note[]>([]);
+
+    useEffect(() => {
+        GetNotes().then((notes: Note[]) => {
+            setNotes(notes);
+        });
+    }, []);
+
     return (
-        <aside className="bg-bg-dark h-full w-full max-w-[280px] flex flex-col px-[32px]">
+        <aside className="bg-bg-dark h-full w-full max-w-[220px] flex flex-col px-[20px]">
             <UserProfile />
             <ul className="mt-[20%]">
-                <li className="flex gap-[20px] items-center">
-                    <FontAwesomeIcon className="text-white size-[24px]" icon={faHouse} />
-                    <p className="text-sm text-white">Home</p>
-                </li>
-                <li className="flex gap-[20px] items-center">
-                    <FontAwesomeIcon className="text-white size-[24px]" icon={faMagnifyingGlass} />
-                    <p className="text-sm text-white">Search</p>
-                </li>
-
+                <NavLink
+                    title={"Home"}
+                    icon={faHouse}
+                    to={"/"}
+                    search={""}
+                />
+                <NavLink
+                    title={"Search"}
+                    icon={faMagnifyingGlass}
+                />
             </ul>
             <ul className="mt-[50%]">
-                <p className="text-sm text-white">Notes</p>
-                {notes.map(note => (<NoteLink note={note} />))}
+                <li className="flex items-center justify-between">
+                    <p className="text-sm text-white">Notes</p>
+                    <FontAwesomeIcon className="text-white" icon={faPlus} />
+                </li>
+                {notes.map(note => (<NavLink
+                    key={note._id}
+                    title={note.title}
+                    icon={faFile}
+                    to={"/notes"}
+                    search={`?id=${note._id}`}
+                />))}
             </ul>
 
         </aside>
     )
 }
 
-function NoteLink({ note }: { note: Note }) {
+function NavLink({ title, icon, to, search }: { title: string, icon: IconDefinition, to?: string, search?: string }) {
     return (
-        <li className="flex gap-[20px] items-center">
-            <FontAwesomeIcon className="text-white size-[24px]" icon={faFile} />
-            <Link className="text-sm text-white"
-                key={note.id}
-                to={{
-                    pathname: `/notes`,
-                    search: `?id=${note.id}`
-                }} >
-                {note.name}
-            </Link>
-        </li >
+
+        <Link
+            to={{
+                pathname: to,
+                search: search
+            }} >
+            <li className="flex gap-[20px] items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
+                <FontAwesomeIcon className="text-white size-[24px]" icon={icon} />
+                <p className="text-sm text-white">{title}</p>
+            </li >
+        </Link>
     )
 }
 
@@ -51,7 +70,7 @@ function UserProfile() {
     // fetch user data
     return (
         <div className="flex items-center gap-1 py-[20px]">
-            <img className="w-[38px] h-[38px] rounded-[4px] " src="https://lh3.googleusercontent.com/ogw/AF2bZyiTCz9EWqQcXTCYtYAX42aFoLgHJIaxaX71MzgdIKoihjE=s32-c-mo" />
+            <img className="w-[38px] h-[38px] rounded-[4px] " src="public/profile_pic.png" />
             <p className="font-medium text-base text-white"> Name </p>
         </div>
     )
