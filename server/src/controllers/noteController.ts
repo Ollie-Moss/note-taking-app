@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { INote, NoteModel, Note } from "../models/noteModel";
-import { User } from "../models/userModel";
+import { AppError } from "../middlewares/errorHandler";
+import { Types } from "mongoose";
 
 
 // ----- CREATE ------
@@ -60,8 +61,11 @@ export async function GetNoteHandler(req: Request, res: Response, next: NextFunc
 }
 
 export async function GetNote(uid: string, id: string): Promise<INote | null> {
+    if (!Types.ObjectId.isValid(id)) {
+        throw new AppError("Invalid note id provided!", 404);
+    }
     const note: INote | null = await NoteModel.findOne({ _id: id, uid: uid })
-        .then(data => data?.toObject({ versionKey: false }) ?? null);
+        .then(data => data?.toObject({ versionKey: false }) ?? null)
     return note;
 };
 

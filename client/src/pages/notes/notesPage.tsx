@@ -23,11 +23,11 @@ function useQuery() {
 
 function NoteDisplay() {
     const query: URLSearchParams = useQuery();
-    const noteId = query.get("id")
     const [note, setNote] = useState<Note | null>(null);
 
     useEffect(() => {
-        if (!noteId) return;
+        const noteId = query.get("id")
+        if (!noteId) return setNote(null);
         GetNote(noteId).then((note: Note) => {
             setNote(note);
         })

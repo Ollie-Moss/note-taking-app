@@ -4,7 +4,7 @@ import { faHouse } from "@fortawesome/free-solid-svg-icons/faHouse";
 import { faFile, faMagnifyingGlass, faPlus, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { Note } from "../models/note";
 import { useEffect, useState } from "react";
-import { GetNotes } from "../controllers/noteController";
+import { CreateNote, GetNotes } from "../controllers/noteController";
 
 
 export default function Sidebar() {
@@ -17,6 +17,17 @@ export default function Sidebar() {
         });
     }, []);
 
+    function CreateNoteHandler(_e: React.MouseEvent<SVGSVGElement>) {
+        const note: Note = {
+            _id: "",
+            title: "",
+            contents: "",
+            uid: ""
+        };
+        console.log(note)
+        CreateNote(note);
+    }
+
     return (
         <aside className="bg-bg-dark h-full w-full max-w-[220px] flex flex-col px-[20px]">
             <UserProfile />
@@ -25,7 +36,6 @@ export default function Sidebar() {
                     title={"Home"}
                     icon={faHouse}
                     to={"/"}
-                    search={""}
                 />
                 <NavLink
                     title={"Search"}
@@ -35,7 +45,10 @@ export default function Sidebar() {
             <ul className="mt-[50%]">
                 <li className="flex items-center justify-between">
                     <p className="text-sm text-white">Notes</p>
-                    <FontAwesomeIcon className="text-white" icon={faPlus} />
+                    <FontAwesomeIcon 
+                        onClick={CreateNoteHandler}
+                        className="text-white" 
+                        icon={faPlus} />
                 </li>
                 {notes.map(note => (<NavLink
                     key={note._id}

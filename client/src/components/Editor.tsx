@@ -78,7 +78,7 @@ export default function Editor({ note }: { note: Note }) {
     return (
         <div className="px-24 pt-10">
             <button onClick={SaveNote} >Save</button>
-            <h1 className="text-white text-lg"
+            <h1 className="text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1"
                 contentEditable={true}
                 suppressContentEditableWarning={true}
                 onInput={SetTitle}
@@ -86,9 +86,12 @@ export default function Editor({ note }: { note: Note }) {
             >{note.title}</h1>
             <ReactQuill
                 onChange={SetDelta}
-                className="text-white"
+                className="text-white "
                 defaultValue={delta}
-                theme="bubble" />
+                theme="bubble">
+
+                <div className="[&>*]:outline-none [&>*:focus]:bg-bg-dark [&>*]:rounded-lg"/>
+            </ReactQuill>
         </div>
     )
 }
