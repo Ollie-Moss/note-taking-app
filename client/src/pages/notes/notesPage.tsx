@@ -3,9 +3,7 @@ import Sidebar from "../../components/sidebar";
 import { useEffect, useMemo, useState } from "react";
 import { Note } from "../../models/note";
 import { GetNote } from "../../controllers/noteController";
-import { useRef } from 'react';
-import Quill, { Delta } from "quill";
-import ReactQuill from "react-quill-new";
+import Editor from "../../components/Editor";
 
 
 export default function Notes() {
@@ -33,7 +31,7 @@ function NoteDisplay() {
         GetNote(noteId).then((note: Note) => {
             setNote(note);
         })
-    }, [])
+    }, [query])
 
 
     return (
@@ -47,30 +45,3 @@ function NoteDisplay() {
     )
 }
 
-function Editor({ note }: { note: Note }) {
-    const editor = useRef<ReactQuill | null>(null);
-    const [delta, setDelta] = useState<Delta>();
-
-    const SetDelta: () => void = () => {
-        if (!editor.current) return;
-        const quill: Quill = editor.current.getEditor();
-        const delta: Delta = quill.getContents();
-        setDelta(delta);
-        console.log(JSON.stringify(delta, null, 2));
-    }
-
-    return (
-        <div className="px-24 pt-10">
-            <h1 className="text-white text-lg"
-                contentEditable={true}
-                suppressContentEditableWarning={true}
-                >{note.title}</h1>
-            <ReactQuill
-                ref={editor}
-                onChange={SetDelta}
-                className="text-white"
-                defaultValue={JSON.parse(note.contents)}
-                theme="bubble" />
-        </div>
-    )
-}

@@ -1,8 +1,9 @@
 import axios from "axios"
 import { Note } from "../models/note";
+import { BASE_URL, TEST_UID } from "../lib/api-config";
 
-export async function GetNotes(uid: string = "680ee4867874d6af0995d534"): Promise<Note[]> {
-    const res = await axios.get(`http://localhost:5000/api/note/`,
+export async function GetNotes(uid: string = TEST_UID): Promise<Note[]> {
+    const res = await axios.get(`${BASE_URL}/note`,
         {
             headers: {
                 Authorization: `Bearer ${uid}`
@@ -11,12 +12,42 @@ export async function GetNotes(uid: string = "680ee4867874d6af0995d534"): Promis
     return res.data.notes as Note[];
 }
 
-export async function GetNote(noteId: string, uid: string = "680ee4867874d6af0995d534"): Promise<Note> {
-    const res = await axios.get(`http://localhost:5000/api/note/${noteId}`,
+export async function GetNote(noteId: string, uid: string = TEST_UID): Promise<Note> {
+    const res = await axios.get(`${BASE_URL}/note/${noteId}`,
         {
             headers: {
                 Authorization: `Bearer ${uid}`
             }
+        });
+    return res.data.note as Note;
+}
+
+export async function UpdateNote(note: Note, uid: string = TEST_UID): Promise<Note> {
+    const res = await axios.put(`${BASE_URL}/note`, note,
+        {
+            headers: {
+                Authorization: `Bearer ${uid}`
+            },
+        });
+    return res.data.note as Note;
+}
+
+export async function CreateNote(note: Note, uid: string = TEST_UID): Promise<Note> {
+    const res = await axios.post(`${BASE_URL}/note`, { ...note },
+        {
+            headers: {
+                Authorization: `Bearer ${uid}`
+            },
+        });
+    return res.data.note as Note;
+}
+
+export async function DeleteNote(noteId: string, uid: string = TEST_UID): Promise<Note> {
+    const res = await axios.delete(`${BASE_URL}/note/${noteId}`,
+        {
+            headers: {
+                Authorization: `Bearer ${uid}`
+            },
         });
     return res.data.note as Note;
 }
