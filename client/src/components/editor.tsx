@@ -18,8 +18,6 @@ export default function Editor({ note }: { note: Note }) {
     const autoSaveTimeoutRef = useRef<number>(null);
 
     async function SaveNote(updatedNote: Note): Promise<void> {
-        if(updatedNote._id != note._id) return;
-
         console.log("Saving Note: ", updatedNote)
 
         try {
@@ -29,15 +27,15 @@ export default function Editor({ note }: { note: Note }) {
         }
     };
 
-    function HandleNoteChange(noteId: string) {
-        if(noteId != note._id) return;
+
+    useEffect(() => {
         const updatedNote: Note = {
             ...note,
             title: title,
             contents: JSON.stringify(delta, null, 2)
         }
-        //queryClient.setQueryData(["notes"],
-        //    (prev: Note[]) => prev?.map((note: Note) => note._id == updatedNote._id ? updatedNote : note));
+        queryClient.setQueryData(["notes"],
+            (prev: Note[]) => prev?.map((note: Note) => note._id == updatedNote._id ? updatedNote : note));
 
         if (autoSaveTimeoutRef.current) {
             clearTimeout(autoSaveTimeoutRef.current);
@@ -46,27 +44,21 @@ export default function Editor({ note }: { note: Note }) {
         autoSaveTimeoutRef.current = setTimeout(() => {
             SaveNote(updatedNote);
         }, autoSaveDelay);
-    }
 
-    useEffect(() => {
-        if (autoSaveTimeoutRef.current) {
-            clearTimeout(autoSaveTimeoutRef.current)
+        return () => {
+            if (autoSaveTimeoutRef.current) {
+                clearTimeout(autoSaveTimeoutRef.current)
+            }
         }
-    }, [note._id])
+    }, [title, delta, SaveNote])
 
     function SetDelta(_value: string, _delta: Delta, _source: EmitterSource, editor: ReactQuill.UnprivilegedEditor): void {
-        const newDelta: Delta = editor.getContents(); 
-        if(delta != newDelta){
-            HandleNoteChange(note._id)
-        }
+        const newDelta: Delta = editor.getContents();
         setDelta(newDelta)
     }
 
     function SetTitle(e: React.FormEvent<HTMLHeadingElement>): void {
         const newTitle = e.currentTarget.textContent ?? "";
-        if(title != newTitle){
-            HandleNoteChange(note._id)
-        }
         setTitle(newTitle)
     }
 
@@ -93,7 +85,9 @@ export default function Editor({ note }: { note: Note }) {
         editorRef.current?.editor?.setContents(JSON.parse(note.contents));
         if (titleRef.current) {
             titleRef.current.textContent = note.title;
-        }
+        } 
+        setTitle(note.title);
+        setDelta(JSON.parse(note.contents));
     }, [note])
 
     return (
