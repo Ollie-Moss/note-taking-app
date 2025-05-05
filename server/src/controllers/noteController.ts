@@ -74,7 +74,7 @@ export async function GetNote(uid: string, id: string): Promise<INote | null> {
 
 export async function UpdateNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const newNote: Note = req.body as Note;
+        const newNote: Note = req.body.note as Note;
         const note: INote | null = await UpdateNote(req.user._id, newNote);
         if (note === null) {
             res.status(404).json({ message: "Note not found!" })
