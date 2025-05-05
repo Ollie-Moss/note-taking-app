@@ -1,25 +1,24 @@
-import { useLocation } from "react-router";
 import Sidebar from "../../components/sidebar";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Note } from "../../models/note";
 import { GetNote } from "../../controllers/noteController";
-import Editor from "../../components/Editor";
+import Editor from "../../components/editor";
+import { useQuery } from "../../lib/useQuery";
+import Search from "../../components/search";
 
 
 export default function Notes() {
     return (
-        <div className="w-full h-full flex">
-            <Sidebar />
-            <NoteDisplay />
-        </div>
+        <>
+            <Search />
+            <div className="w-full h-full flex">
+                <Sidebar />
+                <NoteDisplay />
+            </div>
+        </>
     )
 }
 
-function useQuery() {
-    const { search } = useLocation();
-
-    return useMemo(() => new URLSearchParams(search), [search]);
-}
 
 function NoteDisplay() {
     const query: URLSearchParams = useQuery();
@@ -28,7 +27,7 @@ function NoteDisplay() {
     useEffect(() => {
         const noteId = query.get("id")
         if (!noteId) return setNote(null);
-        GetNote(noteId).then((note: Note) => {
+        GetNote(noteId).then((note: Note | null) => {
             setNote(note);
         })
     }, [query])
