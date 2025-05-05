@@ -1,21 +1,16 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React from "react";
 import { Link } from "react-router"
 import { faHouse } from "@fortawesome/free-solid-svg-icons/faHouse";
 import { faFile, faMagnifyingGlass, faPlus, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { Note } from "../models/note";
-import { useEffect, useState } from "react";
-import { CreateNote, GetNotes } from "../controllers/noteController";
+import { CreateNote } from "../controllers/noteController";
+import useNotes from "../lib/useNotes";
 
 
 export default function Sidebar() {
     // fetch notes
-    const [notes, setNotes] = useState<Note[]>([]);
-
-    useEffect(() => {
-        GetNotes().then((notes: Note[]) => {
-            setNotes(notes);
-        });
-    }, []);
+    const { notes, isPending, error } = useNotes();
 
     async function CreateNoteHandler(_e: React.MouseEvent<SVGSVGElement>) {
         const note: Note = {
@@ -51,7 +46,7 @@ export default function Sidebar() {
                         className="text-white"
                         icon={faPlus} />
                 </li>
-                {notes.map(note => (<NavLink
+                {notes?.map(note => (<NavLink
                     key={note._id}
                     title={note.title}
                     icon={faFile}

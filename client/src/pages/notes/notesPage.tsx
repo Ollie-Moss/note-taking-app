@@ -1,44 +1,55 @@
 import Sidebar from "../../components/sidebar";
 import { useEffect, useState } from "react";
-import { Note } from "../../models/note";
 import { GetNote } from "../../controllers/noteController";
 import Editor from "../../components/editor";
-import { useQuery } from "../../lib/useQuery";
+import { useQueryParams } from "../../lib/useQueryParams";
 import Search from "../../components/search";
+import { QueryClient, QueryClientProvider, useQuery, } from '@tanstack/react-query'
 
+const queryClient = new QueryClient()
 
 export default function Notes() {
+    const query: URLSearchParams = useQueryParams();
+    const [noteId, setNoteId] = useState<string>("");
+    const [search, setSearch] = useState<boolean>(false);
+
+    useEffect(() => {
+        const noteId = query.get("id")
+        const searchQuery = query.get("search")
+        setNoteId(noteId ?? "")
+        setSearch(searchQuery != null ? true : false)
+    }, [query])
+
     return (
-        <>
-            <Search />
+        <QueryClientProvider client={queryClient}>
+            {search ?
+                <Search /> :
+                <></>
+            }
             <div className="w-full h-full flex">
                 <Sidebar />
-                <NoteDisplay />
+                {!noteId || noteId === "" ?
+                    <div className="h-full w-full bg-bg"></div> :
+                    <NoteDisplay noteId={noteId} />
+                }
             </div>
-        </>
+        </QueryClientProvider>
     )
 }
 
 
-function NoteDisplay() {
-    const query: URLSearchParams = useQuery();
-    const [note, setNote] = useState<Note | null>(null);
-
-    useEffect(() => {
-        const noteId = query.get("id")
-        if (!noteId) return setNote(null);
-        GetNote(noteId).then((note: Note | null) => {
-            setNote(note);
-        })
-    }, [query])
-
+function NoteDisplay({ noteId }: { noteId: string }) {
+    const { isPending, error, data } = useQuery({
+        queryKey: ['notes', noteId],
+        queryFn: () => GetNote(noteId)
+    })
 
     return (
         <div className="h-full w-full bg-bg">
-            {note ?
-                <Editor note={note} />
-                :
+            {isPending || error || !data ?
                 <></>
+                :
+                <Editor note={data} />
             }
         </div >
     )
