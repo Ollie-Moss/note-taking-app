@@ -7,10 +7,12 @@ import {
     GetNoteHandler,
     UpdateNoteHandler
 } from "../controllers/noteController";
+import { noteValidator } from "../middlewares/noteValidator";
 
 const NoteRouter: Router = Router()
 
 NoteRouter.use(authHandler);
+NoteRouter.use(noteValidator)
 
 NoteRouter.get('/api/note', GetAllNotesHandler)
 NoteRouter.get('/api/note/:id', GetNoteHandler)

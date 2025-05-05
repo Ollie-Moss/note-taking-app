@@ -17,15 +17,15 @@ export default function Sidebar() {
         });
     }, []);
 
-    function CreateNoteHandler(_e: React.MouseEvent<SVGSVGElement>) {
+    async function CreateNoteHandler(_e: React.MouseEvent<SVGSVGElement>) {
         const note: Note = {
             _id: "",
             title: "",
             contents: "",
             uid: ""
         };
-        console.log(note)
-        CreateNote(note);
+        const newNote = await CreateNote(note);
+        console.log(newNote)
     }
 
     return (

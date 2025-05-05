@@ -17,6 +17,7 @@ export async function CreateNoteHandler(req: Request, res: Response, next: NextF
 }
 
 export async function CreateNote(note: INote): Promise<INote> {
+    console.log(note);
     const newNote: INote = await NoteModel.create(note)
         .then(data => data.toObject({ versionKey: false }));
     return newNote;
