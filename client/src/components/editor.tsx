@@ -1,61 +1,54 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Note } from "../models/note";
 import { UpdateNote } from "../controllers/noteController";
-import Quill, { Delta, EmitterSource } from "quill";
+import { Delta, EmitterSource } from "quill";
 import ReactQuill from "react-quill-new";
 
 export default function Editor({ note }: { note: Note }) {
-    // minutes
-    const autoSaveInterval = 1;
-    const editorRef = useRef<ReactQuill>(null);
+    const autoSaveDelay = 2000;
 
-    const [autoSave, setAutoSave] = useState<boolean>(false);
+    const editorRef = useRef<ReactQuill>(null);
 
     const [delta, setDelta] = useState<Delta>(JSON.parse(note.contents));
     const [title, setTitle] = useState<string>(note.title);
 
-    useEffect(() => {
-        // autosave
-        const saveNote = setInterval(function() {
-            setAutoSave(true);
-        }, autoSaveInterval * 60 * 1000);
+    const autoSaveTimeoutRef = useRef<number>(null);
 
-        // Cleanup save interval
-        return () => {
-            clearInterval(saveNote);
-        }
-    }, []);
-
-
-    useEffect(() => {
-        if (autoSave) {
-            SaveNote();
-            setAutoSave(false);
-        }
-    }, [autoSave, note, title, delta, SaveNote])
-
-    async function SaveNote(): Promise<void> {
-        const updatedNote: Note = {
-            ...note,
-            title: title,
-            contents: JSON.stringify(delta, null, 2)
-        }
-        console.log("Saving Note: ", updatedNote)
+    async function SaveNote(note: Note): Promise<void> {
+        console.log("Saving Note: ", note)
 
         try {
-            await UpdateNote(updatedNote);
+            await UpdateNote(note);
         } catch (error) {
             console.log(error)
         }
     };
 
+    function HandleNoteChange() {
+        const updatedNote: Note = {
+            ...note,
+            title: title,
+            contents: JSON.stringify(delta, null, 2)
+        }
+
+        if (autoSaveTimeoutRef.current) {
+            clearTimeout(autoSaveTimeoutRef.current);
+        }
+
+        autoSaveTimeoutRef.current = setTimeout(() => {
+            SaveNote(updatedNote);
+        }, autoSaveDelay);
+    }
+
     function SetDelta(_value: string, _delta: Delta, _source: EmitterSource, editor: ReactQuill.UnprivilegedEditor): void {
         const editorDelta: Delta = editor.getContents();
         setDelta(editorDelta);
+        HandleNoteChange();
     }
 
     function SetTitle(e: React.FormEvent<HTMLHeadingElement>): void {
         setTitle(e.currentTarget.textContent ?? "");
+        HandleNoteChange();
     }
 
     // Ensures only plain text can be pasted
@@ -83,7 +76,6 @@ export default function Editor({ note }: { note: Note }) {
 
     return (
         <div className="px-24 pt-10">
-            <button onClick={SaveNote} >Save</button>
             <h1 className="text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1"
                 contentEditable={true}
                 suppressContentEditableWarning={true}
