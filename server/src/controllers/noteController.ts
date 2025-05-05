@@ -8,8 +8,20 @@ import { Types } from "mongoose";
 
 export async function CreateNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
+        if (!req.body?.note) return next();
+
         const newNote: INote = req.body.note as INote;
-        const note: INote = await CreateNote(newNote);
+
+        if (!Types.ObjectId.isValid(newNote.uid)) {
+            throw new AppError("Invalid uid provided!", 404);
+        }
+
+        const validNote: INote = {
+            title: newNote.title,
+            contents: newNote.contents,
+            uid: newNote.uid
+        }
+        const note: INote = await CreateNote(validNote);
         res.status(200).send({ message: "Note created!", note: note });
     } catch (error) {
         next(error)
