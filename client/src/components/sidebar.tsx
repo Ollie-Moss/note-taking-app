@@ -40,14 +40,15 @@ export default function Sidebar() {
                 <NavLink
                     title={"Search"}
                     icon={faMagnifyingGlass}
+                    search="?search"
                 />
             </ul>
             <ul className="mt-[50%]">
                 <li className="flex items-center justify-between">
                     <p className="text-sm text-white">Notes</p>
-                    <FontAwesomeIcon 
+                    <FontAwesomeIcon
                         onClick={CreateNoteHandler}
-                        className="text-white" 
+                        className="text-white"
                         icon={faPlus} />
                 </li>
                 {notes.map(note => (<NavLink

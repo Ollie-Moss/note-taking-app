@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios"
 import { Note } from "../models/note";
-import { BASE_URL, TEST_UID } from "../lib/api-config";
+import { BASE_URL, TEST_UID } from "../lib/apiConfig";
 
 export async function GetNotes(uid: string = TEST_UID): Promise<Note[]> {
     const res = await axios.get(`${BASE_URL}/note`,

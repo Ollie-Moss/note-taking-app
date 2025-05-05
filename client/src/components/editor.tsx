@@ -4,7 +4,7 @@ import { UpdateNote } from "../controllers/noteController";
 import { Delta, EmitterSource } from "quill";
 import ReactQuill from "react-quill-new";
 
-export default function Editor({ note }: { note: Note }) {
+export default function Editor({ note, readOnly }: { note: Note, readOnly?: boolean }) {
     // minutes
     const autoSaveInterval = 1;
 
@@ -88,6 +88,7 @@ export default function Editor({ note }: { note: Note }) {
                 onChange={SetDelta}
                 className="text-white "
                 defaultValue={delta}
+                readOnly={readOnly}
                 theme="bubble">
 
                 <div className="[&>*]:outline-none [&>*:focus]:bg-bg-dark [&>*]:rounded-lg"/>
