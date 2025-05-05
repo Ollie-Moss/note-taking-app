@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Note } from "../models/note";
 import { UpdateNote } from "../controllers/noteController";
-import { Delta, EmitterSource } from "quill";
+import Quill, { Delta, EmitterSource } from "quill";
 import ReactQuill from "react-quill-new";
 
-export default function Editor({ note, readOnly }: { note: Note, readOnly?: boolean }) {
+export default function Editor({ note }: { note: Note }) {
     // minutes
     const autoSaveInterval = 1;
+    const editorRef = useRef<ReactQuill>(null);
 
     const [autoSave, setAutoSave] = useState<boolean>(false);
 
@@ -24,6 +25,7 @@ export default function Editor({ note, readOnly }: { note: Note, readOnly?: bool
             clearInterval(saveNote);
         }
     }, []);
+
 
     useEffect(() => {
         if (autoSave) {
@@ -75,6 +77,10 @@ export default function Editor({ note, readOnly }: { note: Note, readOnly?: bool
         e.currentTarget.dispatchEvent(changeEvent);
     }
 
+    useEffect(() => {
+        editorRef.current?.editor?.setContents(JSON.parse(note.contents));
+    }, [note])
+
     return (
         <div className="px-24 pt-10">
             <button onClick={SaveNote} >Save</button>
@@ -85,13 +91,14 @@ export default function Editor({ note, readOnly }: { note: Note, readOnly?: bool
                 onPaste={HandlePaste}
             >{note.title}</h1>
             <ReactQuill
+                ref={editorRef}
                 onChange={SetDelta}
-                className="text-white "
+                className="text-white"
                 defaultValue={delta}
-                readOnly={readOnly}
+                placeholder=""
+                key={note.contents}
                 theme="bubble">
-
-                <div className="[&>*]:outline-none [&>*:focus]:bg-bg-dark [&>*]:rounded-lg"/>
+                <div className="[&>*]:outline-none [&>*:focus]:bg-bg-dark [&>*]:rounded-lg" />
             </ReactQuill>
         </div>
     )
