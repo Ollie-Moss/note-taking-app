@@ -3,7 +3,6 @@ import { useQueryParams } from "../lib/useQueryParams";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFile } from "@fortawesome/free-solid-svg-icons";
 import { Note } from "../models/note";
-import { GetNotes } from "../controllers/noteController";
 import ReactQuill from "react-quill-new";
 import Fuse from "fuse.js"
 import { useNavigate } from "react-router";
@@ -58,6 +57,10 @@ export default function Search() {
                     search: `?id=${results[selectedIndex]._id}`
                 })
             }
+            if (e.key == "Escape") {
+                e.preventDefault();
+                query.delete("search")
+            }
         }
 
         window.addEventListener("keydown", Overrides);
@@ -110,11 +113,24 @@ function SearchPreview({ note }: { note: Note }) {
 }
 
 function SearchResults({ notes, selectedIndex, setSelectedIndex }: { notes: Note[], selectedIndex: number, setSelectedIndex: React.Dispatch<React.SetStateAction<number>> }) {
+    const navigate = useNavigate();
+    function resultClicked(index: number){
+        if(selectedIndex == index){
+            navigate({
+                pathname: "/notes",
+                search: notes[index]._id })
+        }
+        setSelectedIndex(index)
+
+    }
 
     return (
         <div className="h-full bg-bg p-4 rounded-lg flex flex-col gap-2 justify-end">
             {notes.map((note, i) =>
-                <div key={i} className={`flex items-center gap-2 p-3 rounded-lg text-white ${i === selectedIndex ? "bg-bg-dark" : ""}`}>
+                <div
+                    key={i}
+                    onClick={() => resultClicked(i)}
+                    className={`hover:cursor-pointer flex items-center gap-2 p-3 rounded-lg text-white ${i === selectedIndex ? "bg-bg-dark" : ""}`}>
                     <FontAwesomeIcon icon={faFile} />
                     {note.title}
                 </div>
