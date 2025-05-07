@@ -4,9 +4,9 @@ import { GetNote } from "../../controllers/noteController";
 import Editor from "../../components/editor";
 import { useQueryParams } from "../../lib/useQueryParams";
 import Search from "../../components/search";
-import { QueryClient, QueryClientProvider, useQuery, } from '@tanstack/react-query'
-import { NotesContextProvider, useNotes } from "../../lib/noteContext";
-import { NewNote, Note } from "../../models/note";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { NotesContextProvider } from "../../lib/noteContext";
+import { Note } from "../../models/note";
 import { useNavigate } from "react-router";
 
 const queryClient = new QueryClient()

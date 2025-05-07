@@ -4,6 +4,7 @@ import useNotesQuery from "./useNotesQuery";
 import { useQueryClient } from "@tanstack/react-query";
 import { CreateNote, DeleteNote, UpdateNote } from "../controllers/noteController";
 import { useNavigate } from "react-router";
+import { useToast } from "./toastProvider";
 
 const notesContext = createContext<{
     notes: Note[],
@@ -35,6 +36,7 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
     const { notes, isPending, error } = useNotesQuery();
     const queryClient = useQueryClient();
     const navigate = useNavigate();
+    const { createNotification } = useToast();
 
     const autoSaveDelay = 2000;
     const autoSaveTimeoutRef = useRef<{ [key: number]: number }>({});
@@ -56,9 +58,11 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
         autoSaveTimeoutRef.current[updatedNote._id] = setTimeout(async () => {
             try {
                 await UpdateNote(updatedNote);
+                createNotification({ message: "Saved Note!", type: "success" })
             } catch (error) {
                 // note was not updated so roll back query client
                 queryClient.setQueryData(["notes"], (prev: Note[]) => prevNotes);
+                createNotification({ message: "Something went wrong while saving!", type: "error" })
             }
         }, autoSaveDelay);
     }
