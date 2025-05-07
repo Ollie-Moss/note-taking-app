@@ -72,7 +72,11 @@ function NavLink({ title, icon, to, search }: { title: string, icon: IconDefinit
             }} >
             <li className="flex gap-[20px] items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
                 <FontAwesomeIcon className="text-white size-[24px]" icon={icon} />
-                <p className="text-sm text-white">{title == "" ? "Untitled Note" : title}</p>
+                {title == "" ?
+                    <p className="text-sm text-white opacity-[0.6] italic">Untitled Note</p>
+                    :
+                    <p className="text-sm text-white">{title}</p>
+                }
             </li >
         </Link>
     )

@@ -59,6 +59,9 @@ export default function Editor({ note }: { note: Note }) {
 
     function SetTitle(e: React.FormEvent<HTMLHeadingElement>): void {
         const newTitle = e.currentTarget.textContent ?? "";
+        if(e.currentTarget.textContent == ""){
+            e.currentTarget.innerText = ""
+        }
         setTitle(newTitle)
     }
 
@@ -85,14 +88,16 @@ export default function Editor({ note }: { note: Note }) {
         editorRef.current?.editor?.setContents(JSON.parse(note.contents));
         if (titleRef.current) {
             titleRef.current.textContent = note.title;
-        } 
+        }
         setTitle(note.title);
         setDelta(JSON.parse(note.contents));
     }, [note])
+    const untitledNoteStyle = "after:inline after:font-light after:opacity-[0.6] after:italic after:content-['Untitled_Note...']"
 
     return (
         <div className="px-24 pt-10">
-            <h1 className="text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1"
+            <h1 className={`text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1
+                            ${title == "" ? untitledNoteStyle : ""} `}
                 contentEditable={true}
                 suppressContentEditableWarning={true}
                 onInput={SetTitle}
@@ -103,7 +108,7 @@ export default function Editor({ note }: { note: Note }) {
                 ref={editorRef}
                 onChange={SetDelta}
                 className="text-white"
-                placeholder=""
+                placeholder="Start your note here..."
                 key={note.contents}
                 theme="bubble">
                 <div className="[&>*]:outline-none [&>*:focus]:bg-bg-dark [&>*]:rounded-lg" />
