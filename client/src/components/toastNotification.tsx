@@ -19,13 +19,17 @@ export default function ToastNotification({ toast }: { toast: Toast }) {
     const { closeToast } = useToast()
     const toastRef = useRef<HTMLDivElement>(null)
 
+    function FadeOut() {
+        if (!toastRef.current) return;
+        toastRef.current.style.animation = `fadeAndSquash 0.4s ease-out forwards`
+        toastRef.current.onanimationend = () => closeToast(toast);
+    }
+
     useEffect(() => {
         setTimeout(() => {
-            if (!toastRef.current) return;
-            toastRef.current.style.animation = `fadeAndSquash 0.4s ease-out forwards`
-            toastRef.current.onanimationend = () => closeToast(toast);
+            FadeOut();
         }, toast.length ?? 2000)
-    }, [])
+    }, [FadeOut])
 
     return (
         <div
@@ -40,7 +44,7 @@ export default function ToastNotification({ toast }: { toast: Toast }) {
                 <p className="pb-1"> {toast.message} </p>
             </div>
             <FontAwesomeIcon
-                onClick={() => closeToast(toast)}
+                onClick={FadeOut}
                 className="pt-1" icon={faTimes} />
         </div >
     )
