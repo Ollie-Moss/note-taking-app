@@ -133,7 +133,7 @@ function SearchResults({ closeSearch, notes, selectedIndex, setSelectedIndex }: 
         if (selectedIndex == index) {
             navigate({
                 pathname: "/notes",
-                search: notes[index]._id
+                search: `id=${notes[index]._id}`
             })
             closeSearch();
         }
