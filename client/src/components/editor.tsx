@@ -18,7 +18,6 @@ export default function Editor({ note }: { note: Note }) {
             shouldUpdate.current = true;
             return;
         }
-
         const updatedNote: Note = {
             ...note,
             title: title,
@@ -29,11 +28,8 @@ export default function Editor({ note }: { note: Note }) {
 
     useEffect(() => {
         shouldUpdate.current = false;
-        // manually update the elements as quill has some weird quirks
+        // manually update as quill has some weird quirks
         editorRef.current?.editor?.setContents(JSON.parse(note.contents));
-        if (titleRef.current) {
-            titleRef.current.textContent = note.title;
-        }
         setTitle(note.title);
         setDelta(JSON.parse(note.contents));
     }, [note])
@@ -75,7 +71,7 @@ export default function Editor({ note }: { note: Note }) {
     return (
         <div className="px-24 pt-10">
             <h1 className={`text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1
-                            ${title == "" ? untitledNoteStyle : ""} `}
+                            ${note.title == "" ? untitledNoteStyle : ""} `}
                 contentEditable={true}
                 suppressContentEditableWarning={true}
                 onInput={SetTitle}

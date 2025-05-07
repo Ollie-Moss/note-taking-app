@@ -16,7 +16,7 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
                 <NavLink
                     title={"Home"}
                     icon={faHouse}
-                    to={"/"}
+                    to={"/notes/home"}
                 />
                 <li
                     onClick={onSearchClick}

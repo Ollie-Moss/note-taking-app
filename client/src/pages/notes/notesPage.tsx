@@ -8,10 +8,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { NotesContextProvider } from "../../lib/noteContext";
 import { Note } from "../../models/note";
 import { useNavigate } from "react-router";
+import Header from "../../components/header";
 
 const queryClient = new QueryClient()
 
-export default function Notes() {
+export default function Notes({ home }: { home: boolean }) {
     const query: URLSearchParams = useQueryParams();
     const [noteId, setNoteId] = useState<string>("");
     const [isSearchVisible, setIsSearchVisible] = useState<boolean>(false);
@@ -27,8 +28,9 @@ export default function Notes() {
                 <Search isOpen={isSearchVisible} closeSearch={() => setIsSearchVisible(false)} />
                 <div className="w-full h-full flex">
                     <Sidebar onSearchClick={() => setIsSearchVisible(prev => !prev)} />
-                    {!noteId || noteId === "" ?
-                        <div className="h-full w-full bg-bg"></div> :
+                    {home ?
+                        <div>Home</div>
+                        :
                         <NoteDisplay noteId={noteId} />
                     }
                 </div>
@@ -45,6 +47,7 @@ function NoteDisplay({ noteId }: { noteId: string }) {
     // other issues
     const navigate = useNavigate();
     const [note, setNote] = useState<Note | null>(null);
+
     useEffect(() => {
         GetNote(noteId)
             .then(newNote => {
@@ -57,10 +60,10 @@ function NoteDisplay({ noteId }: { noteId: string }) {
 
     return (
         <div className="h-full w-full bg-bg">
-            {note ?
-                <Editor note={note} />
-                :
+            {!noteId || noteId == "" || !note ?
                 <></>
+                :
+                <Editor note={note} />
             }
         </div >
     )
