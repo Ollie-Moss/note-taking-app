@@ -3,12 +3,16 @@ export function NewNote(): Note {
         _id: "temp_id",
         title: "",
         contents: "{}",
-        uid: ""
+        favourite: false,
+        editedAt: new Date(Date.now()),
+        uid: "",
     } as Note;
 }
 export type Note = {
     _id: string,
     title: string,
     contents: string,
+    favourite: boolean,
+    editedAt: Date,
     uid: string,
 }

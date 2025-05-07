@@ -43,6 +43,7 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
 
     function updateNote(updatedNote: Note) {
         if (updatedNote._id == "temp_id") return;
+        updatedNote.editedAt = new Date(Date.now());
 
         let prevNotes: Note[] = [];
         queryClient.setQueryData(["notes"],
@@ -98,12 +99,7 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
 
     function getNote(noteId: string): Note | null {
         const filteredNotes: Note[] = notes.filter(note => note._id == noteId);
-        return filteredNotes.length > 0 ? filteredNotes[0] : {
-            _id: noteId,
-            title: "",
-            contents: "{}",
-            uid: ""
-        }
+        return filteredNotes.length > 0 ? filteredNotes[0] : { ...NewNote(), _id: noteId }
     }
 
     async function refreshNotes() {
