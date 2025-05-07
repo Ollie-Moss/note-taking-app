@@ -1,9 +1,12 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Link, useNavigate } from "react-router"
+import { Link, useLocation, useNavigate } from "react-router"
 import { faHouse } from "@fortawesome/free-solid-svg-icons/faHouse";
 import { faFile, faMagnifyingGlass, faPlus, faTimes, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { useNotes } from "../lib/noteContext";
 import { useConfirm } from "../lib/confirmationProvider";
+import { useEffect, useState } from "react";
+import { useQueryParams } from "../lib/useQueryParams";
+import { Note } from "../models/note";
 
 
 export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }) {
@@ -35,10 +38,8 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
                 </li>
                 {notes?.map(note => (<NoteLink
                     key={note._id}
-                    deleteNote={() => deleteNote(note._id)}
-                    title={note.title}
-                    to={"/notes"}
-                    search={`?id=${note._id}`}
+                    deleteNote={deleteNote}
+                    note={note}
                 />))}
             </ul>
 
@@ -46,36 +47,40 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
     )
 }
 
-function NoteLink({ title, to, search, deleteNote }: { title: string, to?: string, search?: string, deleteNote: () => void }) {
+function NoteLink({ note, deleteNote }: { note: Note, deleteNote: (id: string) => void }) {
     const navigate = useNavigate();
     const { Confirm } = useConfirm()
+    const location = useLocation()
 
     async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault();
         const confirmed = await Confirm("Are you sure you wish to delete this note?");
         if (confirmed) {
-            deleteNote();
-            navigate({
-                pathname: "/notes", search: ""
-            })
+            deleteNote(note._id);
+            const params = new URLSearchParams(location.search)
+            if (location.pathname == "/notes" && params.has("id", note._id)) {
+                navigate({
+                    pathname: "/notes", search: ""
+                })
+            }
         }
     }
 
     return (
         <Link
             to={{
-                pathname: to,
-                search: search
+                pathname: "/notes",
+                search: `?id=${note._id}`
             }} >
             <li className="transition w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
                 <div className="justify-between overflow-x-hidden flex items-center gap-[8px]">
                     <FontAwesomeIcon className="text-white size-[20px]" icon={faFile} />
                     <p className={`flex-1 overflow-x-hidden whitespace-nowrap text-ellipsis text-xs text-white 
-                                ${title == "" ? "opacity-[0.6] italic" : ""}`}>
-                        {title == "" ?
+                                ${note.title == "" ? "opacity-[0.6] italic" : ""}`}>
+                        {note.title == "" ?
                             "Untitled Note"
                             :
-                            title
+                            note.title
                         }</p>
                 </div>
                 <FontAwesomeIcon

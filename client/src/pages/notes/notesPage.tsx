@@ -9,6 +9,7 @@ import { NotesContextProvider } from "../../lib/noteContext";
 import { Note } from "../../models/note";
 import { useNavigate } from "react-router";
 import Header from "../../components/header";
+import NotesHomeSection from "../../components/notesHomeSection";
 
 const queryClient = new QueryClient()
 
@@ -29,7 +30,7 @@ export default function Notes({ home }: { home: boolean }) {
                 <div className="w-full h-full flex">
                     <Sidebar onSearchClick={() => setIsSearchVisible(prev => !prev)} />
                     {home ?
-                        <div>Home</div>
+                        <NotesHomeSection />
                         :
                         <NoteDisplay noteId={noteId} />
                     }
