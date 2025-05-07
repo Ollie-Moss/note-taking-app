@@ -81,7 +81,7 @@ export default function Search({ closeSearch }: { closeSearch: () => void }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="w-11/12 lg:w-4/6 h-[80vh] max-h-[90vh] overflow-auto rounded-lg shadow-xl relative flex gap-4">
+            <div className="w-11/12 lg:w-5/6 h-[80vh] max-h-[90vh] overflow-auto rounded-lg shadow-xl relative flex gap-4">
                 <div className="flex flex-col gap-4 w-1/2">
                     <SearchResults
                         closeSearch={closeSearch}
@@ -105,12 +105,13 @@ function SearchPreview({ note }: { note: Note }) {
         editorRef.current?.editor?.setContents(JSON.parse(note.contents));
     }, [note])
 
+    const untitledNoteStyle = "after:inline after:font-light after:opacity-[0.6] after:italic after:content-['Untitled_Note...']"
     return (
         <div className="bg-bg p-4 w-1/2 rounded-lg break-words overflow-y-scroll">
             {note ?
                 <>
-                    <h1 className="text-white text-lg rounded-lg px-2 py-1"> {note.title}
-                    </h1>
+                    <h1 className={`text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1
+                            ${note.title == "" ? untitledNoteStyle : ""} `}>{note.title}</h1>
                     <ReactQuill
                         ref={editorRef}
                         className="text-white"
@@ -120,7 +121,8 @@ function SearchPreview({ note }: { note: Note }) {
                         <div className="[&>*]:outline-none [&>*]:rounded-lg" />
                     </ReactQuill>
                 </>
-                : <p>No Contents</p>
+                :
+                <h1 className="text-white text-md px-2 py-1 after:inline opacity-[0.6] italic ">No Content</h1>
             }
         </div>
     )
