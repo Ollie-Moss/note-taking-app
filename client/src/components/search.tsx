@@ -28,32 +28,47 @@ export default function Search({ closeSearch }: { closeSearch: () => void }) {
 
     }, [notes?.length, searchQuery])
 
+    function changeSelectedIndex(amount: number) {
+        setSelectedIndex((prev: number) => {
+            const nextIndex = prev + amount;
+            const lastIndex = notes.length - 1;
+
+            if (nextIndex > lastIndex) {
+                return 0;
+            }
+            if (nextIndex < 0) {
+                return lastIndex;
+            }
+            return nextIndex;
+        })
+    }
+
+
     useEffect(() => {
         function Overrides(e: any): void {
-            if (e.key == "Tab") {
-                e.preventDefault()
-                setSelectedIndex((prev: number) => {
-                    const nextIndex = prev + 1;
-                    const lastIndex = notes.length - 1;
-
-                    if (nextIndex > lastIndex) {
-                        return 0;
-                    }
-                    return nextIndex;
-                })
-            }
-            if (e.key == "Enter") {
-                e.preventDefault();
-                navigate({
-                    pathname: "/notes",
-                    search: `?id=${results[selectedIndex]._id}`
-                })
-                closeSearch();
-
-            }
-            if (e.key == "Escape") {
-                e.preventDefault();
-                closeSearch();
+            switch (e.key) {
+                case "Tab":
+                    e.preventDefault()
+                    changeSelectedIndex(1)
+                    break;
+                case "ArrowUp":
+                    changeSelectedIndex(1)
+                    break;
+                case "ArrowDown":
+                    changeSelectedIndex(-1)
+                    break;
+                case "Escape":
+                    e.preventDefault();
+                    closeSearch();
+                    break;
+                case "Enter":
+                    e.preventDefault();
+                    navigate({
+                        pathname: "/notes",
+                        search: `?id=${results[selectedIndex]._id}`
+                    })
+                    closeSearch();
+                    break;
             }
         }
 
