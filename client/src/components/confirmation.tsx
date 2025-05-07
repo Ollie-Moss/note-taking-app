@@ -1,7 +1,11 @@
+import { useEffect, useRef } from "react";
+
 export default function ConfirmModal({ isOpen, message, onConfirm, onCancel }) {
-    if (!isOpen) return null;
+    const modalRef = useRef<HTMLDivElement>(null)
+
+
     return (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+        <div ref={modalRef} className={`${isOpen ? "opacity-100" : "pointer-events-none opacity-0"} transition fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50`} >
             <div className="bg-bg-dark p-6 rounded-lg shadow-lg max-w-sm w-full">
                 <p className="text-white text-md mb-4">{message}</p>
                 <div className="flex justify-end gap-3">
@@ -18,6 +22,6 @@ export default function ConfirmModal({ isOpen, message, onConfirm, onCancel }) {
                     </button>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };

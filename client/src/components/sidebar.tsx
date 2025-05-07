@@ -20,7 +20,7 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
                 />
                 <li
                     onClick={onSearchClick}
-                    className="hover:cursor-pointer flex gap-[20px] items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
+                    className="transition hover:cursor-pointer flex gap-[20px] items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
                     <FontAwesomeIcon className="text-white size-[20px]" icon={faMagnifyingGlass} />
                     <p className="text-sm text-white">Search</p>
                 </li >
@@ -67,7 +67,7 @@ function NoteLink({ title, to, search, deleteNote }: { title: string, to?: strin
                 pathname: to,
                 search: search
             }} >
-            <li className="w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
+            <li className="transition w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
                 <div className="justify-between overflow-x-hidden flex items-center gap-[8px]">
                     <FontAwesomeIcon className="text-white size-[20px]" icon={faFile} />
                     <p className={`flex-1 overflow-x-hidden whitespace-nowrap text-ellipsis text-xs text-white 
@@ -95,7 +95,7 @@ function NavLink({ title, icon, to, search }: { title: string, icon: IconDefinit
                 pathname: to,
                 search: search
             }} >
-            <li className="flex gap-[20px] items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
+            <li className="transition flex gap-[20px] items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
                 <FontAwesomeIcon className="text-white size-[20px]" icon={icon} />
                 {title == "" ?
                     <p className="text-sm text-white opacity-[0.6] italic">Untitled Note</p>
