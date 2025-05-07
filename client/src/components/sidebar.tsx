@@ -13,7 +13,7 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
     const { notes, createNote, deleteNote } = useNotes();
 
     return (
-        <aside className="bg-bg-dark h-full w-full max-w-[220px] flex flex-col px-[20px]">
+        <aside className="bg-bg-dark h-full w-0 lg:w-full lg:max-w-[220px] flex flex-col lg:px-[20px]">
             <UserProfile />
             <ul className="mt-[20%]">
                 <NavLink
