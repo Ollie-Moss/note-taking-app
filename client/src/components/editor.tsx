@@ -7,12 +7,18 @@ import { useNotes } from "../lib/noteContext";
 export default function Editor({ note }: { note: Note }) {
     const editorRef = useRef<ReactQuill>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
+    const shouldUpdate = useRef<boolean>(false);
 
     const { updateNote } = useNotes()
     const [delta, setDelta] = useState<Delta>(JSON.parse(note.contents));
     const [title, setTitle] = useState<string>(note.title);
 
     useEffect(() => {
+        if (!shouldUpdate.current) {
+            shouldUpdate.current = true;
+            return;
+        }
+
         const updatedNote: Note = {
             ...note,
             title: title,
@@ -22,6 +28,7 @@ export default function Editor({ note }: { note: Note }) {
     }, [title, delta])
 
     useEffect(() => {
+        shouldUpdate.current = false;
         // manually update the elements as quill has some weird quirks
         editorRef.current?.editor?.setContents(JSON.parse(note.contents));
         if (titleRef.current) {
