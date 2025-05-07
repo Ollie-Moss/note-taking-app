@@ -1,8 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { GetNotes } from "../controllers/noteController";
-import { useMemo } from "react";
 
-export default function useNotes() {
+export default function useNotesQuery() {
     const { isPending, error, data } = useQuery({
         queryKey: ["notes"],
         queryFn: () => GetNotes()

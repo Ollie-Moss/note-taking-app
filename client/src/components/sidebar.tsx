@@ -1,39 +1,12 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React from "react";
-import { Link } from "react-router"
+import { Link, useNavigate } from "react-router"
 import { faHouse } from "@fortawesome/free-solid-svg-icons/faHouse";
 import { faFile, faMagnifyingGlass, faPlus, faTimes, IconDefinition } from "@fortawesome/free-solid-svg-icons";
-import { Note } from "../models/note";
-import { CreateNote, DeleteNote } from "../controllers/noteController";
-import useNotes from "../lib/useNotes";
-import { useQueryClient } from "@tanstack/react-query";
+import { useNotes } from "../lib/noteContext";
 
 
 export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }) {
-    const queryClient = useQueryClient()
-
-    // fetch notes
-    const { notes, isPending, error } = useNotes();
-
-    async function DeleteNoteHandler(noteId: string) {
-        const note = await DeleteNote(noteId);
-        queryClient.setQueryData(["notes"],
-            (prev: Note[]) => prev.filter(note => note._id != noteId));
-    }
-
-    async function CreateNoteHandler(_e: React.MouseEvent<SVGSVGElement>) {
-        const note: Note = {
-            _id: "",
-            title: "",
-            contents: "",
-            uid: ""
-        };
-        const newNote = await CreateNote(note);
-        console.log(newNote)
-        queryClient.setQueryData(["notes"],
-            (prev: Note[]) => [...prev, newNote]);
-    }
-
+    const { notes, createNote, deleteNote } = useNotes();
     return (
         <aside className="bg-bg-dark h-full w-full max-w-[220px] flex flex-col px-[20px]">
             <UserProfile />
@@ -54,13 +27,13 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
                 <li className="flex items-center justify-between">
                     <p className="text-sm text-white">Notes</p>
                     <FontAwesomeIcon
-                        onClick={CreateNoteHandler}
+                        onClick={createNote}
                         className="text-white pr-2"
                         icon={faPlus} />
                 </li>
                 {notes?.map(note => (<NoteLink
                     key={note._id}
-                    deleteNote={() => DeleteNoteHandler(note._id)}
+                    deleteNote={() => deleteNote(note._id)}
                     title={note.title}
                     to={"/notes"}
                     search={`?id=${note._id}`}
@@ -72,6 +45,7 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
 }
 
 function NoteLink({ title, to, search, deleteNote }: { title: string, to?: string, search?: string, deleteNote: () => void }) {
+    const navigate = useNavigate();
     return (
         <Link
             to={{
@@ -90,7 +64,7 @@ function NoteLink({ title, to, search, deleteNote }: { title: string, to?: strin
                         }</p>
                 </div>
                 <FontAwesomeIcon
-                    onClick={deleteNote}
+                    onClick={(e) => { e.preventDefault(); deleteNote(); navigate({ pathname: "/notes", search: "" }) }}
                     className="text-white size-[16px]"
                     icon={faTimes} />
             </li >

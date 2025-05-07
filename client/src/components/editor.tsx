@@ -1,32 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import React, { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Note } from "../models/note";
-import { UpdateNote } from "../controllers/noteController";
 import { Delta, EmitterSource } from "quill";
 import ReactQuill from "react-quill-new";
-import { useQueryClient } from "@tanstack/react-query";
+import { useNotes } from "../lib/noteContext";
 
 export default function Editor({ note }: { note: Note }) {
-    const autoSaveDelay = 2000;
-    const queryClient = useQueryClient()
-
     const editorRef = useRef<ReactQuill>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
 
+    const { updateNote } = useNotes()
     const [delta, setDelta] = useState<Delta>(JSON.parse(note.contents));
     const [title, setTitle] = useState<string>(note.title);
-
-    const autoSaveTimeoutRef = useRef<number>(null);
-
-    async function SaveNote(updatedNote: Note): Promise<void> {
-        console.log("Saving Note: ", updatedNote)
-
-        try {
-            await UpdateNote(updatedNote);
-        } catch (error) {
-            console.log(error)
-        }
-    };
-
 
     useEffect(() => {
         const updatedNote: Note = {
@@ -34,23 +18,18 @@ export default function Editor({ note }: { note: Note }) {
             title: title,
             contents: JSON.stringify(delta, null, 2)
         }
-        queryClient.setQueryData(["notes"],
-            (prev: Note[]) => prev?.map((note: Note) => note._id == updatedNote._id ? updatedNote : note));
+        updateNote(updatedNote);
+    }, [title, delta])
 
-        if (autoSaveTimeoutRef.current) {
-            clearTimeout(autoSaveTimeoutRef.current);
+    useEffect(() => {
+        // manually update the elements as quill has some weird quirks
+        editorRef.current?.editor?.setContents(JSON.parse(note.contents));
+        if (titleRef.current) {
+            titleRef.current.textContent = note.title;
         }
-
-        autoSaveTimeoutRef.current = setTimeout(() => {
-            SaveNote(updatedNote);
-        }, autoSaveDelay);
-
-        return () => {
-            if (autoSaveTimeoutRef.current) {
-                clearTimeout(autoSaveTimeoutRef.current)
-            }
-        }
-    }, [title, delta, SaveNote])
+        setTitle(note.title);
+        setDelta(JSON.parse(note.contents));
+    }, [note])
 
     function SetDelta(_value: string, _delta: Delta, _source: EmitterSource, editor: ReactQuill.UnprivilegedEditor): void {
         const newDelta: Delta = editor.getContents();
@@ -59,7 +38,7 @@ export default function Editor({ note }: { note: Note }) {
 
     function SetTitle(e: React.FormEvent<HTMLHeadingElement>): void {
         const newTitle = e.currentTarget.textContent ?? "";
-        if(e.currentTarget.textContent == ""){
+        if (e.currentTarget.textContent == "") {
             e.currentTarget.innerText = ""
         }
         setTitle(newTitle)
@@ -84,14 +63,6 @@ export default function Editor({ note }: { note: Note }) {
         e.currentTarget.dispatchEvent(changeEvent);
     }
 
-    useEffect(() => {
-        editorRef.current?.editor?.setContents(JSON.parse(note.contents));
-        if (titleRef.current) {
-            titleRef.current.textContent = note.title;
-        }
-        setTitle(note.title);
-        setDelta(JSON.parse(note.contents));
-    }, [note])
     const untitledNoteStyle = "after:inline after:font-light after:opacity-[0.6] after:italic after:content-['Untitled_Note...']"
 
     return (

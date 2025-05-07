@@ -1,17 +1,16 @@
-import { SetStateAction, useEffect, useReducer, useRef, useState } from "react";
-import { useQueryParams } from "../lib/useQueryParams";
+import { SetStateAction, useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFile } from "@fortawesome/free-solid-svg-icons";
 import { Note } from "../models/note";
 import ReactQuill from "react-quill-new";
 import Fuse from "fuse.js"
 import { useNavigate } from "react-router";
-import useNotes from "../lib/useNotes";
+import { useNotes } from "../lib/noteContext";
 
 export default function Search({ closeSearch }: { closeSearch: () => void }) {
     const navigate = useNavigate();
 
-    const { notes, isPending, error } = useNotes();
+    const { notes } = useNotes();
 
     const [results, setResults] = useState<Note[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
