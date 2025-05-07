@@ -6,6 +6,27 @@
 @tailwind components;
 @tailwind utilities;
 
-.quill > .ql-container > .ql-editor.ql-blank::before{
+:root {
+    --green: theme(colors.green.600);
+    --blue: theme(colors.blue.500);
+    --red: theme(colors.red.500);
+}
+
+.quill > .ql-container > .ql-editor.ql-blank::before {
     color: rgba(211, 211, 211, 0.6);
+}
+
+@keyframes fadeAndSquash {
+    0% {
+        opacity: 1;
+        max-height: 76px;
+    }
+    50% {
+        opacity: 0;
+        max-height: 76px;
+    }
+    100% {
+        opacity: 0;
+        max-height: 0px;
+    }
 }
