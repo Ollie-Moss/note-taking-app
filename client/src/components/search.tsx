@@ -8,11 +8,8 @@ import Fuse from "fuse.js"
 import { useNavigate } from "react-router";
 import useNotes from "../lib/useNotes";
 
-export default function Search() {
+export default function Search({ closeSearch }: { closeSearch: () => void }) {
     const navigate = useNavigate();
-
-    const query: URLSearchParams = useQueryParams();
-    const [search, setSearch] = useState<boolean>(false)
 
     const { notes, isPending, error } = useNotes();
 
@@ -30,11 +27,6 @@ export default function Search() {
         setResults(fuse.search(searchQuery).map(result => result.item));
 
     }, [notes?.length, searchQuery])
-
-    useEffect(() => {
-        const search = query.get("search")
-        setSearch(search != null ? true : false)
-    }, [query])
 
     useEffect(() => {
         function Overrides(e: any): void {
@@ -56,10 +48,12 @@ export default function Search() {
                     pathname: "/notes",
                     search: `?id=${results[selectedIndex]._id}`
                 })
+                closeSearch();
+
             }
             if (e.key == "Escape") {
                 e.preventDefault();
-                query.delete("search")
+                closeSearch();
             }
         }
 
@@ -75,6 +69,7 @@ export default function Search() {
             <div className="w-11/12 lg:w-4/6 h-[80vh] max-h-[90vh] overflow-auto rounded-lg shadow-xl relative flex gap-4">
                 <div className="flex flex-col gap-4 w-1/2">
                     <SearchResults
+                        closeSearch={closeSearch}
                         notes={results}
                         selectedIndex={selectedIndex}
                         setSelectedIndex={setSelectedIndex} />
@@ -96,29 +91,35 @@ function SearchPreview({ note }: { note: Note }) {
     }, [note])
 
     return (
-        <div className="bg-bg p-4 w-1/2 rounded-lg overflow-scroll">
+        <div className="bg-bg p-4 w-1/2 rounded-lg break-words overflow-y-scroll">
             {note ?
-                <ReactQuill
-                    ref={editorRef}
-                    className="text-white"
-                    readOnly={true}
-                    key={note.contents}
-                    theme="bubble">
-                    <div className="[&>*]:outline-none [&>*]:rounded-lg" />
-                </ReactQuill>
-                : <></>
+                <>
+                    <h1 className="text-white text-lg rounded-lg px-2 py-1"> {note.title}
+                    </h1>
+                    <ReactQuill
+                        ref={editorRef}
+                        className="text-white"
+                        readOnly={true}
+                        key={note.contents}
+                        theme="bubble">
+                        <div className="[&>*]:outline-none [&>*]:rounded-lg" />
+                    </ReactQuill>
+                </>
+                : <p>No Contents</p>
             }
         </div>
     )
 }
 
-function SearchResults({ notes, selectedIndex, setSelectedIndex }: { notes: Note[], selectedIndex: number, setSelectedIndex: React.Dispatch<React.SetStateAction<number>> }) {
+function SearchResults({ closeSearch, notes, selectedIndex, setSelectedIndex }: { closeSearch: () => void, notes: Note[], selectedIndex: number, setSelectedIndex: React.Dispatch<React.SetStateAction<number>> }) {
     const navigate = useNavigate();
-    function resultClicked(index: number){
-        if(selectedIndex == index){
+    function resultClicked(index: number) {
+        if (selectedIndex == index) {
             navigate({
                 pathname: "/notes",
-                search: notes[index]._id })
+                search: notes[index]._id
+            })
+            closeSearch();
         }
         setSelectedIndex(index)
 
@@ -130,7 +131,7 @@ function SearchResults({ notes, selectedIndex, setSelectedIndex }: { notes: Note
                 <div
                     key={i}
                     onClick={() => resultClicked(i)}
-                    className={`hover:cursor-pointer flex items-center gap-2 p-3 rounded-lg text-white ${i === selectedIndex ? "bg-bg-dark" : ""}`}>
+                    className={`select-none hover:cursor-pointer flex items-center gap-2 p-3 rounded-lg text-white ${i === selectedIndex ? "bg-bg-dark" : ""}`}>
                     <FontAwesomeIcon icon={faFile} />
                     {note.title}
                 </div>

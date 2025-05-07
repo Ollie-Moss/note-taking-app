@@ -11,23 +11,21 @@ const queryClient = new QueryClient()
 export default function Notes() {
     const query: URLSearchParams = useQueryParams();
     const [noteId, setNoteId] = useState<string>("");
-    const [search, setSearch] = useState<boolean>(false);
+    const [isSearchVisible, setIsSearchVisible] = useState<boolean>(false);
 
     useEffect(() => {
         const noteId = query.get("id")
-        const searchQuery = query.get("search")
         setNoteId(noteId ?? "")
-        setSearch(searchQuery != null ? true : false)
     }, [query])
 
     return (
         <QueryClientProvider client={queryClient}>
-            {search ?
-                <Search /> :
+            {isSearchVisible ?
+                <Search closeSearch={() => setIsSearchVisible(false)} /> :
                 <></>
             }
             <div className="w-full h-full flex">
-                <Sidebar />
+                <Sidebar onSearchClick={() => setIsSearchVisible(prev => !prev)} />
                 {!noteId || noteId === "" ?
                     <div className="h-full w-full bg-bg"></div> :
                     <NoteDisplay noteId={noteId} />

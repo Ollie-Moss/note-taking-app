@@ -9,7 +9,7 @@ import useNotes from "../lib/useNotes";
 import { useQueryParams } from "../lib/useQueryParams";
 
 
-export default function Sidebar() {
+export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }) {
     const query = useQueryParams();
     // fetch notes
     const { notes, isPending, error } = useNotes();
@@ -25,12 +25,6 @@ export default function Sidebar() {
         console.log(newNote)
     }
 
-    function AddQueryParams(param: string, value: string = "") {
-        const url = new URL(window.location.href);
-        url.search = query.toString();
-        window.history.pushState('', '', url.toString() + "&search");
-    }
-
     return (
         <aside className="bg-bg-dark h-full w-full max-w-[220px] flex flex-col px-[20px]">
             <UserProfile />
@@ -41,8 +35,8 @@ export default function Sidebar() {
                     to={"/"}
                 />
                 <li
-                    onClick={() => AddQueryParams("search")}
-                    className="flex gap-[20px] items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
+                    onClick={onSearchClick}
+                    className="hover:cursor-pointer flex gap-[20px] items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
                     <FontAwesomeIcon className="text-white size-[24px]" icon={faMagnifyingGlass} />
                     <p className="text-sm text-white">Search</p>
                 </li >
