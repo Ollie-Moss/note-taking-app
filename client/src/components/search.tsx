@@ -133,7 +133,11 @@ function SearchResults({ closeSearch, notes, selectedIndex, setSelectedIndex }: 
                     onClick={() => resultClicked(i)}
                     className={`select-none hover:cursor-pointer flex items-center gap-2 p-3 rounded-lg text-white ${i === selectedIndex ? "bg-bg-dark" : ""}`}>
                     <FontAwesomeIcon icon={faFile} />
-                    {note.title}
+                    {note.title == "" ?
+                        <p className="text-sm text-white opacity-[0.6] italic">Untitled Note</p>
+                        :
+                        <p className="text-sm text-white">{note.title}</p>
+                    }
                 </div>
             ).reverse()}
         </div>
