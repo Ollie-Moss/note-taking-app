@@ -26,7 +26,7 @@ const config: Config = {
                 'semantic-green': "#6BDF85",
             },
             fontSize: {
-                xs: '1.083rem',
+                xs: '0.88rem',
                 sm: '1rem',
                 base: '1.167rem',
                 md: '1.5rem',
