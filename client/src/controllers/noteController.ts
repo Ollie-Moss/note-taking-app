@@ -10,7 +10,13 @@ export async function GetNotes(uid: string = TEST_UID): Promise<Note[]> {
                     Authorization: `Bearer ${uid}`
                 }
             });
-        return res.data.notes as Note[];
+        const notes: Note[] = res.data.notes;
+        return notes.map((note: Note) => {
+            return {
+                ...note,
+                editedAt: new Date(note.editedAt)
+            }
+        });
     } catch (error: unknown) {
         throw error;
     }
@@ -27,7 +33,7 @@ export async function GetNote(noteId: string, uid: string = TEST_UID): Promise<N
             .then(res => {
                 return res.data.note as Note;
             })
-        return note;
+        return { ...note, editedAt: new Date(note.editedAt) };
     } catch (error: unknown) {
         throw error;
     }
@@ -35,7 +41,7 @@ export async function GetNote(noteId: string, uid: string = TEST_UID): Promise<N
 
 export async function UpdateNote(note: Note, uid: string = TEST_UID): Promise<Note> {
     try {
-        const res = await axios.put(`${BASE_URL}/note`, { note },
+        const updatedNote = await axios.put(`${BASE_URL}/note`, { note },
             {
                 headers: {
                     Authorization: `Bearer ${uid}`
@@ -44,7 +50,7 @@ export async function UpdateNote(note: Note, uid: string = TEST_UID): Promise<No
             .then(res => {
                 return res.data.note as Note;
             })
-        return res;
+        return { ...updatedNote, editedAt: new Date(updatedNote.editedAt) };
     } catch (error: unknown) {
         throw error
     }
@@ -58,7 +64,8 @@ export async function CreateNote(note: Note, uid: string = TEST_UID): Promise<No
                     Authorization: `Bearer ${uid}`
                 },
             });
-        return res.data.note as Note;
+        const newNote = res.data.note as Note;
+        return { ...newNote, editedAt: new Date(newNote.editedAt) };
     } catch (error: unknown) {
         throw error
     }
@@ -73,7 +80,8 @@ export async function DeleteNote(noteId: string, uid: string = TEST_UID): Promis
                     Authorization: `Bearer ${uid}`
                 },
             });
-        return res.data.note as Note;
+        const note = res.data.note as Note;
+        return { ...note, editedAt: new Date(note.editedAt) };
     } catch (error: unknown) {
         throw error
     }

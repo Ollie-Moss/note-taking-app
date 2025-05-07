@@ -43,6 +43,7 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
 
     function updateNote(updatedNote: Note) {
         if (updatedNote._id == "temp_id") return;
+        updatedNote.editedAt = new Date(Date.now());
 
         let prevNotes: Note[] = [];
         queryClient.setQueryData(["notes"],
@@ -61,8 +62,9 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
                 createNotification({ message: "Saved Note!", type: "success" })
             } catch (error) {
                 // note was not updated so roll back query client
+                console.error(error)
                 queryClient.setQueryData(["notes"], (prev: Note[]) => prevNotes);
-                createNotification({ message: "Something went wrong while saving!", type: "error" })
+                createNotification({ message: "Something went wrong while saving! ", type: "error" })
             }
         }, autoSaveDelay);
     }
@@ -89,6 +91,7 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
             let newNote = await CreateNote(note);
             queryClient.setQueryData(["notes"],
                 (prev: Note[]) => [...prev, newNote]);
+            navigate({ pathname: "/notes", search: `?id=${newNote._id}` })
         } catch (error) {
             // note
             console.log(error)
@@ -98,12 +101,7 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
 
     function getNote(noteId: string): Note | null {
         const filteredNotes: Note[] = notes.filter(note => note._id == noteId);
-        return filteredNotes.length > 0 ? filteredNotes[0] : {
-            _id: noteId,
-            title: "",
-            contents: "{}",
-            uid: ""
-        }
+        return filteredNotes.length > 0 ? filteredNotes[0] : { ...NewNote(), _id: noteId }
     }
 
     async function refreshNotes() {

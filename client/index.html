@@ -1,14 +1,17 @@
 <!doctype html>
-<html class="w-full" style="min-height: 100vh;" lang="en">
-    <head >
+<html style="min-width: 100vw; min-height: 100vh" lang="en">
+    <head>
         <meta charset="UTF-8" />
         <!--<link rel="icon" type="image/svg+xml" href="/vite.svg" />-->
-        <link href="/src/style.css" rel="stylesheet">
+        <link href="/src/style.css" rel="stylesheet" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Notes</title>
     </head>
-    <body class="bg-bg flex " style="min-height: 100vh;">
-        <div id="root" class="bg-bg flex-1"></div>
+    <body
+        class="overflow-x-hidden bg-bg flex"
+        style="min-width: 100vw; min-height: 100vh"
+    >
+        <div id="root" class="bg-bg w-full h-[100%]"></div>
         <script type="module" src="/src/main.tsx"></script>
     </body>
 </html>
