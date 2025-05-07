@@ -28,7 +28,7 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
                     <p className="text-sm text-white">Notes</p>
                     <FontAwesomeIcon
                         onClick={createNote}
-                        className="text-white pr-2"
+                        className="hover:cursor-pointer text-white pr-2"
                         icon={faPlus} />
                 </li>
                 {notes?.map(note => (<NoteLink
