@@ -6,20 +6,23 @@ import Notes from './pages/notes/notesPage.tsx'
 import Login from './pages/auth/loginPage.tsx'
 import Error from './pages/error/errorPage.tsx'
 import { ToastProvider } from './lib/toastProvider.tsx'
+import { ConfirmationProvider } from './lib/confirmationProvider.tsx'
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
-        <ToastProvider >
-            <BrowserRouter>
-                <Routes>
+        <ToastProvider>
+            <ConfirmationProvider>
+                <BrowserRouter>
+                    <Routes>
 
-                    <Route path="/" element={<Home />} />
-                    <Route path="/notes" element={<Notes />} />
-                    <Route path="/login" element={<Login />} />
+                        <Route path="/" element={<Home />} />
+                        <Route path="/notes" element={<Notes />} />
+                        <Route path="/login" element={<Login />} />
 
-                    <Route path="/*" element={<Error />} />
-                </Routes>
-            </BrowserRouter>
-        </ToastProvider >
+                        <Route path="/*" element={<Error />} />
+                    </Routes>
+                </BrowserRouter>
+            </ConfirmationProvider>
+        </ToastProvider>
     </StrictMode>
 )

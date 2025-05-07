@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router"
 import { faHouse } from "@fortawesome/free-solid-svg-icons/faHouse";
 import { faFile, faMagnifyingGlass, faPlus, faTimes, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { useNotes } from "../lib/noteContext";
+import { useConfirm } from "../lib/confirmationProvider";
 
 
 export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }) {
     const { notes, createNote, deleteNote } = useNotes();
+
     return (
         <aside className="bg-bg-dark h-full w-full max-w-[220px] flex flex-col px-[20px]">
             <UserProfile />
@@ -46,6 +48,19 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
 
 function NoteLink({ title, to, search, deleteNote }: { title: string, to?: string, search?: string, deleteNote: () => void }) {
     const navigate = useNavigate();
+    const { Confirm } = useConfirm()
+
+    async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
+        e.preventDefault();
+        const confirmed = await Confirm("Are you sure you wish to delete this note?");
+        if (confirmed) {
+            deleteNote();
+            navigate({
+                pathname: "/notes", search: ""
+            })
+        }
+    }
+
     return (
         <Link
             to={{
@@ -64,7 +79,7 @@ function NoteLink({ title, to, search, deleteNote }: { title: string, to?: strin
                         }</p>
                 </div>
                 <FontAwesomeIcon
-                    onClick={(e) => { e.preventDefault(); deleteNote(); navigate({ pathname: "/notes", search: "" }) }}
+                    onClick={HandleDelete}
                     className="text-white size-[16px]"
                     icon={faTimes} />
             </li >
