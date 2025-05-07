@@ -24,10 +24,7 @@ export default function Notes() {
     return (
         <QueryClientProvider client={queryClient}>
             <NotesContextProvider>
-                {isSearchVisible ?
-                    <Search closeSearch={() => setIsSearchVisible(false)} /> :
-                    <></>
-                }
+                <Search isOpen={isSearchVisible} closeSearch={() => setIsSearchVisible(false)} />
                 <div className="w-full h-full flex">
                     <Sidebar onSearchClick={() => setIsSearchVisible(prev => !prev)} />
                     {!noteId || noteId === "" ?

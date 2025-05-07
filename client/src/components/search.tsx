@@ -7,7 +7,7 @@ import Fuse from "fuse.js"
 import { useNavigate } from "react-router";
 import { useNotes } from "../lib/noteContext";
 
-export default function Search({ closeSearch }: { closeSearch: () => void }) {
+export default function Search({ isOpen, closeSearch }: { isOpen: boolean, closeSearch: () => void }) {
     const navigate = useNavigate();
 
     const { notes } = useNotes();
@@ -79,7 +79,7 @@ export default function Search({ closeSearch }: { closeSearch: () => void }) {
 
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className={`${isOpen ? "opacity-100" : "pointer-events-none opacity-0"} transition fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50`}>
             <div className="w-11/12 lg:w-5/6 h-[80vh] max-h-[90vh] overflow-auto rounded-lg shadow-xl relative flex gap-4">
                 <div className="flex flex-col gap-4 w-1/2">
                     <SearchResults
