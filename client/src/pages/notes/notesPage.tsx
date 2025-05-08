@@ -10,25 +10,27 @@ import { Note } from "../../models/note";
 import { useNavigate } from "react-router";
 import Header from "../../components/header";
 import NotesHomeSection from "../../components/notesHomeSection";
+import { SearchProvider } from "../../lib/searchProvider";
 
 const queryClient = new QueryClient()
 
 export default function Notes({ home }: { home: boolean }) {
     const query: URLSearchParams = useQueryParams();
-    const [isSearchVisible, setIsSearchVisible] = useState<boolean>(false);
-
     return (
         <QueryClientProvider client={queryClient}>
             <NotesContextProvider>
-                <Search isOpen={isSearchVisible} closeSearch={() => setIsSearchVisible(false)} />
-                <div className="w-full h-full flex">
-                    <Sidebar onSearchClick={() => setIsSearchVisible(prev => !prev)} />
-                    {home ?
-                        <NotesHomeSection />
-                        :
-                        <NoteDisplay noteId={query.get("id") ?? ""} />
-                    }
-                </div>
+                <SearchProvider>
+                    <div className="w-full h-full flex">
+                        <Sidebar />
+                        <div className="h-full w-full lg:w-[calc(100%-220px)] bg-bg">
+                            {home ?
+                                <NotesHomeSection />
+                                :
+                                <NoteDisplay noteId={query.get("id") ?? ""} />
+                            }
+                        </div>
+                    </div>
+                </SearchProvider>
             </NotesContextProvider>
         </QueryClientProvider>
     )

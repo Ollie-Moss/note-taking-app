@@ -1,21 +1,18 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Link, useLocation, useNavigate } from "react-router"
+import { Link } from "react-router"
 import { faHouse } from "@fortawesome/free-solid-svg-icons/faHouse";
-import { faAsterisk, faFile, faMagnifyingGlass, faPlus, faStar as fasStar, faTimes, IconDefinition } from "@fortawesome/free-solid-svg-icons";
-import { faStar as farStar } from '@fortawesome/free-regular-svg-icons'
+import { faMagnifyingGlass, faPlus, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { useNotes } from "../lib/noteContext";
-import { useConfirm } from "../lib/confirmationProvider";
-import { useEffect, useState } from "react";
-import { useQueryParams } from "../lib/useQueryParams";
-import { Note } from "../models/note";
 import { NoteDisplay } from "./noteDisplay";
+import { useSearch } from "../lib/searchProvider";
 
 
-export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }) {
-    const { notes, createNote, deleteNote } = useNotes();
+export default function Sidebar() {
+    const { notes, createNote } = useNotes();
+    const { OpenSearch } = useSearch()
 
     return (
-        <aside className="bg-bg-dark h-full w-0 lg:w-full lg:max-w-[220px] flex flex-col lg:px-[20px]">
+        <aside className="bg-bg-dark h-full w-0 lg:w-[220px] lg:max-w-[220px] flex flex-col lg:px-[20px]">
             <UserProfile />
             <ul className="mt-[20%]">
                 <NavLink
@@ -24,7 +21,7 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
                     to={"/notes/home"}
                 />
                 <li
-                    onClick={onSearchClick}
+                    onClick={OpenSearch}
                     className="transition hover:cursor-pointer flex gap-[20px] items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
                     <FontAwesomeIcon className="text-white size-[20px]" icon={faMagnifyingGlass} />
                     <p className="text-sm text-white">Search</p>
