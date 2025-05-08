@@ -9,7 +9,7 @@ export default function NotesHomeSection() {
 
     return (
         <div className="flex justify-center h-full w-full">
-            <div className="items-center flex flex-col gap-6 py-32 w-[70%] lg:w-[40%]">
+            <div className="items-center flex flex-col gap-6 py-20 w-[70%] lg:w-[60%]">
                 <h1 className="text-center text-[40px] text-white font-semibold">Welcome Back, Ollie!</h1>
                 <div className="flex justify-center items-center gap-4">
                     <button onClick={OpenSearch} className="w-28 px-3 py-2 bg-white font-bold text-bg-dark rounded-lg shadow-md hover:bg-gray-400 transition">Search</button>
