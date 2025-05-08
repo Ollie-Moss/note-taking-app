@@ -28,7 +28,7 @@ export function NoteDisplay({ note, className, onClick }: { note: Note, classNam
             const params = new URLSearchParams(location.search)
             if (location.pathname == "/notes" && params.has("id", note._id)) {
                 navigate({
-                    pathname: "/notes", search: ""
+                    pathname: "/notes/home", search: ""
                 })
             }
         }
