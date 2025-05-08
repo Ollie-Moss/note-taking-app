@@ -8,6 +8,7 @@ import { useConfirm } from "../lib/confirmationProvider";
 import { useEffect, useState } from "react";
 import { useQueryParams } from "../lib/useQueryParams";
 import { Note } from "../models/note";
+import { NoteDisplay } from "./noteDisplay";
 
 
 export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }) {
@@ -37,7 +38,7 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
                         className="hover:cursor-pointer text-white pr-2"
                         icon={faPlus} />
                 </li>
-                {notes?.map(note => (<NoteLink
+                {notes?.map(note => (<NoteDisplay
                     key={note._id}
                     note={note}
                 />))}
@@ -47,62 +48,6 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
     )
 }
 
-function NoteLink({ note }: { note: Note }) {
-    const { deleteNote, updateNote } = useNotes();
-    const navigate = useNavigate();
-    const { Confirm } = useConfirm()
-    const location = useLocation()
-
-    async function HandleFavourite(e: React.MouseEvent<SVGSVGElement>) {
-        e.preventDefault()
-        updateNote({ ...note, favourite: !note.favourite });
-    }
-
-    async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
-        e.preventDefault();
-        const confirmed = await Confirm("Are you sure you wish to delete this note?");
-        if (confirmed) {
-            deleteNote(note._id);
-            const params = new URLSearchParams(location.search)
-            if (location.pathname == "/notes" && params.has("id", note._id)) {
-                navigate({
-                    pathname: "/notes", search: ""
-                })
-            }
-        }
-    }
-
-    return (
-        <Link
-            to={{
-                pathname: "/notes",
-                search: `?id=${note._id}`
-            }} >
-            <li className="transition w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
-                <div className="justify-between overflow-x-hidden flex items-center gap-[8px]">
-                    <FontAwesomeIcon className="text-white size-[20px]" icon={faFile} />
-                    <p className={`flex-1 overflow-x-hidden whitespace-nowrap text-ellipsis text-xs text-white 
-                                ${note.title == "" ? "opacity-[0.6] italic" : ""}`}>
-                        {note.title == "" ?
-                            "Untitled Note"
-                            :
-                            note.title
-                        }</p>
-                </div>
-                <div className="flex gap-1 items-center justify-between">
-                    <FontAwesomeIcon
-                        className="hover:text-yellow-500 fa-regular text-white size-[16px]"
-                        onClick={HandleFavourite}
-                        icon={note.favourite ? fasStar : farStar} />
-                    <FontAwesomeIcon
-                        onClick={HandleDelete}
-                        className="hover:text-red-400 text-white size-[16px]"
-                        icon={faTimes} />
-                </div>
-            </li >
-        </Link>
-    )
-}
 
 function NavLink({ title, icon, to, search }: { title: string, icon: IconDefinition, to?: string, search?: string }) {
     return (
