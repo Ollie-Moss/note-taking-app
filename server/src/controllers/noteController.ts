@@ -21,7 +21,9 @@ export async function CreateNoteHandler(req: Request, res: Response, next: NextF
             contents: newNote.contents,
             favourite: false,
             editedAt: new Date(Date.now()),
-            uid: newNote.uid
+            uid: newNote.uid,
+            position: 0,
+            groupId: null
         }
         const note: INote = await CreateNote(validNote);
         res.status(200).send({ message: "Note created!", note: note });
