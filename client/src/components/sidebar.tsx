@@ -1,7 +1,8 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link, useLocation, useNavigate } from "react-router"
 import { faHouse } from "@fortawesome/free-solid-svg-icons/faHouse";
-import { faFile, faMagnifyingGlass, faPlus, faTimes, IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { faAsterisk, faFile, faMagnifyingGlass, faPlus, faStar as fasStar, faTimes, IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import { faStar as farStar } from '@fortawesome/free-regular-svg-icons'
 import { useNotes } from "../lib/noteContext";
 import { useConfirm } from "../lib/confirmationProvider";
 import { useEffect, useState } from "react";
@@ -38,7 +39,6 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
                 </li>
                 {notes?.map(note => (<NoteLink
                     key={note._id}
-                    deleteNote={deleteNote}
                     note={note}
                 />))}
             </ul>
@@ -47,10 +47,16 @@ export default function Sidebar({ onSearchClick }: { onSearchClick: () => void }
     )
 }
 
-function NoteLink({ note, deleteNote }: { note: Note, deleteNote: (id: string) => void }) {
+function NoteLink({ note }: { note: Note }) {
+    const { deleteNote, updateNote } = useNotes();
     const navigate = useNavigate();
     const { Confirm } = useConfirm()
     const location = useLocation()
+
+    async function HandleFavourite(e: React.MouseEvent<SVGSVGElement>) {
+        e.preventDefault()
+        updateNote({ ...note, favourite: !note.favourite });
+    }
 
     async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault();
@@ -83,10 +89,16 @@ function NoteLink({ note, deleteNote }: { note: Note, deleteNote: (id: string) =
                             note.title
                         }</p>
                 </div>
-                <FontAwesomeIcon
-                    onClick={HandleDelete}
-                    className="text-white size-[16px]"
-                    icon={faTimes} />
+                <div className="flex gap-1 items-center justify-between">
+                    <FontAwesomeIcon
+                        className="hover:text-yellow-500 fa-regular text-white size-[16px]"
+                        onClick={HandleFavourite}
+                        icon={note.favourite ? fasStar : farStar} />
+                    <FontAwesomeIcon
+                        onClick={HandleDelete}
+                        className="hover:text-red-400 text-white size-[16px]"
+                        icon={faTimes} />
+                </div>
             </li >
         </Link>
     )
