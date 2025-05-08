@@ -32,7 +32,7 @@ function NotesSection({ title, notes }: { title: string, notes: Note[] }) {
                     notes.map((note) => (
                         <NoteDisplay
                             key={note._id}
-                            className="min-w-[200px] w-[200px] p-4"
+                            className="bg-bg min-w-[200px] w-[200px] p-4"
                             note={note} />
                     ))
                     :

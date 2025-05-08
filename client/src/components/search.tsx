@@ -144,12 +144,13 @@ function SearchResults({ closeSearch, notes, selectedIndex, setSelectedIndex }: 
 
     return (
         <div className="h-full bg-bg p-4 rounded-lg flex flex-col gap-2 justify-end">
-            {notes.reverse().map((note, i) =>
+            {notes.map((note, i) =>
                 <NoteDisplay
+                    className={i == selectedIndex ? "bg-bg-dark" : "bg-bg"}
                     onClick={() => resultClicked(i)}
                     key={note._id}
                     note={note} />
-            )}
+            ).reverse()}
         </div>
     )
 }
