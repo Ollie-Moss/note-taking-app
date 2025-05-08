@@ -6,6 +6,7 @@ import ReactQuill from "react-quill-new";
 import Fuse from "fuse.js"
 import { useNavigate } from "react-router";
 import { useNotes } from "../lib/noteContext";
+import { NoteDisplay } from "./noteDisplay";
 
 export default function Search({ isOpen, closeSearch }: { isOpen: boolean, closeSearch: () => void }) {
     const navigate = useNavigate();
@@ -25,7 +26,7 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
         if (searchQuery === "") return setResults(notes);
         setResults(fuse.search(searchQuery).map(result => result.item));
 
-    }, [notes?.length, searchQuery])
+    }, [notes, searchQuery])
 
     function changeSelectedIndex(amount: number) {
         setSelectedIndex((prev: number) => {
@@ -143,19 +144,12 @@ function SearchResults({ closeSearch, notes, selectedIndex, setSelectedIndex }: 
 
     return (
         <div className="h-full bg-bg p-4 rounded-lg flex flex-col gap-2 justify-end">
-            {notes.map((note, i) =>
-                <div
-                    key={i}
+            {notes.reverse().map((note, i) =>
+                <NoteDisplay
                     onClick={() => resultClicked(i)}
-                    className={`select-none hover:cursor-pointer flex items-center gap-2 p-3 rounded-lg text-white ${i === selectedIndex ? "bg-bg-dark" : ""}`}>
-                    <FontAwesomeIcon icon={faFile} />
-                    {note.title == "" ?
-                        <p className="text-sm text-white opacity-[0.6] italic">Untitled Note</p>
-                        :
-                        <p className="text-sm text-white">{note.title}</p>
-                    }
-                </div>
-            ).reverse()}
+                    key={note._id}
+                    note={note} />
+            )}
         </div>
     )
 }

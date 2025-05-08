@@ -9,6 +9,7 @@ import Error from "./pages/error/errorPage.tsx"
 import { ToastProvider } from './lib/toastProvider.tsx'
 import { ConfirmationProvider } from './lib/confirmationProvider.tsx'
 
+
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
         <ToastProvider>
