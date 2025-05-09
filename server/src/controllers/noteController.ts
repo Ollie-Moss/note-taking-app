@@ -1,73 +1,57 @@
-import { NextFunction, Request, Response } from "express";
-import { INote, NoteModel, Note } from "../models/noteModel";
-import { AppError } from "../middlewares/errorHandler";
+import { Request, Response, NextFunction } from "express";
+import { Note, NoteModel, INote } from "../models/noteModel";
 import { Types } from "mongoose";
 
+// ----- API Route Handlers ------
 
-// ----- CREATE ------
+export async function MoveNoteHandler(req: Request, res: Response, next: NextFunction) {
+    if (req.body.beforeId && req.body.afterId) {
+        const afterId: Types.ObjectId = new Types.ObjectId(req.body.afterId as string)
+        const beforeId: Types.ObjectId = new Types.ObjectId(req.body.beforeId as string)
+
+        const note: Note | null =
+            await MoveNoteBetween(req.note.uid, req.note._id, beforeId, afterId);
+
+        res.status(200).send({ message: "Note moved!", note: note });
+    }
+
+    const note: Note | null = await MoveNoteToLast(req.note.uid, req.note._id);
+    res.status(200).send({ message: "Note moved!", note: note });
+}
 
 export async function CreateNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        if (!req.body?.note) return next();
+        if (req.body.beforeId && req.body.afterId) {
+            const afterId: Types.ObjectId = new Types.ObjectId(req.body.afterId as string)
+            const beforeId: Types.ObjectId = new Types.ObjectId(req.body.beforeId as string)
 
-        const newNote: INote = req.body.note as INote;
+            const note: Note | null =
+                await InsertNoteBetweenNotes(req.note, beforeId, afterId);
 
-        if (!Types.ObjectId.isValid(newNote.uid)) {
-            throw new AppError("Invalid uid provided!", 404);
+            res.status(200).send({ message: "Note created!", note: note });
         }
 
-        const validNote: INote = {
-            title: newNote.title,
-            contents: newNote.contents,
-            favourite: false,
-            editedAt: new Date(Date.now()),
-            uid: newNote.uid,
-            position: 0,
-            groupId: null
-        }
-        const note: INote = await CreateNote(validNote);
+        const note: Note | null = await AppendNote(req.note);
+
         res.status(200).send({ message: "Note created!", note: note });
     } catch (error) {
         next(error)
     }
 }
 
-export async function CreateNote(note: INote): Promise<INote> {
-    console.log(note);
-    const newNote: INote = await NoteModel.create(note)
-        .then(data => data.toObject({ versionKey: false }));
-    return newNote;
-}
-
-// ----- READ ------
-
 export async function GetAllNotesHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const uid: string = req.user._id;
-        let notes: INote[] = await GetAllNotesForUser(uid);
-        res.status(200).send({ notes: notes });
+        let notes: Note[] = await GetUsersNotes(req.user._id);
+        res.status(200).send({ notes });
     } catch (error) {
         next(error)
     }
 }
 
-export async function GetAllNotes(): Promise<INote[]> {
-    const notes: INote[] = await NoteModel.find({})
-        .then(data => data.map(note => note.toObject({ versionKey: false })));
-    return notes;
-}
-export async function GetAllNotesForUser(uid: string): Promise<INote[]> {
-    const notes: INote[] = await NoteModel.find({ uid: uid })
-        .then(data => data.map(note => note.toObject({ versionKey: false })));
-    return notes;
-}
-
-
 export async function GetNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const id: string = req.params.id;
-        let note: INote | null = await GetNote(req.user._id, id);
-        if (note === null) {
+        let note: Note | null = await GetNote(req.user._id, req.id);
+        if (!note) {
             res.status(404).json({ message: "Note not found!" })
             return;
         }
@@ -77,22 +61,9 @@ export async function GetNoteHandler(req: Request, res: Response, next: NextFunc
     }
 }
 
-export async function GetNote(uid: string, id: string): Promise<INote | null> {
-    if (!Types.ObjectId.isValid(id)) {
-        throw new AppError("Invalid note id provided!", 404);
-    }
-    const note: INote | null = await NoteModel.findOne({ _id: id, uid: uid })
-        .then(data => data?.toObject({ versionKey: false }) ?? null)
-    return note;
-};
-
-
-// ----- UPDATE ------
-
 export async function UpdateNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const newNote: Note = req.body.note as Note;
-        const note: INote | null = await UpdateNote(req.user._id, newNote);
+        const note: Note | null = await UpdateNote(req.note);
         if (note === null) {
             res.status(404).json({ message: "Note not found!" })
             return;
@@ -103,20 +74,10 @@ export async function UpdateNoteHandler(req: Request, res: Response, next: NextF
     }
 }
 
-export async function UpdateNote(uid: string, note: Note): Promise<INote | null> {
-    const updatedNote: INote | null = await NoteModel.findOneAndUpdate({ _id: note._id, uid: uid }, note)
-        .then(data => data?.toObject({ versionKey: false }) ?? null);
-    return updatedNote;
-}
-
-
-// ----- DELETE ------
-
 export async function DeleteNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const id: string = req.params.id;
-        const note: INote | null = await DeleteNote(req.user._id, id);
-        if (note === null) {
+        const note: Note | null = await DeleteNote(req.user._id, req.id);
+        if (!note) {
             res.status(404).json({ message: "Note not found!" })
             return;
         }
@@ -126,8 +87,99 @@ export async function DeleteNoteHandler(req: Request, res: Response, next: NextF
     }
 }
 
-export async function DeleteNote(uid: string, id: string): Promise<INote | null> {
-    const note: INote | null = await NoteModel.findOneAndDelete({ _id: id, uid: uid })
+// ---- Controller Methods ----
+
+async function GetPostionBetweenNote(uid: Types.ObjectId, noteAId: Types.ObjectId, noteBId: Types.ObjectId): Promise<number> {
+    const noteA: INote | null = await NoteModel.findOne({ _id: noteAId, uid: uid })
+    const noteB: INote | null = await NoteModel.findOne({ _id: noteBId, uid: uid })
+    if (!noteA || !noteB) {
+        return await GetLastNotePostition(uid);
+    }
+    const newPosition = (noteA.position + noteB.position) / 2
+    return newPosition;
+}
+
+async function GetLastNotePostition(uid: Types.ObjectId): Promise<number> {
+    const lastNote: INote[] = await NoteModel.find({ uid }).sort({ position: -1 }).limit(1)
+    let newPosition = 100;
+    if (lastNote.length > 0) {
+        newPosition += lastNote[0].position;
+    }
+    return newPosition
+}
+
+export async function InsertNoteBetweenNotes(note: Note, noteAId: Types.ObjectId, noteBId: Types.ObjectId): Promise<Note | null> {
+    note.position = await GetPostionBetweenNote(noteAId, noteBId, note.uid);
+    return await CreateNote(note);
+}
+
+export async function AppendNote(note: Note): Promise<Note | null> {
+    note.position = await GetLastNotePostition(note.uid);
+    return await CreateNote(note);
+}
+
+export async function MoveNoteBetween(uid: Types.ObjectId, noteId: Types.ObjectId, noteAId: Types.ObjectId, noteBId: Types.ObjectId): Promise<Note | null> {
+    const note: Note | null = await GetNote(noteId, uid);
+    if (!note) return null;
+
+    note.position = await GetPostionBetweenNote(noteAId, noteBId, uid);
+
+    const updatedNote: Note | null = await UpdateNote(note);
+    return updatedNote;
+}
+
+export async function MoveNoteToLast(uid: Types.ObjectId, noteId: Types.ObjectId) {
+    const note: Note | null = await GetNote(uid, noteId);
+    if (!note) return null;
+
+    note.position = await GetLastNotePostition(uid);
+
+    const updatedNote: Note | null = await UpdateNote(note);
+    return updatedNote;
+}
+
+export async function CreateNote(note: Note): Promise<Note | null> {
+
+    // Generate new object id
+    note = { ...note, _id: new Types.ObjectId() }
+
+    const newNote: Note | null = await NoteModel.create(note)
+        .then(data => data.toObject({ versionKey: false }));
+    return newNote;
+}
+
+export async function GetAllNotes(): Promise<INote[]> {
+    const notes: INote[] = await NoteModel.find({})
+        .then(data => data.map(note => note.toObject({ versionKey: false })));
+    return notes;
+}
+
+export async function GetUsersNotes(uid: Types.ObjectId): Promise<Note[]> {
+    const notes: Note[] = await NoteModel.find({ uid })
+        .then(data => data.map(note => note.toObject({ versionKey: false })));
+    return notes;
+}
+
+export async function GetNotesInGroup(uid: Types.ObjectId, groupId: Types.ObjectId): Promise<Note[]> {
+    const notes: Note[] = await NoteModel.find({ uid, groupId }).sort({ position: 1 })
+        .then(data => data.map(note => note.toObject({ versionKey: false })));
+    return notes;
+}
+
+export async function GetNote(uid: Types.ObjectId, noteId: Types.ObjectId): Promise<Note | null> {
+    const note: Note | null = await NoteModel.findOne({ _id: noteId, uid: uid })
+        .then(data => data?.toObject({ versionKey: false }) ?? null)
+    return note;
+};
+
+export async function UpdateNote(note: Note): Promise<Note | null> {
+    const updatedNote: Note | null = await NoteModel.findOneAndUpdate({ _id: note._id, uid: note.uid }, note)
+        .then(data => data?.toObject({ versionKey: false }) ?? null);
+    return updatedNote;
+}
+
+export async function DeleteNote(uid: Types.ObjectId, noteId: Types.ObjectId): Promise<Note | null> {
+    const note: Note | null = await NoteModel.findOneAndDelete({ _id: noteId, uid: uid })
         .then(data => data?.toObject({ versionKey: false }) ?? null);
     return note;
 }

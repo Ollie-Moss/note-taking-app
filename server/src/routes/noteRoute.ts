@@ -5,17 +5,21 @@ import {
     DeleteNoteHandler,
     GetAllNotesHandler,
     GetNoteHandler,
+    MoveNoteHandler,
     UpdateNoteHandler
 } from "../controllers/noteController";
+import { noteValidator } from "../middlewares/noteValidator";
 
 const NoteRouter: Router = Router()
 
 NoteRouter.use(authHandler);
+NoteRouter.use(noteValidator);
 
-NoteRouter.get('/api/note', GetAllNotesHandler)
-NoteRouter.get('/api/note/:id', GetNoteHandler)
-NoteRouter.post('/api/note', CreateNoteHandler)
-NoteRouter.delete('/api/note/:id', DeleteNoteHandler)
-NoteRouter.put('/api/note', UpdateNoteHandler)
+NoteRouter.get('/', GetAllNotesHandler)
+NoteRouter.get('/:id', GetNoteHandler)
+NoteRouter.post('/', CreateNoteHandler)
+NoteRouter.delete('/:id', DeleteNoteHandler)
+NoteRouter.put('/', UpdateNoteHandler)
+NoteRouter.put('/move', MoveNoteHandler)
 
 export { NoteRouter };

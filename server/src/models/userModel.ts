@@ -3,15 +3,12 @@ import { model, Schema, Types } from "mongoose"
 export interface IUser {
     name: string,
     email: string,
-    profile_picture: string | null,
+    profile_picture?: string,
     password_hash: string
 }
 
-export type User = {
-    _id: string,
-    name: string,
-    email: string,
-    profile_picture: string | null,
+export type User = IUser & {
+    _id: Types.ObjectId
 }
 
 export const UserSchema = new Schema<IUser>({

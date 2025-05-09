@@ -10,15 +10,8 @@ export interface INote {
     groupId: Types.ObjectId | null
 }
 
-export type Note = {
-    _id: string,
-    title: string,
-    contents: string,
-    favourite: boolean,
-    editedAt: Date,
-    position: number,
-    uid: string,
-    groupId: string | null
+export type Note = INote & {
+    _id: Types.ObjectId,
 }
 
 export const NoteSchema = new Schema<INote>({
