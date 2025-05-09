@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { AppError } from "./errorHandler";
 import { Group, GroupModel } from "../models/groupModel";
 import { Types } from "mongoose";
-import { GetGroup } from "../controllers/groupController";
 
 declare module "express-serve-static-core" {
     interface Request {

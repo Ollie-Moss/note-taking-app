@@ -1,4 +1,4 @@
-import { useNotes } from "../lib/noteContext"
+import { useNotes } from "../lib/noteProvider"
 import { useSearch } from "../lib/searchProvider"
 import { Note } from "../models/note"
 import { NoteDisplay } from "./noteDisplay"

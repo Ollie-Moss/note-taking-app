@@ -1,11 +1,11 @@
 import { useLocation, useNavigate } from "react-router";
-import { useNotes } from "../lib/noteContext";
 import { Note } from "../models/note";
 import { useConfirm } from "../lib/confirmationProvider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFile, faStar as fasStar, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons'
 import { twMerge } from 'tailwind-merge'
+import { useNotes } from "../lib/noteProvider";
 
 export function NoteDisplay({ note, className, onClick }: { note: Note, className?: string, onClick?: () => void }) {
     const { deleteNote, updateNote } = useNotes();

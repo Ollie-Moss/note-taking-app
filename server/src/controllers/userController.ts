@@ -1,6 +1,5 @@
 import { Types } from "mongoose";
 import { IUser, User, UserModel, UserSchema } from "../models/userModel";
-import { AppError } from "../middlewares/errorHandler";
 
 export async function CreateUser(user: IUser): Promise<User> {
     const newUser: User = await UserModel.create(user)

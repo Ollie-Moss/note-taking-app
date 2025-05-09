@@ -6,6 +6,7 @@ export type NotePreview = {
     editedAt: Date,
     position: number,
     favourite: boolean
+    groupId: Types.ObjectId | null
 }
 
 export interface INote {

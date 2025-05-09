@@ -1,12 +1,10 @@
 import { SetStateAction, useEffect, useRef, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFile } from "@fortawesome/free-solid-svg-icons";
 import { Note } from "../models/note";
 import ReactQuill from "react-quill-new";
 import Fuse from "fuse.js"
 import { useNavigate } from "react-router";
-import { useNotes } from "../lib/noteContext";
 import { NoteDisplay } from "./noteDisplay";
+import { useNotes } from "../lib/noteProvider";
 
 export default function Search({ isOpen, closeSearch }: { isOpen: boolean, closeSearch: () => void }) {
     const navigate = useNavigate();
@@ -102,7 +100,7 @@ function SearchPreview({ note }: { note: Note }) {
     const editorRef = useRef<ReactQuill>(null)
 
     useEffect(() => {
-        editorRef.current?.editor?.setContents(JSON.parse(note.contents));
+        editorRef.current?.editor?.setContents(JSON.parse(note.contents ?? "{}"));
     }, [note])
 
     const untitledNoteStyle = "after:inline after:font-light after:opacity-[0.6] after:italic after:content-['Untitled_Note...']"

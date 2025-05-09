@@ -2,22 +2,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router"
 import { faHouse } from "@fortawesome/free-solid-svg-icons/faHouse";
 import { faMagnifyingGlass, faPlus, IconDefinition } from "@fortawesome/free-solid-svg-icons";
-import { useNotes } from "../lib/noteContext";
 import { NoteDisplay } from "./noteDisplay";
 import { useSearch } from "../lib/searchProvider";
-import { useEffect } from "react";
-import { GetGroups } from "../controllers/groupController";
+import { useGroups, useNotes } from "../lib/noteProvider";
 
 
 export default function Sidebar() {
-    const { notes, createNote } = useNotes();
+    const { groups, createNote } = useGroups();
+    const { notes } = useNotes()
     const { OpenSearch } = useSearch()
-
-    useEffect(() => {
-        GetGroups().then(groups => {
-            console.log(groups)
-        })
-    }, [])
 
     return (
         <aside className="bg-bg-dark h-full w-0 lg:w-[220px] lg:max-w-[220px] flex flex-col lg:px-[20px]">
@@ -43,7 +36,16 @@ export default function Sidebar() {
                         className="hover:cursor-pointer text-white pr-2"
                         icon={faPlus} />
                 </li>
-                {notes?.map(note => (<NoteDisplay
+                {groups.map(group => (
+                    <div key={group._id}>
+                        <p>{group.title}</p>
+                        {group.notes?.map(note => (<NoteDisplay
+                            key={note._id}
+                            note={note}
+                        />))}
+                    </div>
+                ))}
+                {notes?.filter(note => !note.groupId).map(note => (<NoteDisplay
                     key={note._id}
                     note={note}
                 />))}

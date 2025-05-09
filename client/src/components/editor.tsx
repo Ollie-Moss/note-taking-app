@@ -2,14 +2,15 @@ import React, { useEffect, useRef, useState } from "react";
 import { Note } from "../models/note";
 import { Delta, EmitterSource } from "quill";
 import ReactQuill from "react-quill-new";
-import { useNotes } from "../lib/noteContext";
+import { useNote, useNotes, useNotesOperations } from "../lib/noteProvider";
 
 export default function Editor({ note }: { note: Note }) {
     const editorRef = useRef<ReactQuill>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
     const shouldUpdate = useRef<boolean>(false);
 
-    const { updateNote } = useNotes()
+    const { updateNote } = useNotesOperations()
+
     const [delta, setDelta] = useState<Delta>(JSON.parse(note.contents));
     const [title, setTitle] = useState<string>(note.title);
 
