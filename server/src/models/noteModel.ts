@@ -1,5 +1,13 @@
 import { model, Schema, Types } from "mongoose";
 
+export type NotePreview = {
+    _id: Types.ObjectId,
+    title: string,
+    editedAt: Date,
+    position: number,
+    favourite: boolean
+}
+
 export interface INote {
     title: string,
     contents: string,

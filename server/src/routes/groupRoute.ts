@@ -21,5 +21,6 @@ GroupRouter.post('/', CreateGroupHandler)
 GroupRouter.delete('/:id', DeleteGroupHandler)
 GroupRouter.put('/', UpdateGroupHandler)
 GroupRouter.put('/move', MoveGroupHandler)
+//GroupRouter.get('/note', )
 
 export { GroupRouter };

@@ -1,4 +1,6 @@
-import { initConfig } from '../config/config';
+import config from '../config/config';
+config;
+
 import request from 'supertest';
 import mongoose, { disconnect, Types } from 'mongoose';
 import app from '../../src/app';
@@ -30,8 +32,6 @@ describe('Note API Routes', () => {
     }
 
     beforeAll(async () => {
-
-        initConfig()
         // Connect to test DB or use MongoMemoryServer
         await InitializeMongoose(process.env.TEST_DB_ATLAS_URI);
 

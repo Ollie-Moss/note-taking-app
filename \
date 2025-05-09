@@ -46,7 +46,7 @@ export async function CreateGroupHandler(req: Request, res: Response, next: Next
 
 export async function GetAllGroupsHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        let groups = await GetUsersGroups(req.user._id);
+        let groups: Group[] = await GetUsersGroups(req.user._id);
         res.status(200).send({ groups });
     } catch (error) {
         next(error)
@@ -171,31 +171,29 @@ export async function GetAllGroups(): Promise<IGroup[]> {
 export async function GetUsersGroups(uid: Types.ObjectId): Promise<Group & { notes: NotePreview[] }[]> {
     const groups: Group[] = await GroupModel.find({ uid }).sort({ position: 1 })
         .then(data => data.map(group => group.toObject({ versionKey: false })));
-
-    const groupsHydrated: Group & { notes: NotePreview[] }[] = [] as unknown as Group & { notes: NotePreview[] }[]
-
     for (let i = 0; i < groups.length; i++) {
         const group = groups[i]
         const notes: NotePreview[] = await GetNotesPreviewInGroup(uid, group._id);
-        groupsHydrated.push({ ...group, notes: notes })
+        groups[i] = { ...group, notes }
     }
-    return groupsHydrated
-}
+    return {
+        ...groups, ;
+    }
 
-export async function GetGroup(uid: Types.ObjectId, groupId: Types.ObjectId): Promise<Group | null> {
-    const group: Group | null = await GroupModel.findOne({ _id: groupId, uid: uid })
-        .then(data => data?.toObject({ versionKey: false }) ?? null)
-    return group;
-};
+    export async function GetGroup(uid: Types.ObjectId, groupId: Types.ObjectId): Promise<Group | null> {
+        const group: Group | null = await GroupModel.findOne({ _id: groupId, uid: uid })
+            .then(data => data?.toObject({ versionKey: false }) ?? null)
+        return group;
+    };
 
-export async function UpdateGroup(group: Group): Promise<Group | null> {
-    const updatedGroup: Group | null = await GroupModel.findOneAndUpdate({ _id: group._id, uid: group.uid }, group, { new: true })
-        .then(data => data?.toObject({ versionKey: false }) ?? null);
-    return updatedGroup;
-}
+    export async function UpdateGroup(group: Group): Promise<Group | null> {
+        const updatedGroup: Group | null = await GroupModel.findOneAndUpdate({ _id: group._id, uid: group.uid }, group, { new: true })
+            .then(data => data?.toObject({ versionKey: false }) ?? null);
+        return updatedGroup;
+    }
 
-export async function DeleteGroup(uid: Types.ObjectId, groupId: Types.ObjectId): Promise<Group | null> {
-    const group: Group | null = await GroupModel.findOneAndDelete({ _id: groupId, uid: uid })
-        .then(data => data?.toObject({ versionKey: false }) ?? null);
-    return group;
-}
+    export async function DeleteGroup(uid: Types.ObjectId, groupId: Types.ObjectId): Promise<Group | null> {
+        const group: Group | null = await GroupModel.findOneAndDelete({ _id: groupId, uid: uid })
+            .then(data => data?.toObject({ versionKey: false }) ?? null);
+        return group;
+    }

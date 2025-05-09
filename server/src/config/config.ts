@@ -1,7 +1,6 @@
 import dotenv from 'dotenv';
 
-export const initConfig: () => void = () => { dotenv.config(); }
-
+dotenv.config();
 interface Config {
     port: number;
     nodeEnv: string;

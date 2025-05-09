@@ -15,6 +15,7 @@ export async function groupValidator(req: Request, res: Response, next: NextFunc
     if (req.method == "POST" || req.method == "PUT") {
         if (!req.body?.group) return next(new AppError("Group is required!", 400));
 
+        if (!Types.ObjectId.isValid(req.body.group._id)) req.body.group._id = new Types.ObjectId()
         const group = new GroupModel({ ...req.body.group, uid: req.user._id });
 
         await group.validate().catch((err: Error) => {

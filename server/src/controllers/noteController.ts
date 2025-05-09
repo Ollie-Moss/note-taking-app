@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { Note, NoteModel, INote } from "../models/noteModel";
+import { Note, NoteModel, INote, NotePreview } from "../models/noteModel";
 import { Types } from "mongoose";
 import { AppError } from "../middlewares/errorHandler";
 
@@ -43,6 +43,7 @@ export async function CreateNoteHandler(req: Request, res: Response, next: NextF
 
 export async function GetAllNotesHandler(req: Request, res: Response, next: NextFunction) {
     try {
+        //req.query.preview
         let notes: Note[] = await GetUsersNotes(req.user._id);
         res.status(200).send({ notes });
     } catch (error) {
@@ -189,8 +190,14 @@ export async function DeleteNote(uid: Types.ObjectId, noteId: Types.ObjectId): P
     return note;
 }
 
-export async function GetNotesInNote(uid: Types.ObjectId, noteId: Types.ObjectId): Promise<Note[]> {
-    const notes: Note[] = await NoteModel.find({ uid, noteId }).sort({ position: 1 })
+export async function GetNotesInGroup(uid: Types.ObjectId, groupId: Types.ObjectId): Promise<Note[]> {
+    const notes: Note[] = await NoteModel.find({ uid, noteId: groupId }).sort({ position: 1 })
+        .then(data => data.map(note => note.toObject({ versionKey: false })));
+    return notes;
+}
+
+export async function GetNotesPreviewInGroup(uid: Types.ObjectId, groupId: Types.ObjectId): Promise<NotePreview[]> {
+    const notes: NotePreview[] = await NoteModel.find({ uid, groupId }).select('_id title editedAt position favourite').sort({ position: 1 })
         .then(data => data.map(note => note.toObject({ versionKey: false })));
     return notes;
 }

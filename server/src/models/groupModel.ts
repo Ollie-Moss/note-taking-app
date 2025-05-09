@@ -7,6 +7,7 @@ export interface IGroup {
     position: number,
     uid: Types.ObjectId,
     parentId: Types.ObjectId | null,
+    open: boolean
 }
 
 export type Group = IGroup & {
@@ -16,6 +17,7 @@ export type Group = IGroup & {
 export const GroupSchema = new Schema<IGroup>({
     title: { type: String },
     position: { type: Number, required: true },
+    open: { type: Boolean, required: true },
     uid: { type: Schema.Types.ObjectId, required: true },
     parentId: { type: Schema.Types.ObjectId },
 })

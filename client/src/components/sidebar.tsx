@@ -5,11 +5,19 @@ import { faMagnifyingGlass, faPlus, IconDefinition } from "@fortawesome/free-sol
 import { useNotes } from "../lib/noteContext";
 import { NoteDisplay } from "./noteDisplay";
 import { useSearch } from "../lib/searchProvider";
+import { useEffect } from "react";
+import { GetGroups } from "../controllers/groupController";
 
 
 export default function Sidebar() {
     const { notes, createNote } = useNotes();
     const { OpenSearch } = useSearch()
+
+    useEffect(() => {
+        GetGroups().then(groups => {
+            console.log(groups)
+        })
+    }, [])
 
     return (
         <aside className="bg-bg-dark h-full w-0 lg:w-[220px] lg:max-w-[220px] flex flex-col lg:px-[20px]">

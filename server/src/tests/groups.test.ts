@@ -1,4 +1,6 @@
-import { initConfig } from '../config/config';
+import config from '../config/config';
+config;
+
 import request from 'supertest';
 import mongoose, { disconnect, Types } from 'mongoose';
 import app from '../../src/app';
@@ -24,13 +26,13 @@ describe('Group API Routes', () => {
         position: 100,
         uid: testUser._id,
         parentId: null,
+        open: true
     }
 
     beforeAll(async () => {
 
-        initConfig()
         // Connect to test DB or use MongoMemoryServer
-        await InitializeMongoose(process.env.TEST_DB_ATLAS_URI);
+        await InitializeMongoose(process.env.ATLAS_URI);
 
         const newUser: User = await UserModel.create(testUser)
         userId = newUser._id
