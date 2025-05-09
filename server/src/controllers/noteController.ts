@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Note, NoteModel, INote } from "../models/noteModel";
 import { Types } from "mongoose";
+import { AppError } from "../middlewares/errorHandler";
 
 // ----- API Route Handlers ------
 
@@ -13,6 +14,7 @@ export async function MoveNoteHandler(req: Request, res: Response, next: NextFun
             await MoveNoteBetween(req.note.uid, req.note._id, beforeId, afterId);
 
         res.status(200).send({ message: "Note moved!", note: note });
+        return
     }
 
     const note: Note | null = await MoveNoteToLast(req.note.uid, req.note._id);
@@ -50,7 +52,12 @@ export async function GetAllNotesHandler(req: Request, res: Response, next: Next
 
 export async function GetNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        let note: Note | null = await GetNote(req.user._id, req.id);
+        const id: Types.ObjectId = new Types.ObjectId(req.params.id);
+        if (!Types.ObjectId.isValid(id) || !req.params.id) {
+            throw new AppError("Could not find note with provided id!", 404)
+        }
+
+        let note: Note | null = await GetNote(req.user._id, id);
         if (!note) {
             res.status(404).json({ message: "Note not found!" })
             return;
@@ -63,7 +70,7 @@ export async function GetNoteHandler(req: Request, res: Response, next: NextFunc
 
 export async function UpdateNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const note: Note | null = await UpdateNote(req.note);
+        const note: INote | null = await UpdateNote(req.note);
         if (note === null) {
             res.status(404).json({ message: "Note not found!" })
             return;
@@ -76,7 +83,12 @@ export async function UpdateNoteHandler(req: Request, res: Response, next: NextF
 
 export async function DeleteNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const note: Note | null = await DeleteNote(req.user._id, req.id);
+        const id: Types.ObjectId = new Types.ObjectId(req.params.id);
+        if (!Types.ObjectId.isValid(id) || !req.params.id) {
+            throw new AppError("Could not find note with provided id!", 404)
+        }
+
+        const note: Note | null = await DeleteNote(req.user._id, id);
         if (!note) {
             res.status(404).json({ message: "Note not found!" })
             return;
@@ -119,10 +131,10 @@ export async function AppendNote(note: Note): Promise<Note | null> {
 }
 
 export async function MoveNoteBetween(uid: Types.ObjectId, noteId: Types.ObjectId, noteAId: Types.ObjectId, noteBId: Types.ObjectId): Promise<Note | null> {
-    const note: Note | null = await GetNote(noteId, uid);
+    const note: Note | null = await GetNote(uid, noteId);
     if (!note) return null;
 
-    note.position = await GetPostionBetweenNote(noteAId, noteBId, uid);
+    note.position = await GetPostionBetweenNote(uid, noteAId, noteBId);
 
     const updatedNote: Note | null = await UpdateNote(note);
     return updatedNote;
@@ -139,7 +151,6 @@ export async function MoveNoteToLast(uid: Types.ObjectId, noteId: Types.ObjectId
 }
 
 export async function CreateNote(note: Note): Promise<Note | null> {
-
     // Generate new object id
     note = { ...note, _id: new Types.ObjectId() }
 
@@ -155,13 +166,7 @@ export async function GetAllNotes(): Promise<INote[]> {
 }
 
 export async function GetUsersNotes(uid: Types.ObjectId): Promise<Note[]> {
-    const notes: Note[] = await NoteModel.find({ uid })
-        .then(data => data.map(note => note.toObject({ versionKey: false })));
-    return notes;
-}
-
-export async function GetNotesInGroup(uid: Types.ObjectId, groupId: Types.ObjectId): Promise<Note[]> {
-    const notes: Note[] = await NoteModel.find({ uid, groupId }).sort({ position: 1 })
+    const notes: Note[] = await NoteModel.find({ uid }).sort({ position: 1 })
         .then(data => data.map(note => note.toObject({ versionKey: false })));
     return notes;
 }
@@ -173,7 +178,7 @@ export async function GetNote(uid: Types.ObjectId, noteId: Types.ObjectId): Prom
 };
 
 export async function UpdateNote(note: Note): Promise<Note | null> {
-    const updatedNote: Note | null = await NoteModel.findOneAndUpdate({ _id: note._id, uid: note.uid }, note)
+    const updatedNote: Note | null = await NoteModel.findOneAndUpdate({ _id: note._id, uid: note.uid }, note, { new: true })
         .then(data => data?.toObject({ versionKey: false }) ?? null);
     return updatedNote;
 }
@@ -182,4 +187,10 @@ export async function DeleteNote(uid: Types.ObjectId, noteId: Types.ObjectId): P
     const note: Note | null = await NoteModel.findOneAndDelete({ _id: noteId, uid: uid })
         .then(data => data?.toObject({ versionKey: false }) ?? null);
     return note;
+}
+
+export async function GetNotesInNote(uid: Types.ObjectId, noteId: Types.ObjectId): Promise<Note[]> {
+    const notes: Note[] = await NoteModel.find({ uid, noteId }).sort({ position: 1 })
+        .then(data => data.map(note => note.toObject({ versionKey: false })));
+    return notes;
 }

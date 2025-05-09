@@ -1,13 +1,11 @@
-import config, { initConfig } from './config/config';
+import { initConfig } from '../config/config';
 import request from 'supertest';
-import mongoose, { connection, disconnect, Types } from 'mongoose';
-import app from '../src/app'; // Make sure to export app from your main server file
-import { Group, GroupModel, IGroup } from '../src/models/groupModel';
+import mongoose, { disconnect, Types } from 'mongoose';
+import app from '../../src/app';
+import { Group, GroupModel, IGroup } from '../../src/models/groupModel';
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
-import InitializeMongoose from './db/conn';
-import { CreateUser } from './controllers/userController';
-import { User, UserModel } from './models/userModel';
-import { group } from 'console';
+import InitializeMongoose from '../db/conn';
+import { User, UserModel } from '../models/userModel';
 
 
 
@@ -42,7 +40,6 @@ describe('Group API Routes', () => {
     });
 
     afterAll(async () => {
-        await mongoose.connection.dropDatabase();
         await disconnect();
     });
 
@@ -105,9 +102,9 @@ describe('Group API Routes', () => {
         });
 
         it('should move a group between others if beforeId and afterId are provided', async () => {
-            const group = await GroupModel.create({ ...testGroup, position: 250 });
-            const groupA = await GroupModel.create({ ...testGroup, position: 50 });
-            const groupB = await GroupModel.create({ ...testGroup, position: 150 });
+            const group = await GroupModel.create({ ...testGroup, position: 300 });
+            const groupA = await GroupModel.create({ ...testGroup, position: 100 });
+            const groupB = await GroupModel.create({ ...testGroup, position: 200 });
 
             const res = await request(app)
                 .put('/api/group/move')
@@ -116,6 +113,7 @@ describe('Group API Routes', () => {
 
             expect(res.status).toBe(200);
             expect(res.body.message).toBe('Group moved!');
+            expect(res.body.group.position).toBe(150);
         });
     });
 

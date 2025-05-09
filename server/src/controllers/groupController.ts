@@ -131,10 +131,10 @@ export async function AppendGroup(group: Group): Promise<Group | null> {
 }
 
 export async function MoveGroupBetween(uid: Types.ObjectId, groupId: Types.ObjectId, groupAId: Types.ObjectId, groupBId: Types.ObjectId): Promise<Group | null> {
-    const group: Group | null = await GetGroup(groupId, uid);
+    const group: Group | null = await GetGroup(uid, groupId);
     if (!group) return null;
 
-    group.position = await GetPostionBetweenGroup(groupAId, groupBId, uid);
+    group.position = await GetPostionBetweenGroup(uid, groupAId, groupBId);
 
     const updatedGroup: Group | null = await UpdateGroup(group);
     return updatedGroup;
