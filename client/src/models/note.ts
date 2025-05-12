@@ -7,7 +7,7 @@ export function NewNote(): Note {
         editedAt: new Date(Date.now()),
         position: 0,
         uid: "",
-        groupId: null
+        parentId: null
     } as Note;
 }
 
@@ -22,5 +22,5 @@ export type NotePreview = {
     editedAt: Date,
     position: number,
     favourite: boolean
-    groupId: string | null
+    parentId: string | null
 }

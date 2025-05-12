@@ -5,12 +5,16 @@ import { faMagnifyingGlass, faPlus, IconDefinition } from "@fortawesome/free-sol
 import { NoteDisplay } from "./noteDisplay";
 import { useSearch } from "../lib/searchProvider";
 import { useGroups, useNotes } from "../lib/noteProvider";
+import { Note } from "../models/note";
+import { GroupTree } from "./groupTree";
+import { useRef } from "react";
 
 
 export default function Sidebar() {
-    const { groups, createNote } = useGroups();
-    const { notes } = useNotes()
+    const { groups, createGroup } = useGroups();
+    const { notes, createNote } = useNotes()
     const { OpenSearch } = useSearch()
+    const listRef = useRef(null)
 
     return (
         <aside className="bg-bg-dark h-full w-0 lg:w-[220px] lg:max-w-[220px] flex flex-col lg:px-[20px]">
@@ -28,27 +32,27 @@ export default function Sidebar() {
                     <p className="text-sm text-white">Search</p>
                 </li >
             </ul>
-            <ul className="mt-[50%]">
+            <ul ref={listRef} className="mt-[50%]">
                 <li className="flex items-center justify-between">
-                    <p className="text-sm text-white">Notes</p>
+                    <p className="text-m text-white">Notes</p>
+                    <FontAwesomeIcon
+                        onClick={createGroup}
+                        className="hover:cursor-pointer text-white pr-2"
+                        icon={faPlus} />
                     <FontAwesomeIcon
                         onClick={createNote}
                         className="hover:cursor-pointer text-white pr-2"
                         icon={faPlus} />
                 </li>
                 {groups.map(group => (
-                    <div key={group._id}>
-                        <p>{group.title}</p>
-                        {group.notes?.map(note => (<NoteDisplay
-                            key={note._id}
-                            note={note}
-                        />))}
-                    </div>
+                    <GroupTree key={group._id} groupId={group._id} dragConstraint={listRef} />
                 ))}
-                {notes?.filter(note => !note.groupId).map(note => (<NoteDisplay
-                    key={note._id}
-                    note={note}
-                />))}
+                {notes?.filter(note => !note.parentId).map(note => (
+                    <NoteDisplay
+                        key={note._id}
+                        noteId={note._id}
+                        dragConstraint={listRef}
+                    />))}
             </ul>
 
         </aside>

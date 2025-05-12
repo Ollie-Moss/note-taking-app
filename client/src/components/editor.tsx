@@ -28,6 +28,7 @@ export default function Editor({ note }: { note: Note }) {
     }, [title, delta])
 
     useEffect(() => {
+
         shouldUpdate.current = false;
         // manually update as quill has some weird quirks
         editorRef.current?.editor?.setContents(JSON.parse(note.contents));

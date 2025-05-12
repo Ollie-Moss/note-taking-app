@@ -13,7 +13,7 @@ declare module "express-serve-static-core" {
 export async function noteValidator(req: Request, res: Response, next: NextFunction) {
     // Requires note
     noteService.setUser(req.user._id.toString())
-    if (req.method == "POST" || req.method == "PUT") {
+    if (req.method == "POST" || req.method == "PATCH") {
         if (!req.body?.note) return next(new AppError("Note is required!", 400));
 
 

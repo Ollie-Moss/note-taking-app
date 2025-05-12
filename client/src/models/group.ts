@@ -1,4 +1,15 @@
-import { Note } from "./note"
+export function NewGroup(): Group {
+    return {
+        _id: "temp_id",
+        title: "",
+        position: 0,
+        uid: "",
+        parentId: null,
+        open: false,
+        notes: [],
+        children: []
+    }
+}
 
 export type Group = {
     _id: string,
@@ -7,5 +18,6 @@ export type Group = {
     uid: string,
     parentId: string | null,
     open: boolean,
-    notes: Note[]
+    notes: string[],
+    children: string[]
 }

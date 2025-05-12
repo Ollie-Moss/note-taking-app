@@ -28,7 +28,7 @@ describe('Note API Routes', () => {
         editedAt: new Date(Date.now()),
         position: 100,
         uid: testUser._id,
-        groupId: null
+        parentId: null
     }
 
     beforeAll(async () => {

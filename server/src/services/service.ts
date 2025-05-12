@@ -2,7 +2,7 @@ import { Model, Types } from "mongoose";
 
 export class Service<T> {
     constructor(protected model: Model<T>) { }
-    private uid: string | null = null;
+    protected uid: string | null = null;
 
     setUser(id: string) {
         this.uid = id
@@ -13,7 +13,7 @@ export class Service<T> {
     }
 
     async findById(id: string) {
-        return this.model.find({ _id: id, uid: this.uid }).lean<T & { _id: Types.ObjectId }>();
+        return this.model.findOne({ _id: id, uid: this.uid }).lean<T & { _id: Types.ObjectId }>();
     }
 
     async findAll(filter: object = { uid: this.uid }) {

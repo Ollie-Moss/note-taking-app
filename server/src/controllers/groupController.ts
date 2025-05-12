@@ -6,7 +6,7 @@ import { groupService } from "../services/services";
 
 export async function MoveGroupHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const group = groupService.move(req.group._id.toString(), req.body.beforeId)
+        const group = await groupService.move(req.group._id.toString(), req.body.beforeId)
         res.status(200).send({ message: "Group moved!", group: group });
         if (!group) {
             res.status(404).json({ message: "Group not found!" })
@@ -20,7 +20,7 @@ export async function MoveGroupHandler(req: Request, res: Response, next: NextFu
 
 export async function CreateGroupHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const group = groupService.create(req.group)
+        const group = await groupService.create(req.group)
         res.status(200).send({ message: "Group created!", group: group });
     } catch (error) {
         next(error)
@@ -29,7 +29,7 @@ export async function CreateGroupHandler(req: Request, res: Response, next: Next
 
 export async function GetAllGroupsHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        let groups = groupService.findGroups({
+        let groups = await groupService.findGroups({
             parentId: req.params.root ? null : undefined,
             withNotes: req.query.withNotes ? true : false,
             withChildren: req.query.withChildren ? true : false,
@@ -47,7 +47,7 @@ export async function GetGroupHandler(req: Request, res: Response, next: NextFun
         if (!req.params.id) {
             throw new AppError("Id is required!", 404)
         }
-        const group = groupService.findGroup(req.params.id, {
+        const group = await groupService.findGroup(req.params.id, {
             withNotes: req.query.withNotes ? true : false,
             withChildren: req.query.withChildren ? true : false,
         })
@@ -63,7 +63,7 @@ export async function GetGroupHandler(req: Request, res: Response, next: NextFun
 
 export async function UpdateGroupHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const group = groupService.update(req.group._id.toString(), req.group)
+        const group = await groupService.update(req.group._id.toString(), req.group)
         if (!group) {
             res.status(404).json({ message: "Group not found!" })
             return;
@@ -79,7 +79,7 @@ export async function DeleteGroupHandler(req: Request, res: Response, next: Next
         if (!req.params.id) {
             throw new AppError("Id is required!", 404)
         }
-        const group = groupService.delete(req.params.id)
+        const group = await groupService.delete(req.params.id)
         if (!group) {
             res.status(404).json({ message: "Group not found!" })
             return;

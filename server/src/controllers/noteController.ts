@@ -6,7 +6,7 @@ import { noteService } from "../services/services";
 
 export async function MoveNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const note = noteService.move(req.note._id.toString(), req.body.beforeId)
+        const note = await noteService.move(req.note._id.toString(), req.body.beforeId)
         res.status(200).send({ message: "Note moved!", note: note });
         if (!note) {
             res.status(404).json({ message: "Note not found!" })
@@ -19,7 +19,7 @@ export async function MoveNoteHandler(req: Request, res: Response, next: NextFun
 
 export async function CreateNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const note = noteService.create(req.note)
+        const note = await noteService.create(req.note)
         res.status(200).send({ message: "Note created!", note: note });
     } catch (error) {
         next(error)
@@ -28,7 +28,7 @@ export async function CreateNoteHandler(req: Request, res: Response, next: NextF
 
 export async function GetAllNotesHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        let notes = noteService.findNotes({
+        let notes = await noteService.findNotes({
             parentId: req.params.grouped ? null : req.params.groupId ?? undefined,
             preview: req.query.preview ? true : false,
         });
@@ -45,7 +45,7 @@ export async function GetNoteHandler(req: Request, res: Response, next: NextFunc
         if (!req.params.id) {
             throw new AppError("Id is required!", 404)
         }
-        const note = noteService.findById(req.params.id)
+        const note = await noteService.findById(req.params.id)
         if (!note) {
             res.status(404).json({ message: "Note not found!" })
             return;
@@ -58,7 +58,7 @@ export async function GetNoteHandler(req: Request, res: Response, next: NextFunc
 
 export async function UpdateNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const note = noteService.update(req.note._id.toString(), req.note)
+        const note = await noteService.update(req.note._id.toString(), req.note)
         if (!note) {
             res.status(404).json({ message: "Note not found!" })
             return;
@@ -74,7 +74,7 @@ export async function DeleteNoteHandler(req: Request, res: Response, next: NextF
         if (!req.params.id) {
             throw new AppError("Id is required!", 404)
         }
-        const note = noteService.delete(req.params.id)
+        const note = await noteService.delete(req.params.id)
         if (!note) {
             res.status(404).json({ message: "Note not found!" })
             return;

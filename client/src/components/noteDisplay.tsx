@@ -5,10 +5,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFile, faStar as fasStar, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons'
 import { twMerge } from 'tailwind-merge'
-import { useNotes } from "../lib/noteProvider";
+import { useNote, useNotes } from "../lib/noteProvider";
+import { motion } from 'motion/react'
+import React, { RefObject, useMemo, useState } from "react";
 
-export function NoteDisplay({ note, className, onClick }: { note: Note, className?: string, onClick?: () => void }) {
-    const { deleteNote, updateNote } = useNotes();
+
+export function NoteDisplay({ noteId, className, onClick, dragConstraint, draggable, offset = 0 }: { offset?: number, dragConstraint?: RefObject<HTMLUListElement>, noteId: string, className?: string, onClick?: () => void, draggable?: boolean }) {
+    const { note, deleteNote, updateNote } = useNote(noteId);
+
     const navigate = useNavigate();
     const { Confirm } = useConfirm()
     const location = useLocation()
@@ -16,7 +20,7 @@ export function NoteDisplay({ note, className, onClick }: { note: Note, classNam
     async function HandleFavourite(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault()
         e.stopPropagation()
-        updateNote({ ...note, favourite: !note.favourite });
+        updateNote({ ...note, favourite: !note.favourite } as Note);
     }
 
     async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
@@ -43,13 +47,18 @@ export function NoteDisplay({ note, className, onClick }: { note: Note, classNam
     }
 
     return (
-        <li
+        <motion.li
+            {...(draggable ? { drag: true } : {})}
+            dragElastic={0}
+            dragConstraints={dragConstraint}
+            dragMomentum={false}
             onClick={onClick ?? defaultOnClick}
+            style={{ paddingLeft: offset + "rem" }}
             className={
-                twMerge([
-                    ..."hover:cursor-pointer transition w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg".split(" "),
-                    ...(className ? className.split(" ") : [])
-                ])}>
+                twMerge(
+                    "bg-bg-dark hover:cursor-pointer transition-colors w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg",
+                    className
+                )}>
             <div className="justify-between overflow-x-hidden flex items-center gap-[8px]">
                 <FontAwesomeIcon className="text-white size-[20px]" icon={faFile} />
                 <p className={`flex-1 overflow-x-hidden whitespace-nowrap text-ellipsis text-xs text-white 
@@ -70,6 +79,6 @@ export function NoteDisplay({ note, className, onClick }: { note: Note, classNam
                     className="hover:text-red-400 text-white size-[16px]"
                     icon={faTimes} />
             </div>
-        </li >
+        </motion.li >
     )
 }

@@ -147,7 +147,7 @@ function SearchResults({ closeSearch, notes, selectedIndex, setSelectedIndex }: 
                     className={i == selectedIndex ? "bg-bg-dark" : "bg-bg"}
                     onClick={() => resultClicked(i)}
                     key={note._id}
-                    note={note} />
+                    noteId={note._id} />
             ).reverse()}
         </div>
     )
