@@ -1,8 +1,6 @@
-import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { NewNote, Note } from "../models/note";
-import useNotesQuery from "./useNotesQuery";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CreateNote, DeleteNote, GetNote, UpdateNote } from "../controllers/noteController";
+import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
+import { NewNote, Note, NotePreview } from "../models/note";
+import { CreateNote, DeleteNote, GetNote, GetNotes, UpdateNote } from "../controllers/noteController";
 import { useNavigate } from "react-router";
 import { useToast } from "./toastProvider";
 import { GetGroups } from "../controllers/groupController";
@@ -45,45 +43,56 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
     const navigate = useNavigate();
     const { createNotification } = useToast();
 
-    const [notes, setNotes] = useState<{ [key: string]: Note & { preview?: boolean } }>({});
+    const [notes, setNotes] = useState<{ [key: string]: Note | NotePreview }>({});
     const [groups, setGroups] = useState<{ [key: string]: Group }>({});
+
+    const [ungroupedNoteIds, setUngroupedNoteIds] = useState<string[]>([]);
+    const [rootGroupIds, setRootGroupIds] = useState<string[]>([]);
 
     useEffect(() => {
         (async () => {
             const retrievedGroups = await GetGroups();
-            for (const group of retrievedGroups) {
-                SetGroup(group)
+            const retrievedNotes = await GetNotes();
+
+            const newGroups: { [key: string]: Group } = {};
+            const newRootGroupIds: string[] = [];
+
+            const newNotes: { [key: string]: Note | NotePreview } = {};
+            const newUngroupedNoteIds: string[] = [];
+
+            for (const group of retrievedGroups.groups) {
+                newGroups[group._id] = group;
+                if (!group.parentId) {
+                    newRootGroupIds.push(group._id);
+                }
             }
+
+            for (const note of retrievedNotes.notes) {
+                newNotes[note._id] = note;
+                if (!note.groupId) {
+                    newUngroupedNoteIds.push(note._id);
+                }
+            }
+
+            setGroups(newGroups);
+            setRootGroupIds(newRootGroupIds);
+            setNotes(newNotes);
+            setUngroupedNoteIds(newUngroupedNoteIds);
         })();
     }, [])
 
     function SetGroup(group: Group) {
-        for (const note of group.notes) {
-            SetNote(note, true);
-        }
-        group.notes = [];
         setGroups(prev => {
             const newGroups = { ...prev }
-            const prevGroup = newGroups[group._id];
-            if (!prevGroup) newGroups[group._id] = group;
+            newGroups[group._id] = group;
             return newGroups
         })
     }
 
-    function SetNote(note: Note, preview: boolean = false) {
+    function SetNote(note: Note) {
         setNotes(prev => {
             const newNotes = { ...prev }
-            const prevNote = newNotes[note._id];
-
-            if (!prevNote) {
-                newNotes[note._id] = note;
-            }
-            else if (prevNote.preview) {
-                newNotes[note._id] = { ...prevNote, ...note }
-            }
-            else {
-                newNotes[note._id] = { ...note, preview }
-            }
+            newNotes[note._id] = note;
             return newNotes
         })
     }
@@ -91,35 +100,8 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
     const autoSaveDelay = 2000;
     const autoSaveTimeoutRef = useRef<{ [key: number]: number }>({});
 
-    function getGroups() {
-        const groupsHydrated = [];
-
-        Object.values(groups).forEach(group => {
-            groupsHydrated.push({ ...group, notes: getNotes(group._id) })
-        })
-        return groupsHydrated
-    }
-
-    function getNotes(groupId: string) {
-        const notesInGroup = []
-
-        Object.values(notes).forEach(note => {
-            if (note.groupId == groupId) notesInGroup.push(note)
-        })
-        return notesInGroup
-    }
-
-    function getAllNotes() {
-        const allNotes = []
-
-        Object.values(notes).forEach(note => {
-            allNotes.push(note)
-        })
-        return allNotes
-    }
-
     async function getNote(noteId: string) {
-        if (!notes[noteId] || notes[noteId].preview) {
+        if (!notes[noteId]) {
             const note = await GetNote(noteId);
             SetNote(note)
             return note;

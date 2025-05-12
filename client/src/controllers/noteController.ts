@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios"
 import { Note } from "../models/note";
 import { BASE_URL, TEST_UID } from "../lib/apiConfig";
 
-export async function GetNotes(uid: string = TEST_UID): Promise<Note[]> {
+export async function GetNotes(uid: string = TEST_UID): Promise<{ notes: Note[], ungroupedNotes: string[] }> {
     try {
         const res = await axios.get(`${BASE_URL}/note`,
             {
@@ -11,12 +11,17 @@ export async function GetNotes(uid: string = TEST_UID): Promise<Note[]> {
                 }
             });
         const notes: Note[] = res.data.notes;
-        return notes.map((note: Note) => {
-            return {
-                ...note,
-                editedAt: new Date(note.editedAt)
-            }
-        });
+        const ungroupedNotes: string[] = res.data.ungroupedNotes;
+
+        return {
+            notes: notes.map((note: Note) => {
+                return {
+                    ...note,
+                    editedAt: new Date(note.editedAt)
+                }
+            }),
+            ungroupedNotes
+        };
     } catch (error: unknown) {
         throw error;
     }

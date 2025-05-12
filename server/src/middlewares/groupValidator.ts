@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { AppError } from "./errorHandler";
 import { Group, GroupModel } from "../models/groupModel";
 import { Types } from "mongoose";
+import { groupService } from "../services/services";
 
 declare module "express-serve-static-core" {
     interface Request {
@@ -11,6 +12,7 @@ declare module "express-serve-static-core" {
 
 export async function groupValidator(req: Request, res: Response, next: NextFunction) {
     // Requires group
+    groupService.setUser(req.user._id.toString())
     if (req.method == "POST" || req.method == "PUT") {
         if (!req.body?.group) return next(new AppError("Group is required!", 400));
 

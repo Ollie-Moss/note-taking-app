@@ -19,7 +19,7 @@ NoteRouter.get('/', GetAllNotesHandler)
 NoteRouter.get('/:id', GetNoteHandler)
 NoteRouter.post('/', CreateNoteHandler)
 NoteRouter.delete('/:id', DeleteNoteHandler)
-NoteRouter.put('/', UpdateNoteHandler)
-NoteRouter.put('/move', MoveNoteHandler)
+NoteRouter.patch('/', UpdateNoteHandler)
+NoteRouter.patch('/move', MoveNoteHandler)
 
 export { NoteRouter };
