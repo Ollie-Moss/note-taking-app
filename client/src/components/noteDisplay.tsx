@@ -6,21 +6,50 @@ import { faFile, faStar as fasStar, faTimes } from "@fortawesome/free-solid-svg-
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons'
 import { twMerge } from 'tailwind-merge'
 import { useNote, useNotes } from "../lib/noteProvider";
-import { motion } from 'motion/react'
-import React, { RefObject, useMemo, useState } from "react";
+import { motion, useMotionValue } from 'motion/react'
+import React, { RefObject, useMemo, useRef, useState } from "react";
 
 
 export function NoteDisplay({ noteId, className, onClick, dragConstraint, draggable, offset = 0 }: { offset?: number, dragConstraint?: RefObject<HTMLUListElement>, noteId: string, className?: string, onClick?: () => void, draggable?: boolean }) {
     const { note, deleteNote, updateNote } = useNote(noteId);
+    const x = useMotionValue(0);
+    const y = useMotionValue(0);
 
     const navigate = useNavigate();
     const { Confirm } = useConfirm()
     const location = useLocation()
+    const noteElementRef = useRef(null)
 
     async function HandleFavourite(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault()
         e.stopPropagation()
-        updateNote({ ...note, favourite: !note.favourite } as Note);
+        updateNote(noteId, { favourite: !note.favourite });
+    }
+
+    function handleDragEnd(event: MouseEvent) {
+        const noteElement = noteElementRef.current;
+
+        const noteRect = noteElement.getBoundingClientRect();
+
+        // Loop through all groups
+        document.querySelectorAll("[data-group-id]").forEach((groupEl) => {
+            const groupRect = groupEl.getBoundingClientRect();
+
+            const isOverlapping =
+                noteRect.left < groupRect.right &&
+                noteRect.right > groupRect.left &&
+                noteRect.top < groupRect.bottom &&
+                noteRect.bottom > groupRect.top;
+
+            if (isOverlapping) {
+                const groupId = groupEl.getAttribute("data-group-id");
+                if (groupId) {
+                    updateNote(noteId, { parentId: groupId });
+                }
+            }
+        });
+        x.set(0)
+        y.set(0)
     }
 
     async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
@@ -46,14 +75,18 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
         })
     }
 
+    if (!note) return
     return (
         <motion.li
             {...(draggable ? { drag: true } : {})}
             dragElastic={0}
             dragConstraints={dragConstraint}
+            onDragEnd={(event, info) => handleDragEnd(event as MouseEvent)}
             dragMomentum={false}
             onClick={onClick ?? defaultOnClick}
-            style={{ paddingLeft: offset + "rem" }}
+            transition={{ type: "spring", stiffness: 300 }}
+            style={{ x, y, paddingLeft: 0.5 + offset + "rem" }}
+            ref={noteElementRef}
             className={
                 twMerge(
                     "bg-bg-dark hover:cursor-pointer transition-colors w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg",

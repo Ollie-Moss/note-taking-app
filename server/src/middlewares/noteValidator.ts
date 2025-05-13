@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "./errorHandler";
-import { Note, NoteModel } from "../models/noteModel";
-import { Types } from "mongoose";
+import { INote, Note, NoteModel } from "../models/noteModel";
+import { Document, Types } from "mongoose";
 import { noteService } from "../services/services";
 
 declare module "express-serve-static-core" {
@@ -18,11 +18,15 @@ export async function noteValidator(req: Request, res: Response, next: NextFunct
 
 
         if (!Types.ObjectId.isValid(req.body.note._id)) req.body.note._id = new Types.ObjectId()
-        const note = new NoteModel({ ...req.body.note, uid: req.user._id });
+        const updates = { ...req.body.note, uid: req.user._id };
 
-        await note.validate().catch((err: Error) => {
+        const note = await NoteModel.findById(updates._id);
+        note?.set(updates)
+        note?.validate(Object.keys(updates)).catch((err: Error) => {
             return next(new AppError(err.message, 400))
         })
+        // discards changes
+        const freshNote = await NoteModel.findById(updates._id);
 
         req.note = req.body.note;
     }

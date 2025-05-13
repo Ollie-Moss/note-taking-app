@@ -33,9 +33,9 @@ export async function CreateGroup(group: Group, uid: string = TEST_UID): Promise
     }
 }
 
-export async function UpdateGroup(group: Group, uid: string = TEST_UID): Promise<Group> {
+export async function UpdateGroup(id: string, group: Partial<Group>, uid: string = TEST_UID): Promise<Group> {
     try {
-        const res = await axios.patch(`${BASE_URL}/group`, { group },
+        const res = await axios.patch(`${BASE_URL}/group`, { group: { _id: id, ...group } },
             {
                 headers: {
                     Authorization: `Bearer ${uid}`

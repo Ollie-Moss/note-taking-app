@@ -10,7 +10,7 @@ import { useNavigate } from "react-router";
 import Header from "../../components/header";
 import NotesHomeSection from "../../components/notesHomeSection";
 import { SearchProvider } from "../../lib/searchProvider";
-import { NotesContextProvider, useNote } from "../../lib/noteProvider";
+import { NotesContextProvider, useNote, useNoteFromServer } from "../../lib/noteProvider";
 
 const queryClient = new QueryClient()
 
@@ -43,7 +43,7 @@ function NoteDisplay({ noteId }: { noteId: string }) {
     // thus placing the cursor at the start of the input fields and
     // other issues
     const navigate = useNavigate();
-    const { note } = useNote(noteId, false)
+    const { note } = useNoteFromServer(noteId)
 
     return (
         <div className="h-full w-full bg-bg">

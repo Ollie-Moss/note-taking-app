@@ -16,12 +16,12 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
     const [searchQuery, setSearchQuery] = useState<string>("");
 
     useEffect(() => {
-        const fuse = new Fuse(notes, {
+        const fuse = new Fuse(notes as Note[], {
             keys: ['title'],
             threshold: 0.3 // Lower = stricter match
         });
 
-        if (searchQuery === "") return setResults(notes);
+        if (searchQuery === "") return setResults(notes as Note[]);
         setResults(fuse.search(searchQuery).map(result => result.item));
 
     }, [notes, searchQuery])

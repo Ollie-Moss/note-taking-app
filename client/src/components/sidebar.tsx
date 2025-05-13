@@ -7,14 +7,19 @@ import { useSearch } from "../lib/searchProvider";
 import { useGroups, useNotes } from "../lib/noteProvider";
 import { Note } from "../models/note";
 import { GroupTree } from "./groupTree";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import Dropdown from "./dropdown";
 
 
 export default function Sidebar() {
-    const { groups, createGroup } = useGroups();
-    const { notes, createNote } = useNotes()
+    const { rootGroups, createGroup } = useGroups();
+    const { ungroupedNotes, createNote } = useNotes()
     const { OpenSearch } = useSearch()
     const listRef = useRef(null)
+
+    const [isOpen, setIsOpen] = useState<boolean>(false);
+
+    const toggleDropdown = () => setIsOpen(!isOpen);
 
     return (
         <aside className="bg-bg-dark h-full w-0 lg:w-[220px] lg:max-w-[220px] flex flex-col lg:px-[20px]">
@@ -36,21 +41,32 @@ export default function Sidebar() {
                 <li className="flex items-center justify-between">
                     <p className="text-m text-white">Notes</p>
                     <FontAwesomeIcon
-                        onClick={createGroup}
+                        onClick={toggleDropdown}
                         className="hover:cursor-pointer text-white pr-2"
                         icon={faPlus} />
-                    <FontAwesomeIcon
-                        onClick={createNote}
-                        className="hover:cursor-pointer text-white pr-2"
-                        icon={faPlus} />
+                    <Dropdown 
+                        isOpen={isOpen} 
+                        setIsOpen={setIsOpen}
+                        options={[
+                        {
+                            title: "Create Note",
+                            onclick: createNote
+                        },
+                        {
+                            title: "Create Group",
+                            onclick: createGroup
+                        }
+                        ]
+                    } />
                 </li>
-                {groups.map(group => (
-                    <GroupTree key={group._id} groupId={group._id} dragConstraint={listRef} />
+                {rootGroups.map(groupId => (
+                    <GroupTree key={groupId} groupId={groupId} dragConstraint={listRef} />
                 ))}
-                {notes?.filter(note => !note.parentId).map(note => (
+                {ungroupedNotes.map(noteId => (
                     <NoteDisplay
-                        key={note._id}
-                        noteId={note._id}
+                        key={noteId}
+                        noteId={noteId}
+                        draggable={true}
                         dragConstraint={listRef}
                     />))}
             </ul>

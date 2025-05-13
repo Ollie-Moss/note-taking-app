@@ -11,8 +11,8 @@ export default function Editor({ note }: { note: Note }) {
 
     const { updateNote } = useNotesOperations()
 
-    const [delta, setDelta] = useState<Delta>(JSON.parse(note.contents));
-    const [title, setTitle] = useState<string>(note.title);
+    const [delta, setDelta] = useState<Delta>(JSON.parse(note ? note.contents : "{}"));
+    const [title, setTitle] = useState<string>(note ? note.title : "");
 
     useEffect(() => {
         if (!shouldUpdate.current) {
@@ -24,11 +24,11 @@ export default function Editor({ note }: { note: Note }) {
             title: title,
             contents: JSON.stringify(delta, null, 2)
         }
-        updateNote(updatedNote);
+        updateNote(note._id, updatedNote);
     }, [title, delta])
 
     useEffect(() => {
-
+        if(!note.hasOwnProperty("content")){}
         shouldUpdate.current = false;
         // manually update as quill has some weird quirks
         editorRef.current?.editor?.setContents(JSON.parse(note.contents));
@@ -73,7 +73,7 @@ export default function Editor({ note }: { note: Note }) {
     return (
         <div className="px-24 pt-10">
             <h1 className={`text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1
-                            ${note.title == "" ? untitledNoteStyle : ""} `}
+                            ${title == "" ? untitledNoteStyle : ""} `}
                 contentEditable={true}
                 suppressContentEditableWarning={true}
                 onInput={SetTitle}

@@ -41,9 +41,9 @@ export async function GetNote(noteId: string, uid: string = TEST_UID): Promise<N
     }
 }
 
-export async function UpdateNote(note: Note, uid: string = TEST_UID): Promise<Note> {
+export async function UpdateNote(id: string, note: Partial<Note>, uid: string = TEST_UID): Promise<Note> {
     try {
-        const updatedNote = await axios.patch(`${BASE_URL}/note`, { note },
+        const updatedNote = await axios.patch(`${BASE_URL}/note`, { note: { _id: id, ...note } },
             {
                 headers: {
                     Authorization: `Bearer ${uid}`

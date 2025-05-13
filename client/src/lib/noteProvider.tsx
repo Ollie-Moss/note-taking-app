@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useEffect, useRef, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { NewNote, Note, NotePreview } from "../models/note";
 import { CreateNote, DeleteNote, GetNote, GetNotes, UpdateNote } from "../controllers/noteController";
 import { useNavigate } from "react-router";
@@ -7,6 +7,8 @@ import { CreateGroup, GetGroups, UpdateGroup } from "../controllers/groupControl
 import { Group, NewGroup } from "../models/group";
 
 const notesContext = createContext<{
+    rootGroups: string[],
+    ungroupedNotes: string[],
     groups: { [key: string]: Group },
     notes: { [key: string]: Note | NotePreview },
     getAllGroups: () => { groups: Group[], rootGroups: string[] },
@@ -15,9 +17,11 @@ const notesContext = createContext<{
     getAllNotes: () => { notes: (Note | NotePreview)[], ungroupedNotes: string[] },
     createNote: () => void,
     createGroup: () => void,
-    updateNote: (updatedNote: Note) => void,
+    updateNoteLocal: (id: string, updatedNote: Partial<Note>) => void,
+    updateNote: (id: string, updatedNote: Partial<Note>) => void,
     deleteNote: (noteId: string) => void
-    updateGroup: (updatedGroup: Group) => void,
+    updateGroup: (id: string, updatedGroup: Partial<Group>) => void,
+    updateGroupLocal: (id: string, updatedGroup: Partial<Group>) => void,
     deleteGroup: (id: string) => void
 }>({
     groups: {},
@@ -31,7 +35,7 @@ const notesContext = createContext<{
     createNote: function(): void {
         throw new Error("Function not implemented.");
     },
-    updateNote: function(updatedNote: Note): void {
+    updateNote: function(id: string, updatedNote: Note): void {
         throw new Error("Function not implemented.");
     },
     deleteNote: function(noteId: string): void {
@@ -43,7 +47,7 @@ const notesContext = createContext<{
     getGroup: function(id: string): Group {
         throw new Error("Function not implemented.");
     },
-    updateGroup: function(updatedGroup: Group): void {
+    updateGroup: function(id: string, updatedGroup: Partial<Group>): void {
         throw new Error("Function not implemented.");
     },
     deleteGroup: function(id: string): void {
@@ -51,7 +55,15 @@ const notesContext = createContext<{
     },
     createGroup: function(): void {
         throw new Error("Function not implemented.");
-    }
+    },
+    updateNoteLocal: function(id: string, updatedNote: Partial<Note>): void {
+        throw new Error("Function not implemented.");
+    },
+    updateGroupLocal: function(id: string, updatedGroup: Partial<Group>): void {
+        throw new Error("Function not implemented.");
+    },
+    rootGroups: [],
+    ungroupedNotes: []
 })
 
 export function NotesContextProvider({ children }: Readonly<{ children: ReactNode }>) {
@@ -125,24 +137,59 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
         }
     }
 
-    async function updateGroup(updatedGroup: Group) {
+    async function updateGroupLocal(id: string, updatedGroup: Partial<Group>) {
         if (updatedGroup._id == "temp_id") return;
         setGroups(prev => {
             const newGroups = { ...prev }
-            newGroups[updatedGroup._id] = updatedGroup
+            newGroups[id] = { ...newGroups[id], ...updatedGroup }
             return newGroups
         })
-        try {
-            await UpdateGroup(updatedGroup)
-        } catch (error) {
-
+        if (updatedGroup.hasOwnProperty("parentId")) {
+            setRootGroupIds(prev => {
+                const prevGroups = [...prev]
+                if (prevGroups.indexOf(id) == -1 && updatedGroup.parentId == null) {
+                    prevGroups.push(id)
+                }
+                if (prevGroups.indexOf(id) != -1 && updatedGroup.parentId != null) {
+                    prevGroups.splice(prevGroups.indexOf(id), 1)
+                }
+                return prevGroups
+            })
         }
+
+    }
+
+    async function updateGroup(id: string, updatedGroup: Partial<Group>) {
+        updateGroupLocal(id, updatedGroup)
+
+        if (autoSaveTimeoutRef.current) {
+            clearTimeout(autoSaveTimeoutRef.current[updatedGroup._id]);
+        }
+
+        autoSaveTimeoutRef.current[updatedGroup._id] = setTimeout(async () => {
+            try {
+                await UpdateGroup(id, updatedGroup);
+            } catch (error) {
+                console.error(error)
+                createNotification({ message: "Something went wrong while saving a Group! ", type: "error" })
+            }
+        }, autoSaveDelay);
     }
     async function deleteGroup(id: string) {
+        if (autoSaveTimeoutRef.current) {
+            clearTimeout(autoSaveTimeoutRef.current[id]);
+        }
         setGroups(prev => {
             const newGroups = { ...prev }
             delete newGroups[id]
             return newGroups
+        })
+        setRootGroupIds(prev => {
+            const prevGroups = [...prev]
+            if (prevGroups.indexOf(id) != -1) {
+                prevGroups.splice(prevGroups.indexOf(id), 1)
+            }
+            return prevGroups
         })
 
         try {
@@ -166,15 +213,46 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
         return note;
     }
 
-    function updateNote(updatedNote: Note) {
+    function updateNoteLocal(id: string, updatedNote: Partial<Note>) {
         if (updatedNote._id == "temp_id") return;
         updatedNote.editedAt = new Date(Date.now());
 
+        if (updatedNote.hasOwnProperty("parentId")) {
+
+            if (notes[id]?.parentId != null) {
+                const prevGroupId = notes[id].parentId
+                const newGroupId = updatedNote.parentId
+                const prevNotes = groups[prevGroupId].notes
+                const newNotes = groups[prevGroupId].notes
+                if (prevNotes.indexOf(id) != -1) {
+                    prevNotes.splice(prevNotes.indexOf(id), 1)
+                }
+                if (newNotes.indexOf(id) == -1) {
+                    newNotes.push(id)
+                }
+                updateGroupLocal(prevGroupId, { ...groups[prevGroupId], notes: prevNotes })
+                updateGroupLocal(newGroupId, { ...groups[newGroupId], notes: newNotes })
+            }
+            setUngroupedNoteIds(prev => {
+                const prevNotes = [...prev]
+                if (prevNotes.indexOf(id) == -1 && updatedNote.parentId == null) {
+                    prevNotes.push(id)
+                }
+                if (prevNotes.indexOf(id) != -1 && updatedNote.parentId != null) {
+                    prevNotes.splice(prevNotes.indexOf(id), 1)
+                }
+                return prevNotes
+            })
+        }
         setNotes(prev => {
             const newNotes = { ...prev }
-            newNotes[updatedNote._id] = updatedNote
+            newNotes[id] = { ...newNotes[id], ...updatedNote }
             return newNotes
         })
+    }
+
+    function updateNote(id: string, updatedNote: Partial<Note>) {
+        updateNoteLocal(id, updatedNote);
 
         if (autoSaveTimeoutRef.current) {
             clearTimeout(autoSaveTimeoutRef.current[updatedNote._id]);
@@ -182,7 +260,7 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
 
         autoSaveTimeoutRef.current[updatedNote._id] = setTimeout(async () => {
             try {
-                await UpdateNote(updatedNote);
+                await UpdateNote(id, updatedNote);
                 createNotification({ message: "Saved Note!", type: "success" })
             } catch (error) {
                 console.error(error)
@@ -200,6 +278,20 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
             const newNotes = { ...prev }
             delete newNotes[noteId];
             return newNotes
+        })
+
+        if (notes[noteId].parentId != null) {
+            const prevGroupId = notes[noteId].parentId
+            const prevNotes = groups[prevGroupId].notes
+            prevNotes.splice(prevNotes.indexOf(noteId), 1)
+            updateGroupLocal(prevGroupId, { ...groups[prevGroupId], notes: prevNotes })
+        }
+        setUngroupedNoteIds(prev => {
+            const prevNotes = [...prev]
+            if (prevNotes.indexOf(noteId) != -1) {
+                prevNotes.splice(prevNotes.indexOf(noteId), 1)
+            }
+            return prevNotes
         })
 
         try {
@@ -229,7 +321,10 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
 
     return (
         <notesContext.Provider value={{
+            ungroupedNotes: ungroupedNoteIds,
+            rootGroups: rootGroupIds,
             createGroup,
+            updateGroupLocal,
             updateGroup,
             deleteGroup,
             getGroup,
@@ -240,6 +335,7 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
             getNote,
             createNote,
             updateNote,
+            updateNoteLocal,
             deleteNote
         }}>
             {children}
@@ -257,61 +353,59 @@ export function useNotesOperations() {
 }
 
 export function useNotes() {
-    const { getAllNotes, createNote, updateNote, deleteNote } = useNotesProvider()
-    const [notes, setNotes] = useState<(Note | NotePreview)[]>([])
-    const [ungroupedNotes, setUngroupedNotes] = useState<string[]>([])
+    const { notes, ungroupedNotes, createNote, updateNote, deleteNote } = useNotesProvider()
+    const notesAsArray = useMemo(() => Object.values(notes), [notes])
 
-    useEffect(() => {
-        const results = getAllNotes()
-        setNotes(results.notes)
-        setUngroupedNotes(results.ungroupedNotes)
-    }, [getAllNotes, setNotes, setUngroupedNotes])
-
-    return { notes, ungroupedNotes, createNote, updateNote, deleteNote }
+    return { notes: notesAsArray, ungroupedNotes, createNote, updateNote, deleteNote }
 }
 
 export function useGroups() {
-    const { getAllGroups, createGroup, updateGroup, deleteGroup } = useNotesProvider()
-    const [groups, setGroups] = useState<Group[]>([])
-    const [rootGroups, setRootGroups] = useState<string[]>([])
-
-    useEffect(() => {
-        const results = getAllGroups()
-        setGroups(results.groups)
-        setRootGroups(results.rootGroups)
-    }, [getAllGroups])
-
-    return { groups, rootGroups, createGroup, updateGroup, deleteGroup }
+    const { groups, rootGroups, createGroup, updateGroup, deleteGroup } = useNotesProvider()
+    const groupsAsArray = useMemo(() => Object.values(groups), [groups])
+    return { groups: groupsAsArray, rootGroups, createGroup, updateGroup, deleteGroup }
 }
 
-export function useNote(id: string, recieveUpdates: boolean = true) {
-    const { notes, getNote, createNote, updateNote, deleteNote } = useNotesProvider()
-    const [note, setNote] = useState<Note | NotePreview>(notes[id])
+export function useNoteFromServer(id: string) {
+    const { notes, updateNoteLocal } = useNotesProvider()
+    const [note, setNote] = useState<Note | null>(null)
 
-    if (recieveUpdates) {
-        useEffect(() => {
-            setNote(notes[id]);
-        }, [id, getNote])
-    } else {
-        useEffect(() => {
-            if (id == "") return
-            GetNote(id).then(newNote => {
-                setNote(newNote);
-            })
-        }, [id])
-    }
+    const prevIdRef = useRef<string | null>(null);
 
-    if (recieveUpdates) return { note, createNote, updateNote, deleteNote }
+    useEffect(() => {
+        if (id === "" || id === prevIdRef.current) return;
+        prevIdRef.current = id;
+
+        GetNote(id).then(newNote => {
+            setNote(newNote);
+            updateNoteLocal(newNote._id, newNote)
+        })
+    }, [id, updateNoteLocal])
+
     return { note }
 }
 
+export function useNote(id: string) {
+    const { notes, getNote, createNote, updateNote, deleteNote } = useNotesProvider()
+    const [note, setNote] = useState<Note | NotePreview>(notes[id])
+    useEffect(() => {
+        if (notes[id] != note) {
+            setNote(notes[id]);
+        }
+    }, [id, notes])
+    return { note, createNote, updateNote, deleteNote }
+}
+
 export function useGroup(id: string) {
-    const { groups, getGroup } = useNotesProvider()
+    const { notes, groups, getGroup, updateGroup, updateGroupLocal, deleteGroup } = useNotesProvider()
     const [group, setGroup] = useState<Group>(groups[id])
 
     useEffect(() => {
-        setGroup(getGroup(id))
-    }, [id, getGroup])
+        if (groups[id] != group) {
+            const newGroup = groups[id];
+            newGroup.notes = newGroup.notes.sort((a, b) => notes[a].position - notes[b].position)
+            setGroup(newGroup)
+        }
+    }, [id, groups, notes])
 
-    return { group }
+    return { group, updateGroup, updateGroupLocal, deleteGroup }
 }
