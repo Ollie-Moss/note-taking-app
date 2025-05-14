@@ -1,13 +1,12 @@
-import mongoose from "mongoose";
+import mongoose, { Mongoose } from "mongoose";
 
-const connectionString = process.env.ATLAS_URI || "";
-
-async function InitializeMongoose() {
+async function InitializeMongoose(connectionString: string = process.env.ATLAS_URI || ""): Promise<Mongoose | null> {
     try {
-        mongoose.connect(connectionString);
+        return mongoose.connect(connectionString);
     } catch (e) {
         console.error(e);
     }
+    return null
 }
 
 export default InitializeMongoose;

@@ -1,71 +1,52 @@
-import { NextFunction, Request, Response } from "express";
-import { INote, NoteModel, Note } from "../models/noteModel";
+import { Request, Response, NextFunction } from "express";
 import { AppError } from "../middlewares/errorHandler";
-import { Types } from "mongoose";
+import { noteService } from "../services/services";
 
+// ----- API Route Handlers ------
 
-// ----- CREATE ------
+export async function MoveNoteHandler(req: Request, res: Response, next: NextFunction) {
+    try {
+        const note = await noteService.move(req.note._id.toString(), req.body.beforeId)
+        res.status(200).send({ message: "Note moved!", note: note });
+        if (!note) {
+            res.status(404).json({ message: "Note not found!" })
+            return;
+        }
+    } catch (error) {
+        next(error)
+    }
+}
 
 export async function CreateNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        if (!req.body?.note) return next();
-
-        const newNote: INote = req.body.note as INote;
-
-        if (!Types.ObjectId.isValid(newNote.uid)) {
-            throw new AppError("Invalid uid provided!", 404);
-        }
-
-        const validNote: INote = {
-            title: newNote.title,
-            contents: newNote.contents,
-            favourite: false,
-            editedAt: new Date(Date.now()),
-            uid: newNote.uid
-        }
-        const note: INote = await CreateNote(validNote);
+        const note = await noteService.create(req.note)
         res.status(200).send({ message: "Note created!", note: note });
     } catch (error) {
         next(error)
     }
 }
 
-export async function CreateNote(note: INote): Promise<INote> {
-    console.log(note);
-    const newNote: INote = await NoteModel.create(note)
-        .then(data => data.toObject({ versionKey: false }));
-    return newNote;
-}
-
-// ----- READ ------
-
 export async function GetAllNotesHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const uid: string = req.user._id;
-        let notes: INote[] = await GetAllNotesForUser(uid);
-        res.status(200).send({ notes: notes });
+        let notes = await noteService.findNotes({
+            parentId: req.params.grouped ? null : req.params.groupId ?? undefined,
+            preview: req.query.preview ? true : false,
+        });
+        res.status(200).send({
+            notes: notes,
+        });
     } catch (error) {
         next(error)
     }
 }
 
-export async function GetAllNotes(): Promise<INote[]> {
-    const notes: INote[] = await NoteModel.find({})
-        .then(data => data.map(note => note.toObject({ versionKey: false })));
-    return notes;
-}
-export async function GetAllNotesForUser(uid: string): Promise<INote[]> {
-    const notes: INote[] = await NoteModel.find({ uid: uid })
-        .then(data => data.map(note => note.toObject({ versionKey: false })));
-    return notes;
-}
-
-
 export async function GetNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const id: string = req.params.id;
-        let note: INote | null = await GetNote(req.user._id, id);
-        if (note === null) {
+        if (!req.params.id) {
+            throw new AppError("Id is required!", 404)
+        }
+        const note = await noteService.findById(req.params.id)
+        if (!note) {
             res.status(404).json({ message: "Note not found!" })
             return;
         }
@@ -75,23 +56,10 @@ export async function GetNoteHandler(req: Request, res: Response, next: NextFunc
     }
 }
 
-export async function GetNote(uid: string, id: string): Promise<INote | null> {
-    if (!Types.ObjectId.isValid(id)) {
-        throw new AppError("Invalid note id provided!", 404);
-    }
-    const note: INote | null = await NoteModel.findOne({ _id: id, uid: uid })
-        .then(data => data?.toObject({ versionKey: false }) ?? null)
-    return note;
-};
-
-
-// ----- UPDATE ------
-
 export async function UpdateNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const newNote: Note = req.body.note as Note;
-        const note: INote | null = await UpdateNote(req.user._id, newNote);
-        if (note === null) {
+        const note = await noteService.update(req.note._id.toString(), req.note)
+        if (!note) {
             res.status(404).json({ message: "Note not found!" })
             return;
         }
@@ -101,20 +69,13 @@ export async function UpdateNoteHandler(req: Request, res: Response, next: NextF
     }
 }
 
-export async function UpdateNote(uid: string, note: Note): Promise<INote | null> {
-    const updatedNote: INote | null = await NoteModel.findOneAndUpdate({ _id: note._id, uid: uid }, note)
-        .then(data => data?.toObject({ versionKey: false }) ?? null);
-    return updatedNote;
-}
-
-
-// ----- DELETE ------
-
 export async function DeleteNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const id: string = req.params.id;
-        const note: INote | null = await DeleteNote(req.user._id, id);
-        if (note === null) {
+        if (!req.params.id) {
+            throw new AppError("Id is required!", 404)
+        }
+        const note = await noteService.delete(req.params.id)
+        if (!note) {
             res.status(404).json({ message: "Note not found!" })
             return;
         }
@@ -122,10 +83,4 @@ export async function DeleteNoteHandler(req: Request, res: Response, next: NextF
     } catch (error) {
         next(error)
     }
-}
-
-export async function DeleteNote(uid: string, id: string): Promise<INote | null> {
-    const note: INote | null = await NoteModel.findOneAndDelete({ _id: id, uid: uid })
-        .then(data => data?.toObject({ versionKey: false }) ?? null);
-    return note;
 }

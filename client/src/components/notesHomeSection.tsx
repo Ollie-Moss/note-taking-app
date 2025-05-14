@@ -1,6 +1,6 @@
-import { useNotes } from "../lib/noteContext"
+import { useNotes } from "../lib/noteProvider"
 import { useSearch } from "../lib/searchProvider"
-import { Note } from "../models/note"
+import { Note, NotePreview } from "../models/note"
 import { NoteDisplay } from "./noteDisplay"
 
 export default function NotesHomeSection() {
@@ -22,7 +22,7 @@ export default function NotesHomeSection() {
     )
 }
 
-function NotesSection({ title, notes }: { title: string, notes: Note[] }) {
+function NotesSection({ title, notes }: { title: string, notes: (Note | NotePreview)[] }) {
     function ScrollOverride(e: React.WheelEvent<HTMLUListElement>) {
         if (e.deltaY !== 0) {
             e.currentTarget.scrollLeft += e.deltaY / 10;
@@ -37,7 +37,7 @@ function NotesSection({ title, notes }: { title: string, notes: Note[] }) {
                         <NoteDisplay
                             key={note._id}
                             className="bg-bg min-w-[200px] w-[200px] p-4"
-                            note={note} />
+                            noteId={note._id} />
                     ))
                     :
                     <h3 className="italic text-base font-medium">No notes here...</h3>

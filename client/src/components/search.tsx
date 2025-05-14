@@ -1,12 +1,10 @@
 import { SetStateAction, useEffect, useRef, useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFile } from "@fortawesome/free-solid-svg-icons";
 import { Note } from "../models/note";
 import ReactQuill from "react-quill-new";
 import Fuse from "fuse.js"
 import { useNavigate } from "react-router";
-import { useNotes } from "../lib/noteContext";
 import { NoteDisplay } from "./noteDisplay";
+import { useNotes } from "../lib/noteProvider";
 
 export default function Search({ isOpen, closeSearch }: { isOpen: boolean, closeSearch: () => void }) {
     const navigate = useNavigate();
@@ -18,12 +16,12 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
     const [searchQuery, setSearchQuery] = useState<string>("");
 
     useEffect(() => {
-        const fuse = new Fuse(notes, {
+        const fuse = new Fuse(notes as Note[], {
             keys: ['title'],
             threshold: 0.3 // Lower = stricter match
         });
 
-        if (searchQuery === "") return setResults(notes);
+        if (searchQuery === "") return setResults(notes as Note[]);
         setResults(fuse.search(searchQuery).map(result => result.item));
 
     }, [notes, searchQuery])
@@ -102,7 +100,7 @@ function SearchPreview({ note }: { note: Note }) {
     const editorRef = useRef<ReactQuill>(null)
 
     useEffect(() => {
-        editorRef.current?.editor?.setContents(JSON.parse(note.contents));
+        editorRef.current?.editor?.setContents(JSON.parse(note.contents ?? "{}"));
     }, [note])
 
     const untitledNoteStyle = "after:inline after:font-light after:opacity-[0.6] after:italic after:content-['Untitled_Note...']"
@@ -149,7 +147,7 @@ function SearchResults({ closeSearch, notes, selectedIndex, setSelectedIndex }: 
                     className={i == selectedIndex ? "bg-bg-dark" : "bg-bg"}
                     onClick={() => resultClicked(i)}
                     key={note._id}
-                    note={note} />
+                    noteId={note._id} draggable={false} />
             ).reverse()}
         </div>
     )

@@ -5,14 +5,19 @@ export function NewNote(): Note {
         contents: "{}",
         favourite: false,
         editedAt: new Date(Date.now()),
+        position: 0,
         uid: "",
+        parentId: null
     } as Note;
 }
+
 export type Note = {
     _id: string,
     title: string,
-    contents: string,
-    favourite: boolean,
     editedAt: Date,
-    uid: string,
+    position: number,
+    favourite: boolean
+    parentId: string | null
+    uid?: string,
+    contents?: string,
 }

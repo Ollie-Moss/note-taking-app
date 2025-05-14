@@ -1,22 +1,24 @@
-import axios, { AxiosError } from "axios"
+import axios from "axios"
 import { Note } from "../models/note";
 import { BASE_URL, TEST_UID } from "../lib/apiConfig";
 
-export async function GetNotes(uid: string = TEST_UID): Promise<Note[]> {
+export async function GetNotes(uid: string = TEST_UID): Promise<(Note)[]> {
     try {
-        const res = await axios.get(`${BASE_URL}/note`,
+        const res = await axios.get(`${BASE_URL}/note?preview=true`,
             {
                 headers: {
                     Authorization: `Bearer ${uid}`
                 }
             });
         const notes: Note[] = res.data.notes;
+
         return notes.map((note: Note) => {
             return {
                 ...note,
                 editedAt: new Date(note.editedAt)
             }
-        });
+        })
+
     } catch (error: unknown) {
         throw error;
     }
@@ -39,9 +41,9 @@ export async function GetNote(noteId: string, uid: string = TEST_UID): Promise<N
     }
 }
 
-export async function UpdateNote(note: Note, uid: string = TEST_UID): Promise<Note> {
+export async function UpdateNote(id: string, note: Partial<Note>, uid: string = TEST_UID): Promise<Note> {
     try {
-        const updatedNote = await axios.put(`${BASE_URL}/note`, { note },
+        const updatedNote = await axios.patch(`${BASE_URL}/note`, { note: { _id: id, ...note } },
             {
                 headers: {
                     Authorization: `Bearer ${uid}`

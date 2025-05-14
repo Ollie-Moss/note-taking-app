@@ -2,41 +2,42 @@ import React, { useEffect, useRef, useState } from "react";
 import { Note } from "../models/note";
 import { Delta, EmitterSource } from "quill";
 import ReactQuill from "react-quill-new";
-import { useNotes } from "../lib/noteContext";
+import { useNoteFromServer } from "../lib/noteProvider";
 
-export default function Editor({ note }: { note: Note }) {
+export default function Editor({ noteId }: { noteId: string }) {
     const editorRef = useRef<ReactQuill>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
     const shouldUpdate = useRef<boolean>(false);
 
-    const { updateNote } = useNotes()
-    const [delta, setDelta] = useState<Delta>(JSON.parse(note.contents));
-    const [title, setTitle] = useState<string>(note.title);
+    const { note, updateNote } = useNoteFromServer(noteId)
+    const [delta, setDelta] = useState<Delta>(JSON.parse(note ? note.contents ?? "{}" : "{}"));
+    const [title, setTitle] = useState<string>(note ? note.title ?? "" : "");
 
     useEffect(() => {
-        if (!shouldUpdate.current) {
-            shouldUpdate.current = true;
-            return;
-        }
-        const updatedNote: Note = {
-            ...note,
-            title: title,
-            contents: JSON.stringify(delta, null, 2)
-        }
-        updateNote(updatedNote);
+
     }, [title, delta])
+    function updateNoteOnServer() {
+        if (!shouldUpdate.current) return;
+    }
 
     useEffect(() => {
+        if (!note) return
         shouldUpdate.current = false;
         // manually update as quill has some weird quirks
-        editorRef.current?.editor?.setContents(JSON.parse(note.contents));
+        if (note.contents) {
+            editorRef.current?.editor?.setContents(JSON.parse(note.contents));
+
+            setDelta(JSON.parse(note.contents));
+        }
         setTitle(note.title);
-        setDelta(JSON.parse(note.contents));
-    }, [note])
+        shouldUpdate.current = true;
+    }, [noteId, note])
 
     function SetDelta(_value: string, _delta: Delta, _source: EmitterSource, editor: ReactQuill.UnprivilegedEditor): void {
         const newDelta: Delta = editor.getContents();
         setDelta(newDelta)
+        if(!shouldUpdate.current) return
+        updateNote(note._id, { contents: JSON.stringify(newDelta, null, 2) }, true);
     }
 
     function SetTitle(e: React.FormEvent<HTMLHeadingElement>): void {
@@ -45,6 +46,8 @@ export default function Editor({ note }: { note: Note }) {
             e.currentTarget.innerText = ""
         }
         setTitle(newTitle)
+        if(!shouldUpdate.current) return
+        updateNote(note._id, {title: newTitle}, true);
     }
 
     // Ensures only plain text can be pasted
@@ -69,24 +72,26 @@ export default function Editor({ note }: { note: Note }) {
     const untitledNoteStyle = "after:inline after:font-light after:opacity-[0.6] after:italic after:content-['Untitled_Note...']"
 
     return (
-        <div className="px-24 pt-10">
-            <h1 className={`text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1
-                            ${note.title == "" ? untitledNoteStyle : ""} `}
-                contentEditable={true}
-                suppressContentEditableWarning={true}
-                onInput={SetTitle}
-                onPaste={HandlePaste}
-                ref={titleRef}
-            >{note.title}</h1>
-            <ReactQuill
-                ref={editorRef}
-                onChange={SetDelta}
-                className="text-white"
-                placeholder="Start your note here..."
-                key={note.contents}
-                theme="bubble">
-                <div className="[&>*]:outline-none [&>*:focus]:bg-bg-dark [&>*]:rounded-lg" />
-            </ReactQuill>
-        </div>
+        note ?
+            <div className="px-24 pt-10">
+                <h1 className={`text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1
+                            ${title == "" ? untitledNoteStyle : ""} `}
+                    contentEditable={true}
+                    suppressContentEditableWarning={true}
+                    onInput={SetTitle}
+                    onPaste={HandlePaste}
+                    ref={titleRef}
+                >{note.title}</h1>
+                <ReactQuill
+                    ref={editorRef}
+                    onChange={SetDelta}
+                    className="text-white"
+                    placeholder="Start your note here..."
+                    key={note.contents}
+                    theme="bubble">
+                    <div className="[&>*]:outline-none [&>*:focus]:bg-bg-dark [&>*]:rounded-lg" />
+                </ReactQuill>
+            </div>
+            : <></>
     )
 }

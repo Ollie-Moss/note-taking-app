@@ -5,12 +5,12 @@ import Editor from "../../components/editor";
 import { useQueryParams } from "../../lib/useQueryParams";
 import Search from "../../components/search";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { NotesContextProvider } from "../../lib/noteContext";
 import { Note } from "../../models/note";
 import { useNavigate } from "react-router";
 import Header from "../../components/header";
 import NotesHomeSection from "../../components/notesHomeSection";
 import { SearchProvider } from "../../lib/searchProvider";
+import { NotesContextProvider, useNote, useNoteFromServer } from "../../lib/noteProvider";
 
 const queryClient = new QueryClient()
 
@@ -43,24 +43,14 @@ function NoteDisplay({ noteId }: { noteId: string }) {
     // thus placing the cursor at the start of the input fields and
     // other issues
     const navigate = useNavigate();
-    const [note, setNote] = useState<Note | null>(null);
-
-    useEffect(() => {
-        GetNote(noteId)
-            .then(newNote => {
-                setNote(newNote)
-            }).catch(err => {
-                setNote(null);
-                navigate({ pathname: "/notes", search: "" })
-            });
-    }, [noteId])
+    //const { note } = useNoteFromServer(noteId)
 
     return (
         <div className="h-full w-full bg-bg">
-            {noteId == "" || !note ?
+            {noteId == "" ?
                 <></>
                 :
-                <Editor note={note} />
+                <Editor noteId={noteId} />
             }
         </div >
     )
