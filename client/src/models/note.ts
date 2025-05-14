@@ -11,16 +11,13 @@ export function NewNote(): Note {
     } as Note;
 }
 
-export type Note = NotePreview & {
-    uid: string,
-    contents: string,
-}
-
-export type NotePreview = {
+export type Note = {
     _id: string,
     title: string,
     editedAt: Date,
     position: number,
     favourite: boolean
     parentId: string | null
+    uid?: string,
+    contents?: string,
 }

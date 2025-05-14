@@ -1,11 +1,12 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useGroup, useNotes } from "../lib/noteProvider";
+import { useGroup, useGroups, useNotes } from "../lib/noteProvider";
 import { faFolder } from "@fortawesome/free-solid-svg-icons";
 import { NoteDisplay } from "./noteDisplay";
 import { RefObject } from "react";
 
 export function GroupTree({ dragConstraint, groupId, offset = 0 }: { offset?: number, dragConstraint: RefObject<HTMLUListElement>, groupId: string }) {
     const { group, updateGroup } = useGroup(groupId)
+    const {groups } = useGroups();
 
     return (
         <li >

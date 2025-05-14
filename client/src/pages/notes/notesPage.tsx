@@ -43,14 +43,14 @@ function NoteDisplay({ noteId }: { noteId: string }) {
     // thus placing the cursor at the start of the input fields and
     // other issues
     const navigate = useNavigate();
-    const { note } = useNoteFromServer(noteId)
+    //const { note } = useNoteFromServer(noteId)
 
     return (
         <div className="h-full w-full bg-bg">
-            {noteId == "" || !note ?
+            {noteId == "" ?
                 <></>
                 :
-                <Editor note={note} />
+                <Editor noteId={noteId} />
             }
         </div >
     )

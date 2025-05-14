@@ -6,19 +6,19 @@ import { faFile, faStar as fasStar, faTimes } from "@fortawesome/free-solid-svg-
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons'
 import { twMerge } from 'tailwind-merge'
 import { useNote, useNotes } from "../lib/noteProvider";
-import { motion, useMotionValue } from 'motion/react'
-import React, { RefObject, useMemo, useRef, useState } from "react";
+import { animate, motion, useMotionValue, useMotionValueEvent, useReducedMotionConfig, useSpring } from 'motion/react'
+import React, { RefObject, useEffect, useMemo, useRef, useState } from "react";
 
 
 export function NoteDisplay({ noteId, className, onClick, dragConstraint, draggable, offset = 0 }: { offset?: number, dragConstraint?: RefObject<HTMLUListElement>, noteId: string, className?: string, onClick?: () => void, draggable?: boolean }) {
     const { note, deleteNote, updateNote } = useNote(noteId);
-    const x = useMotionValue(0);
     const y = useMotionValue(0);
+    const isDragging = useRef<boolean>(false);
 
     const navigate = useNavigate();
     const { Confirm } = useConfirm()
     const location = useLocation()
-    const noteElementRef = useRef(null)
+    const noteElementRef = useRef<HTMLLIElement>(null)
 
     async function HandleFavourite(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault()
@@ -26,7 +26,13 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
         updateNote(noteId, { favourite: !note.favourite });
     }
 
-    function handleDragEnd(event: MouseEvent) {
+    function handleDragStart(event: MouseEvent, info) {
+        isDragging.current = true;
+    }
+    function handleDragging(event: MouseEvent, info) {
+        isDragging.current = true;
+    }
+    function handleDragEnd(event: MouseEvent, info) {
         const noteElement = noteElementRef.current;
 
         const noteRect = noteElement.getBoundingClientRect();
@@ -48,8 +54,13 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
                 }
             }
         });
-        x.set(0)
-        y.set(0)
+        requestAnimationFrame(() => {
+            y.set(0)
+        })
+        setTimeout(() => {
+            // Delay to allow click to be triggered before reset
+            isDragging.current = false;
+        }, 0);
     }
 
     async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
@@ -78,14 +89,19 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
     if (!note) return
     return (
         <motion.li
-            {...(draggable ? { drag: true } : {})}
+            {...(draggable ? { drag: "y" } : {})}
             dragElastic={0}
             dragConstraints={dragConstraint}
-            onDragEnd={(event, info) => handleDragEnd(event as MouseEvent)}
+            onDragEnd={handleDragEnd}
+            onDragStart={handleDragStart}
+            onDrag={handleDragging}
             dragMomentum={false}
-            onClick={onClick ?? defaultOnClick}
-            transition={{ type: "spring", stiffness: 300 }}
-            style={{ x, y, paddingLeft: 0.5 + offset + "rem" }}
+            onClick={(e) => {
+                if (!isDragging.current) {
+                    onClick ? onClick() : defaultOnClick(e)
+                }
+            }}
+            style={{ y, paddingLeft: 0.5 + offset + "rem" }}
             ref={noteElementRef}
             className={
                 twMerge(
