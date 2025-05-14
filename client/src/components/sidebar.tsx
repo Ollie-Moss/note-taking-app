@@ -40,24 +40,27 @@ export default function Sidebar() {
             <ul ref={listRef} className="mt-[50%]">
                 <li className="flex items-center justify-between">
                     <p className="text-m text-white">Notes</p>
-                    <FontAwesomeIcon
-                        onClick={toggleDropdown}
-                        className="hover:cursor-pointer text-white pr-2"
-                        icon={faPlus} />
-                    <Dropdown 
-                        isOpen={isOpen} 
-                        setIsOpen={setIsOpen}
-                        options={[
-                        {
-                            title: "Create Note",
-                            onclick: createNote
-                        },
-                        {
-                            title: "Create Group",
-                            onclick: createGroup
-                        }
-                        ]
-                    } />
+                    <div>
+                        <FontAwesomeIcon
+                            onClick={toggleDropdown}
+                            className="hover:cursor-pointer text-white pr-2"
+                            icon={faPlus} >
+                        </FontAwesomeIcon>
+                        <Dropdown
+                            isOpen={isOpen}
+                            setIsOpen={setIsOpen}
+                            options={[
+                                {
+                                    title: "Create Note",
+                                    onclick: createNote
+                                },
+                                {
+                                    title: "Create Group",
+                                    onclick: createGroup
+                                }
+                            ]
+                            } />
+                    </div>
                 </li>
                 {rootGroups.map(groupId => (
                     <GroupTree key={groupId} groupId={groupId} dragConstraint={listRef} />

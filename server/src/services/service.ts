@@ -8,8 +8,8 @@ export class Service<T> {
         this.uid = id
     };
 
-    async create(data: Partial<T>) {
-        return this.model.create(data);
+    async create(data: Partial<T>): Promise<T> {
+        return this.model.create(data).then(data => data.toObject());
     }
 
     async findById(id: string) {

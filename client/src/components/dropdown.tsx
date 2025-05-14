@@ -29,13 +29,13 @@ export default function Dropdown({ isOpen, setIsOpen, options }:
     return (
         isOpen && (
             <div ref={dropdownRef}
-                className="absolute z-10 mt-2 w-44 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
-                <div className="py-1">
+                className="absolute z-10 flex flex-col  w-44 rounded-md ring ring-hl text-white bg-bg-light">
+                <div >
                     {options.map(option => (
                         <button
                             key={option.title}
-                            onClick={option.onclick}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" >
+                            onClick={() => { option.onclick(); setIsOpen(false) }}
+                            className="rounded-md bg-bg-light w-full text-left px-4 py-2 text-sm hover:bg-hl" >
                             {option.title}
                         </button>
                     ))}

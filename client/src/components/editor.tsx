@@ -10,35 +10,34 @@ export default function Editor({ noteId }: { noteId: string }) {
     const shouldUpdate = useRef<boolean>(false);
 
     const { note, updateNote } = useNoteFromServer(noteId)
-
     const [delta, setDelta] = useState<Delta>(JSON.parse(note ? note.contents ?? "{}" : "{}"));
     const [title, setTitle] = useState<string>(note ? note.title ?? "" : "");
 
+    useEffect(() => {
+
+    }, [title, delta])
     function updateNoteOnServer() {
         if (!shouldUpdate.current) return;
-        const updatedNote: Partial<Note> = {
-            ...note,
-            title: title,
-            contents: JSON.stringify(delta, null, 2)
-        }
-        updateNote(note._id, updatedNote, true);
     }
 
     useEffect(() => {
         if (!note) return
         shouldUpdate.current = false;
         // manually update as quill has some weird quirks
-        editorRef.current?.editor?.setContents(JSON.parse(note ? note.contents ?? "{}" : "{}"));
-        setTitle(note ? note.title ?? "" : "");
-        setDelta(JSON.parse(note ? note.contents ?? "{}" : "{}"));
-        shouldUpdate.current = true;
+        if (note.contents) {
+            editorRef.current?.editor?.setContents(JSON.parse(note.contents));
 
+            setDelta(JSON.parse(note.contents));
+        }
+        setTitle(note.title);
+        shouldUpdate.current = true;
     }, [noteId, note])
 
     function SetDelta(_value: string, _delta: Delta, _source: EmitterSource, editor: ReactQuill.UnprivilegedEditor): void {
         const newDelta: Delta = editor.getContents();
         setDelta(newDelta)
-        updateNoteOnServer()
+        if(!shouldUpdate.current) return
+        updateNote(note._id, { contents: JSON.stringify(newDelta, null, 2) }, true);
     }
 
     function SetTitle(e: React.FormEvent<HTMLHeadingElement>): void {
@@ -47,7 +46,8 @@ export default function Editor({ noteId }: { noteId: string }) {
             e.currentTarget.innerText = ""
         }
         setTitle(newTitle)
-        updateNoteOnServer()
+        if(!shouldUpdate.current) return
+        updateNote(note._id, {title: newTitle}, true);
     }
 
     // Ensures only plain text can be pasted

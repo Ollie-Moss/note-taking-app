@@ -3,7 +3,7 @@ import { NewNote, Note } from "../models/note";
 import { CreateNote, DeleteNote, GetNote, GetNotes, UpdateNote } from "../controllers/noteController";
 import { useNavigate } from "react-router";
 import { useToast } from "./toastProvider";
-import { CreateGroup, GetGroups, UpdateGroup } from "../controllers/groupController";
+import { CreateGroup, DeleteGroup, GetGroups, UpdateGroup } from "../controllers/groupController";
 import { Group, NewGroup } from "../models/group";
 
 const notesContext = createContext<{
@@ -129,6 +129,11 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
                 newGroups[newGroup._id] = newGroup
                 return newGroups
             })
+            setRootGroupIds(prev => {
+                const newGroups = [...prev]
+                newGroups.push(newGroup._id)
+                return newGroups
+            })
 
         } catch (error) {
             // note
@@ -138,7 +143,6 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
     }
 
     async function updateGroupLocal(id: string, updatedGroup: Partial<Group>) {
-        if (updatedGroup._id == "temp_id") return;
         let previousGroup: Group;
         setGroups(prev => {
             const newGroups = { ...prev }
@@ -173,13 +177,14 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
     }
 
     async function updateGroup(id: string, updatedGroup: Partial<Group>) {
+        if (updatedGroup._id == "temp_id") return;
         updateGroupLocal(id, updatedGroup)
 
         if (autoSaveTimeoutRef.current) {
-            clearTimeout(autoSaveTimeoutRef.current[updatedGroup._id]);
+            clearTimeout(autoSaveTimeoutRef.current[id]);
         }
 
-        autoSaveTimeoutRef.current[updatedGroup._id] = setTimeout(async () => {
+        autoSaveTimeoutRef.current[id] = setTimeout(async () => {
             try {
                 await UpdateGroup(id, updatedGroup);
             } catch (error) {
@@ -206,7 +211,7 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
         })
 
         try {
-            await DeleteNote(id);
+            await DeleteGroup(id);
         } catch (error) {
             // note was not updated so roll back query client
         }
@@ -227,7 +232,6 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
     }
 
     function updateNoteLocal(id: string, updatedNote: Partial<Note>) {
-        if (updatedNote._id == "temp_id") return;
         updatedNote.editedAt = new Date(Date.now());
 
         let previousNote: Note;
@@ -254,14 +258,18 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
             setGroups(prev => {
                 const prevGroups = { ...prev }
 
-                let index = prevGroups[previousNote.parentId].notes.indexOf(id)
-                if (previousNote.parentId != null && index != -1) {
-                    prevGroups[previousNote.parentId].notes.splice(index, 1)
+                if (previousNote.parentId != null && prevGroups[previousNote.parentId]) {
+                    const index = prevGroups[previousNote.parentId].notes.indexOf(id)
+                    if (index != -1) {
+                        prevGroups[previousNote.parentId].notes.splice(index, 1)
+                    }
                 }
 
-                index = prevGroups[updatedNote.parentId].notes.indexOf(id)
-                if (updatedNote.parentId != null && index == -1) {
-                    prevGroups[updatedNote.parentId].notes.push(id)
+                if (updatedNote.parentId != null && prevGroups[updatedNote.parentId]) {
+                    const index = prevGroups[updatedNote.parentId].notes.indexOf(id)
+                    if (index == -1) {
+                        prevGroups[updatedNote.parentId].notes.push(id)
+                    }
                 }
                 return prevGroups
             })
@@ -269,6 +277,7 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
     }
 
     function updateNote(id: string, updatedNote: Partial<Note>, notify: boolean = false) {
+        if (updatedNote._id == "temp_id") return;
         updateNoteLocal(id, updatedNote);
 
         if (autoSaveTimeoutRef.current) {
@@ -329,6 +338,11 @@ export function NotesContextProvider({ children }: Readonly<{ children: ReactNod
             setNotes(prev => {
                 const newNotes = { ...prev }
                 newNotes[newNote._id] = newNote
+                return newNotes
+            })
+            setUngroupedNoteIds(prev => {
+                const newNotes = [...prev]
+                newNotes.push(newNote._id)
                 return newNotes
             })
 
@@ -423,6 +437,7 @@ export function useGroup(id: string) {
     useEffect(() => {
         if (groups[id] != group) {
             const newGroup = groups[id];
+            console.log(newGroup)
             newGroup.notes = newGroup.notes.sort((a, b) => notes[a].position - notes[b].position)
             setGroup(newGroup)
         }
