@@ -437,7 +437,7 @@ export function useGroup(id: string) {
     useEffect(() => {
         if (groups[id] != group) {
             const newGroup = groups[id];
-            console.log(newGroup)
+            //console.log(newGroup)
             newGroup.notes = newGroup.notes.sort((a, b) => notes[a].position - notes[b].position)
             setGroup(newGroup)
         }

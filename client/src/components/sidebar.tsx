@@ -9,12 +9,16 @@ import { Note } from "../models/note";
 import { GroupTree } from "./groupTree";
 import { useRef, useState } from "react";
 import Dropdown from "./dropdown";
+import {useDispatch, useSelector, useStore} from 'react-redux'
+import { RootState } from "../store";
 
 
 export default function Sidebar() {
     const { rootGroups, createGroup } = useGroups();
     const { ungroupedNotes, createNote } = useNotes()
     const { OpenSearch } = useSearch()
+    const groups = useSelector((state: RootState) => state.groups)
+    console.log(groups)
     const listRef = useRef(null)
 
     const [isOpen, setIsOpen] = useState<boolean>(false);

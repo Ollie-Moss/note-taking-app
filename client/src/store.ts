@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { groupReducer } from './reducers/groupReducer'
-import { noteReducer } from './reducers/noteReducer'
+import groupReducer from './reducers/groupReducer'
+import noteReducer from './reducers/noteReducer'
 
 const reducer = {
     groups: groupReducer,
