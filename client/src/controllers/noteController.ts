@@ -1,6 +1,7 @@
 import axios from "axios"
 import { Note } from "../models/note";
 import { BASE_URL, TEST_UID } from "../lib/apiConfig";
+import { updateGroup } from "../reducers/groupReducer";
 
 export async function GetNotes(uid: string = TEST_UID): Promise<(Note)[]> {
     try {
@@ -12,12 +13,7 @@ export async function GetNotes(uid: string = TEST_UID): Promise<(Note)[]> {
             });
         const notes: Note[] = res.data.notes;
 
-        return notes.map((note: Note) => {
-            return {
-                ...note,
-                editedAt: new Date(note.editedAt)
-            }
-        })
+        return notes;
 
     } catch (error: unknown) {
         throw error;
@@ -35,7 +31,7 @@ export async function GetNote(noteId: string, uid: string = TEST_UID): Promise<N
             .then(res => {
                 return res.data.note as Note;
             })
-        return { ...note, editedAt: new Date(note.editedAt) };
+        return note
     } catch (error: unknown) {
         throw error;
     }
@@ -52,7 +48,7 @@ export async function UpdateNote(id: string, note: Partial<Note>, uid: string = 
             .then(res => {
                 return res.data.note as Note;
             })
-        return { ...updatedNote, editedAt: new Date(updatedNote.editedAt) };
+        return updatedNote
     } catch (error: unknown) {
         throw error
     }
@@ -67,7 +63,7 @@ export async function CreateNote(note: Note, uid: string = TEST_UID): Promise<No
                 },
             });
         const newNote = res.data.note as Note;
-        return { ...newNote, editedAt: new Date(newNote.editedAt) };
+        return newNote
     } catch (error: unknown) {
         throw error
     }
@@ -83,7 +79,7 @@ export async function DeleteNote(noteId: string, uid: string = TEST_UID): Promis
                 },
             });
         const note = res.data.note as Note;
-        return { ...note, editedAt: new Date(note.editedAt) };
+        return note;
     } catch (error: unknown) {
         throw error
     }

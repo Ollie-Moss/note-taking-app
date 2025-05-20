@@ -4,12 +4,13 @@ import ReactQuill from "react-quill-new";
 import Fuse from "fuse.js"
 import { useNavigate } from "react-router";
 import { NoteDisplay } from "./noteDisplay";
-import { useNotes } from "../lib/noteProvider";
+import { useSelector } from "react-redux";
+import { noteArraySelector } from "../reducers/noteReducer";
 
 export default function Search({ isOpen, closeSearch }: { isOpen: boolean, closeSearch: () => void }) {
     const navigate = useNavigate();
 
-    const { notes } = useNotes();
+    const notes = useSelector(noteArraySelector);
 
     const [results, setResults] = useState<Note[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
@@ -146,7 +147,7 @@ function SearchResults({ closeSearch, notes, selectedIndex, setSelectedIndex }: 
                 <NoteDisplay
                     className={i == selectedIndex ? "bg-bg-dark" : "bg-bg"}
                     onClick={() => resultClicked(i)}
-                    key={note._id}
+                    key={i}
                     noteId={note._id} draggable={false} />
             ).reverse()}
         </div>

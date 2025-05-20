@@ -1,74 +1,49 @@
 import { useLocation, useNavigate } from "react-router";
-import { Note } from "../models/note";
 import { useConfirm } from "../lib/confirmationProvider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFile, faStar as fasStar, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons'
 import { twMerge } from 'tailwind-merge'
-import { useNote, useNotes } from "../lib/noteProvider";
-import { animate, motion, useMotionValue, useMotionValueEvent, useReducedMotionConfig, useSpring } from 'motion/react'
-import React, { RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { motion, useMotionValue } from 'motion/react'
+import React, { RefObject, useMemo, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteNoteAsync, noteMapSelector, updateNoteAsync } from "../reducers/noteReducer";
+import { AppDispatch } from "../store";
+import { useDrag } from "../lib/useDrag";
 
 
 export function NoteDisplay({ noteId, className, onClick, dragConstraint, draggable, offset = 0 }: { offset?: number, dragConstraint?: RefObject<HTMLUListElement>, noteId: string, className?: string, onClick?: () => void, draggable?: boolean }) {
-    const { note, deleteNote, updateNote } = useNote(noteId);
-    const y = useMotionValue(0);
-    const isDragging = useRef<boolean>(false);
+    const { isDragging, dragProps } = useDrag<HTMLLIElement>({ dragConstraint, onDrop })
 
-    const navigate = useNavigate();
-    const { Confirm } = useConfirm()
+    // Note State
+    const notes = useSelector(noteMapSelector)
+    const note = useMemo(() => notes[noteId], [noteId, notes])
+    const dispatch: AppDispatch = useDispatch();
+
+    // navigation
     const location = useLocation()
-    const noteElementRef = useRef<HTMLLIElement>(null)
+    const navigate = useNavigate();
+
+    // Helper
+    const { Confirm } = useConfirm()
+
+    function onDrop(targetId: string) {
+        dispatch(updateNoteAsync({ id: noteId, note: { parentId: targetId } }));
+    }
 
     async function HandleFavourite(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault()
         e.stopPropagation()
-        updateNote(noteId, { favourite: !note.favourite });
+        dispatch(updateNoteAsync({ id: noteId, note: { favourite: !note.favourite } }));
     }
 
-    function handleDragStart(event: MouseEvent, info) {
-        isDragging.current = true;
-    }
-    function handleDragging(event: MouseEvent, info) {
-        isDragging.current = true;
-    }
-    function handleDragEnd(event: MouseEvent, info) {
-        const noteElement = noteElementRef.current;
-
-        const noteRect = noteElement.getBoundingClientRect();
-
-        // Loop through all groups
-        document.querySelectorAll("[data-group-id]").forEach((groupEl) => {
-            const groupRect = groupEl.getBoundingClientRect();
-
-            const isOverlapping =
-                noteRect.left < groupRect.right &&
-                noteRect.right > groupRect.left &&
-                noteRect.top < groupRect.bottom &&
-                noteRect.bottom > groupRect.top;
-
-            if (isOverlapping) {
-                const groupId = groupEl.getAttribute("data-group-id");
-                if (groupId) {
-                    updateNote(noteId, { parentId: groupId });
-                }
-            }
-        });
-        requestAnimationFrame(() => {
-            y.set(0)
-        })
-        setTimeout(() => {
-            // Delay to allow click to be triggered before reset
-            isDragging.current = false;
-        }, 0);
-    }
 
     async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault();
         e.stopPropagation()
         const confirmed = await Confirm("Are you sure you wish to delete this note?");
         if (confirmed) {
-            deleteNote(note._id);
+            dispatch(deleteNoteAsync(note._id));
             const params = new URLSearchParams(location.search)
             if (location.pathname == "/notes" && params.has("id", note._id)) {
                 navigate({
@@ -90,19 +65,13 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
     return (
         <motion.li
             {...(draggable ? { drag: "y" } : {})}
-            dragElastic={0}
-            dragConstraints={dragConstraint}
-            onDragEnd={handleDragEnd}
-            onDragStart={handleDragStart}
-            onDrag={handleDragging}
-            dragMomentum={false}
+            {...dragProps}
             onClick={(e) => {
                 if (!isDragging.current) {
                     onClick ? onClick() : defaultOnClick(e)
                 }
             }}
-            style={{ y, paddingLeft: 0.5 + offset + "rem" }}
-            ref={noteElementRef}
+            style={{ ...dragProps.style, paddingLeft: 0.5 + offset + "rem" }}
             className={
                 twMerge(
                     "bg-bg-dark hover:cursor-pointer transition-colors w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg",

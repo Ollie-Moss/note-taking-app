@@ -1,12 +1,39 @@
-import { createAsyncThunk, createSlice, PayloadAction, } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSelector, createSlice, PayloadAction, } from "@reduxjs/toolkit";
 import { Note, NewNote } from "../models/note";
 import { CreateNote, DeleteNote, GetNote, GetNotes, UpdateNote } from "../controllers/noteController";
+import { RootState } from "../store";
+import { deleteGroupAsync } from "./groupReducer";
 
-export type NoteAction<T = Note> = PayloadAction<{ note?: T, id?: string }>;
+export type NoteAction<T = Note> = PayloadAction<
+    { note?: T, id?: string }>
 
 export interface Notes {
-    [key: string]: Note | Partial<Note>
+    [key: string]: Note
 }
+
+export const noteArraySelector = createSelector((state: RootState) => state.notes, notes => {
+    const notesWithDate: Notes = {}
+    for (const [key, value] of Object.entries(notes)) {
+        notesWithDate[key] = { ...value, editedAt: new Date(value.editedAt) };
+    }
+    return Object.values(notesWithDate)
+});
+
+export const ungroupedNotesSelector = createSelector((state: RootState) => state.notes, notes => {
+    const notesWithDate: Notes = {}
+    for (const [key, value] of Object.entries(notes)) {
+        notesWithDate[key] = { ...value, editedAt: new Date(value.editedAt) };
+    }
+    return Object.values(notesWithDate).filter(note => !note.parentId);
+});
+
+export const noteMapSelector = createSelector((state: RootState) => state.notes, notes => {
+    const notesWithDate: Notes = {}
+    for (const [key, value] of Object.entries(notes)) {
+        notesWithDate[key] = { ...value, editedAt: new Date(value.editedAt) };
+    }
+    return notesWithDate
+});
 
 const initialState: Notes = {}
 
@@ -32,40 +59,40 @@ export const noteSlice = createSlice({
     name: "note",
     initialState,
     reducers: {
-        createNote: (state, action: NoteAction) => {
-            state[action.payload.id] = action.payload.note
-        },
-        updateNote: (state, action: NoteAction<Partial<Note>>) => {
-            const id = action.payload.id;
-            state[id] = { ...state[id], ...action.payload.note }
-
-        },
-        deleteNote: (state, action: NoteAction) => {
-            delete state[action.payload.id]
-        }
     },
     extraReducers(builder) {
-        builder.addCase(fetchNotesAsync.fulfilled, (state, action: PayloadAction<Partial<Note>[]>) => {
+        // Note Updates
+        builder.addCase(fetchNotesAsync.fulfilled, (state, action: PayloadAction<Note[]>) => {
             for (const note of action.payload) {
                 state[note._id] = note;
             }
         })
         builder.addCase(fetchNoteAsync.fulfilled, (state, action: NoteAction) => {
-            state[action.payload.id] = action.payload.note
+            state[action.payload.note._id] = action.payload.note
         })
         builder.addCase(createNoteAsync.fulfilled, (state, action: NoteAction) => {
-            state[action.payload.id] = action.payload.note
+            state[action.payload.note._id] = action.payload.note
         })
-        builder.addCase(updateNoteAsync.fulfilled, (state, action: NoteAction) => {
-            const id = action.payload.id;
-            state[id] = { ...state[id], ...action.payload.note }
+        builder.addCase(updateNoteAsync.pending, (state, action) => {
+            const id = action.meta.arg.id;
+            state[id] = { ...state[id], ...action.meta.arg.note }
         })
-        builder.addCase(deleteNoteAsync.fulfilled, (state, action: NoteAction) => {
-            delete state[action.payload.id]
+        builder.addCase(deleteNoteAsync.pending, (state, action) => {
+            const id = action.meta.arg;
+            delete state[id]
         })
 
+
+        // Group Updates
+        builder.addCase(deleteGroupAsync.pending, (state, action) => {
+            const id = action.meta.arg
+            for (const note of Object.values(state)) {
+                if (note.parentId == id) {
+                    delete state[note._id];
+                }
+            }
+        })
     },
 });
 
-export const { createNote, updateNote, deleteNote } = noteSlice.actions;
 export default noteSlice.reducer;
