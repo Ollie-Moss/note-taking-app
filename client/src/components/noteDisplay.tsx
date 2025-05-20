@@ -35,7 +35,9 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
         }
         if (position == 'top' || position == 'bottom') {
             const mappedPosition = position == 'top' ? 'before' : 'after'
-            dispatch(moveNoteAsync({ id: noteId, targetId, position: mappedPosition }));
+            //dispatch(moveNoteAsync({ id: noteId, targetId, position: mappedPosition }));
+
+            dispatch(moveNoteAsync.pending("manual-" + Date.now(), { id: noteId, targetId, position: mappedPosition }))
         }
     }
 
@@ -74,6 +76,7 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
         <motion.li
             {...(draggable ? { drag: "y" } : {})}
             {...dragProps}
+            layout
             onClick={(e) => {
                 if (!isDragging.current) {
                     onClick ? onClick() : defaultOnClick(e)
@@ -83,7 +86,7 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
             style={{ ...dragProps.style, paddingLeft: 0.5 + offset + "rem" }}
             className={
                 twMerge(
-                    "bg-bg-dark hover:cursor-pointer transition-colors w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg",
+                    "bg-bg-dark transition-[border,background-color] hover:cursor-pointer w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg",
                     className
                 )}>
             <div className="justify-between overflow-x-hidden flex items-center gap-[8px]">
