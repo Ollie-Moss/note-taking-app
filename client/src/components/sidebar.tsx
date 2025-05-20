@@ -4,22 +4,27 @@ import { faHouse } from "@fortawesome/free-solid-svg-icons/faHouse";
 import { faMagnifyingGlass, faPlus, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { NoteDisplay } from "./noteDisplay";
 import { useSearch } from "../lib/searchProvider";
-import { useGroups, useNotes } from "../lib/noteProvider";
-import { Note } from "../models/note";
 import { GroupTree } from "./groupTree";
 import { useRef, useState } from "react";
 import Dropdown from "./dropdown";
+import { useDispatch, useSelector } from 'react-redux'
+import { createGroupAsync, groupArraySelector, rootGroupSelector } from "../reducers/groupReducer";
+import { AppDispatch } from "../store";
+import { createNoteAsync, ungroupedNotesSelector } from "../reducers/noteReducer";
 
 
 export default function Sidebar() {
-    const { rootGroups, createGroup } = useGroups();
-    const { ungroupedNotes, createNote } = useNotes()
     const { OpenSearch } = useSearch()
+    const dispatch: AppDispatch = useDispatch();
+
+    const groups = useSelector(rootGroupSelector)
+    const notes = useSelector(ungroupedNotesSelector)
+
     const listRef = useRef(null)
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
-    const toggleDropdown = () => setIsOpen(!isOpen);
+    const toggleDropdown = () => setIsOpen(prev => !prev);
 
     return (
         <aside className="bg-bg-dark h-full w-0 lg:w-[220px] lg:max-w-[220px] flex flex-col lg:px-[20px]">
@@ -52,23 +57,23 @@ export default function Sidebar() {
                             options={[
                                 {
                                     title: "Create Note",
-                                    onclick: createNote
+                                    onclick: () => dispatch(createNoteAsync())
                                 },
                                 {
                                     title: "Create Group",
-                                    onclick: createGroup
+                                    onclick: () => dispatch(createGroupAsync())
                                 }
                             ]
                             } />
                     </div>
                 </li>
-                {rootGroups.map(groupId => (
-                    <GroupTree key={groupId} groupId={groupId} dragConstraint={listRef} />
+                {groups.map(group => (
+                    <GroupTree key={group._id} group={group} dragConstraint={listRef} />
                 ))}
-                {ungroupedNotes.map(noteId => (
+                {notes.map(note => (
                     <NoteDisplay
-                        key={noteId}
-                        noteId={noteId}
+                        key={note._id}
+                        noteId={note._id}
                         draggable={true}
                         dragConstraint={listRef}
                     />))}

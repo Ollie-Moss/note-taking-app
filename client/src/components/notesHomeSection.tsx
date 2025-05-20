@@ -1,11 +1,14 @@
-import { useNotes } from "../lib/noteProvider"
+import { useDispatch, useSelector } from "react-redux"
 import { useSearch } from "../lib/searchProvider"
-import { Note, NotePreview } from "../models/note"
+import { Note } from "../models/note"
 import { NoteDisplay } from "./noteDisplay"
+import { createNoteAsync, noteArraySelector } from "../reducers/noteReducer"
+import { AppDispatch } from "../store"
 
 export default function NotesHomeSection() {
-    const { notes, createNote } = useNotes()
+    const notes = useSelector(noteArraySelector)
     const { OpenSearch } = useSearch()
+    const dispatch: AppDispatch = useDispatch()
 
     return (
         <div className="flex justify-center h-full w-full">
@@ -13,7 +16,7 @@ export default function NotesHomeSection() {
                 <h1 className="text-center text-[40px] text-white font-semibold">Welcome Back, Ollie!</h1>
                 <div className="flex justify-center items-center gap-4">
                     <button onClick={OpenSearch} className="w-28 px-3 py-2 bg-white font-bold text-bg-dark rounded-lg shadow-md hover:bg-gray-400 transition">Search</button>
-                    <button onClick={createNote} className="w-28 px-3 py-2 bg-white font-bold text-bg-dark rounded-lg shadow-md hover:bg-gray-400 transition">New Note</button>
+                    <button onClick={() => dispatch(createNoteAsync())} className="w-28 px-3 py-2 bg-white font-bold text-bg-dark rounded-lg shadow-md hover:bg-gray-400 transition">New Note</button>
                 </div>
                 <NotesSection title={"Recently Edited"} notes={notes.sort((a, b) => b.editedAt.getTime() - a.editedAt.getTime())} />
                 <NotesSection title={"Favourites"} notes={notes.filter(note => note.favourite)} />
@@ -22,7 +25,7 @@ export default function NotesHomeSection() {
     )
 }
 
-function NotesSection({ title, notes }: { title: string, notes: (Note | NotePreview)[] }) {
+function NotesSection({ title, notes }: { title: string, notes: (Note | Partial<Note>)[] }) {
     function ScrollOverride(e: React.WheelEvent<HTMLUListElement>) {
         if (e.deltaY !== 0) {
             e.currentTarget.scrollLeft += e.deltaY / 10;

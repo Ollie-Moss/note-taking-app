@@ -1,42 +1,58 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useGroup, useGroups, useNotes } from "../lib/noteProvider";
 import { faFolder, faFolderClosed, faFolderOpen, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { NoteDisplay } from "./noteDisplay";
 import { RefObject } from "react";
 import { useConfirm } from '../lib/confirmationProvider'
 import { useNavigate } from "react-router";
+import { Group } from "../models/group";
+import { deleteGroupAsync, groupMapSelector, updateGroupAsync } from "../reducers/groupReducer";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch } from "../store";
+import { motion, transform } from "motion/react";
+import { useDrag } from "../lib/useDrag";
 
+export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: number, dragConstraint: RefObject<HTMLUListElement>, group: Group }) {
+    const { isDragging, dragProps } = useDrag<HTMLDivElement>({ dragConstraint, onDrop })
 
-export function GroupTree({ dragConstraint, groupId, offset = 0 }: { offset?: number, dragConstraint: RefObject<HTMLUListElement>, groupId: string }) {
-    const { group, updateGroup, deleteGroup } = useGroup(groupId)
     const { Confirm } = useConfirm()
     const navigate = useNavigate()
+    const groups = useSelector(groupMapSelector)
 
+    const dispatch: AppDispatch = useDispatch()
+
+    function onDrop(targetId: string) {
+        if (targetId == group._id) return;
+        dispatch(updateGroupAsync({ id: group._id, group: { parentId: targetId } }));
+    }
     async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault();
         e.stopPropagation()
+
         const confirmed = await Confirm("Are you sure you wish to delete this group?");
-        if (confirmed) {
-            deleteGroup(groupId);
-            const params = new URLSearchParams(location.search)
-            if (location.pathname == "/notes") {
-                for (const noteId of group.notes) {
-                    if (params.has("id", noteId)) {
-                        navigate({
-                            pathname: "/notes/home", search: ""
-                        })
-                    }
-                }
+        if (!confirmed) return
+
+        dispatch(deleteGroupAsync(group._id))
+
+        // navigate to home if a note that was deleted was selected
+        const params = new URLSearchParams(location.search)
+        if (location.pathname != "/notes") return
+        for (const noteId of group.notes) {
+            if (params.has("id", noteId)) {
+                navigate({
+                    pathname: "/notes/home", search: ""
+                })
             }
         }
     }
 
     return (
-        <li >
-            <div
-                onClick={() => updateGroup(groupId, { open: !group.open })}
-                data-group-id={group._id}
-                style={{ paddingLeft: 0.5 + offset + "rem" }} className="bg-bg-dark hover:cursor-pointer transition-colors w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
+        <li>
+            <motion.div
+                drag="y"
+                {...dragProps}
+                onClick={() => dispatch(updateGroupAsync({ group: { open: !group.open }, id: group._id }))}
+                data-parent-id={group._id}
+                style={{ ...dragProps.style, paddingLeft: 0.5 + offset + "rem" }} className="bg-bg-dark hover:cursor-pointer transition-colors w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
                 <div className="w-full justify-between overflow-x-hidden flex items-center gap-[8px]">
                     <FontAwesomeIcon className="text-white h-[20px]" icon={group.open ? faFolderOpen : faFolderClosed} />
                     <p className={`flex-1 overflow-x-hidden whitespace-nowrap text-ellipsis text-xs text-white 
@@ -52,7 +68,7 @@ export function GroupTree({ dragConstraint, groupId, offset = 0 }: { offset?: nu
                         className="hover:text-red-400 text-white size-[16px]"
                         icon={faTimes} />
                 </div>
-            </div>
+            </motion.div>
             {group.open ?
                 <ul >
                     {group.notes.map(noteId => (
@@ -61,7 +77,7 @@ export function GroupTree({ dragConstraint, groupId, offset = 0 }: { offset?: nu
                             key={noteId} noteId={noteId} dragConstraint={dragConstraint} offset={offset + 1} />
                     ))}
                     {group.children.map(childId => (
-                        <GroupTree key={childId} groupId={childId} dragConstraint={dragConstraint} offset={offset + 1} />
+                        <GroupTree key={childId} group={groups[childId]} dragConstraint={dragConstraint} offset={offset + 1} />
                     ))}
                 </ul>
                 :

@@ -2,52 +2,62 @@ import React, { useEffect, useRef, useState } from "react";
 import { Note } from "../models/note";
 import { Delta, EmitterSource } from "quill";
 import ReactQuill from "react-quill-new";
-import { useNoteFromServer } from "../lib/noteProvider";
+import { useDispatch } from "react-redux";
+import { updateNoteAsync } from "../reducers/noteReducer";
+import { AppDispatch } from "../store";
+import { useToast } from "../lib/toastProvider";
 
-export default function Editor({ noteId }: { noteId: string }) {
+export default function Editor({ note: initialNote }: { note: Note }) {
     const editorRef = useRef<ReactQuill>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
-    const shouldUpdate = useRef<boolean>(false);
+    const shouldUpdate = useRef<boolean>(false)
 
-    const { note, updateNote } = useNoteFromServer(noteId)
-    const [delta, setDelta] = useState<Delta>(JSON.parse(note ? note.contents ?? "{}" : "{}"));
-    const [title, setTitle] = useState<string>(note ? note.title ?? "" : "");
+    const { createNotification } = useToast()
+    const dispatch: AppDispatch = useDispatch()
 
-    useEffect(() => {
+    const autoSaveDelay = 2000;
+    const autoSaveTimeoutRef = useRef<number>(null);
 
-    }, [title, delta])
-    function updateNoteOnServer() {
-        if (!shouldUpdate.current) return;
+    const [delta, setDelta] = useState<Delta>(JSON.parse(initialNote ? initialNote.contents ?? "{}" : "{}"));
+    const [title, setTitle] = useState<string>(initialNote ? initialNote.title ?? "" : "");
+
+    function UpdateNote(newTitle: string, newDelta: Delta) {
+        const updates: { id: string, note: Partial<Note> } =
+            { id: initialNote._id, note: { contents: JSON.stringify(newDelta, null, 2), title: newTitle } }
+
+        if (!shouldUpdate.current) return
+        if (autoSaveTimeoutRef.current) {
+            clearTimeout(autoSaveTimeoutRef.current);
+        }
+        dispatch(updateNoteAsync.pending("manual-" + Date.now(), updates))
+
+        autoSaveTimeoutRef.current = setTimeout(() => {
+            dispatch(updateNoteAsync(updates))
+            createNotification({ message: "Note Updated!", type: "success" })
+        }, autoSaveDelay);
     }
 
-    useEffect(() => {
-        if (!note) return
-        shouldUpdate.current = false;
-        // manually update as quill has some weird quirks
-        if (note.contents) {
-            editorRef.current?.editor?.setContents(JSON.parse(note.contents));
 
-            setDelta(JSON.parse(note.contents));
+    useEffect(() => {
+        shouldUpdate.current = false
+        // manually update as quill has some weird quirks
+        if (initialNote.contents) {
+            editorRef.current?.editor?.setContents(JSON.parse(initialNote.contents));
         }
-        setTitle(note.title);
-        shouldUpdate.current = true;
-    }, [noteId, note])
+        setTitle(initialNote.title);
+        shouldUpdate.current = true
+    }, [initialNote])
 
     function SetDelta(_value: string, _delta: Delta, _source: EmitterSource, editor: ReactQuill.UnprivilegedEditor): void {
         const newDelta: Delta = editor.getContents();
         setDelta(newDelta)
-        if(!shouldUpdate.current) return
-        updateNote(note._id, { contents: JSON.stringify(newDelta, null, 2) }, true);
+        UpdateNote(title, newDelta)
     }
 
     function SetTitle(e: React.FormEvent<HTMLHeadingElement>): void {
         const newTitle = e.currentTarget.textContent ?? "";
-        if (e.currentTarget.textContent == "") {
-            e.currentTarget.innerText = ""
-        }
         setTitle(newTitle)
-        if(!shouldUpdate.current) return
-        updateNote(note._id, {title: newTitle}, true);
+        UpdateNote(newTitle, delta)
     }
 
     // Ensures only plain text can be pasted
@@ -72,7 +82,7 @@ export default function Editor({ noteId }: { noteId: string }) {
     const untitledNoteStyle = "after:inline after:font-light after:opacity-[0.6] after:italic after:content-['Untitled_Note...']"
 
     return (
-        note ?
+        initialNote ?
             <div className="px-24 pt-10">
                 <h1 className={`text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1
                             ${title == "" ? untitledNoteStyle : ""} `}
@@ -81,13 +91,13 @@ export default function Editor({ noteId }: { noteId: string }) {
                     onInput={SetTitle}
                     onPaste={HandlePaste}
                     ref={titleRef}
-                >{note.title}</h1>
+                >{initialNote.title}</h1>
                 <ReactQuill
                     ref={editorRef}
                     onChange={SetDelta}
                     className="text-white"
                     placeholder="Start your note here..."
-                    key={note.contents}
+                    key={initialNote.contents}
                     theme="bubble">
                     <div className="[&>*]:outline-none [&>*:focus]:bg-bg-dark [&>*]:rounded-lg" />
                 </ReactQuill>
