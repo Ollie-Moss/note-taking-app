@@ -5,6 +5,15 @@ import { INote } from "../models/noteModel";
 export class NoteService extends MoveableService<INote> {
     constructor(model: Model<INote>) { super(model) }
 
+    async create(data: Partial<INote>): Promise<INote> {
+        const notes = await this.findNotes({ parentId: null });
+        let position = 0;
+        if (notes.length > 0) {
+            position = notes[notes.length - 1].position + 100
+        }
+        const note = await super.create({ ...data, position });
+        return note
+    }
     async findNotes({ parentId, preview }:
         { parentId?: string | null, preview?: boolean }) {
 

@@ -30,3 +30,6 @@
         max-height: 0px;
     }
 }
+.highlight-drop-target{
+    background-color: green;
+}

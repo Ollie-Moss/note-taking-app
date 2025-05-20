@@ -2,7 +2,7 @@ import { createAsyncThunk, createSelector, createSlice, PayloadAction, } from "@
 import { Group, NewGroup } from "../models/group";
 import { CreateGroup, DeleteGroup, GetGroups, UpdateGroup } from "../controllers/groupController";
 import { RootState } from "../store";
-import { updateNoteAsync } from "./noteReducer";
+import { moveNoteAsync, updateNoteAsync } from "./noteReducer";
 
 export type GroupAction<T = Group> = PayloadAction<
     { group?: T, id?: string }>

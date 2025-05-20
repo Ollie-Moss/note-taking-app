@@ -6,12 +6,16 @@ import { groupService } from "../services/services";
 
 export async function MoveGroupHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const group = await groupService.move(req.group._id.toString(), req.body.beforeId)
-        res.status(200).send({ message: "Group moved!", group: group });
+        if (!req.query.targetId) throw new AppError("targetId query parameter is required!", 400)
+        if (!req.query.position) throw new AppError("position query parameter is required!", 400)
+        if (!(req.query.position == 'before' || req.query.position == 'after')) throw new AppError("position query must be either 'before' or 'after'!", 400)
+
+        const group = await groupService.move(req.group._id.toString(), req.query.targetId.toString(), req.query.position)
         if (!group) {
             res.status(404).json({ message: "Group not found!" })
             return;
         }
+        res.status(200).send({ message: "Group moved!", group: group });
     } catch (error) {
         next(error)
     }

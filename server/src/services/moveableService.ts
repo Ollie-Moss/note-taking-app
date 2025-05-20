@@ -5,28 +5,36 @@ import { Moveable } from "../models/moveableModel";
 export class MoveableService<T extends Moveable> extends Service<T> {
     constructor(model: Model<T>) { super(model) }
 
-    async move(id: string, beforeId: string) {
-        const before: T | null = await this.findById(beforeId)
-        const moveable: T | null = await this.findById(id);
-        const results: T[] = await this.model.find({}).sort({ position: 1 });
-        if (!moveable || !before) return;
-        // move to first
-        if (!beforeId) {
-            moveable.position = 100;
-            if (results.length > 0) {
-                moveable.position = results[0].position / 2
+    async move(id: string, targetId: string, position: 'before' | 'after') {
+        const currentEntity = await this.findById(id);
+
+        const allEntities: (T & { _id: string })[] = await this.model.find({ parentId: currentEntity?.parentId }).sort({ position: 1 }).lean<(T & { _id: string })[]>();
+
+        const targetEntity = allEntities.find(entity => entity._id == targetId);
+
+        if (!targetEntity || !currentEntity) return;
+
+        if (position == "before") {
+            const index = allEntities.indexOf(targetEntity)
+            if (index == 0) {
+                currentEntity.position = targetEntity.position / 2;
+                return await this.update(id, currentEntity);
+
             }
-            await this.update(id, moveable);
-            return
+            currentEntity.position = (allEntities[index - 1].position + targetEntity.position) / 2
+            return await this.update(id, currentEntity);
+
         }
-        const index = results.indexOf(before)
-        if (index == -1) return
-        // move to last
-        if (index + 1 > results.length - 1) {
-            moveable.position = results[index].position + 100
+        if (position == "after") {
+            const index = allEntities.indexOf(targetEntity)
+            if (index == allEntities.length - 1) {
+                currentEntity.position = targetEntity.position + 100;
+                return await this.update(id, currentEntity);
+
+            }
+            currentEntity.position = (allEntities[index + 1].position + targetEntity.position) / 2
+            return await this.update(id, currentEntity);
+
         }
-        // move between
-        moveable.position = (results[index + 1].position + before.position) / 2
-        return await this.update(id, moveable);
     }
 }

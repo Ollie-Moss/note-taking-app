@@ -1,8 +1,9 @@
 import { createAsyncThunk, createSelector, createSlice, PayloadAction, } from "@reduxjs/toolkit";
 import { Note, NewNote } from "../models/note";
-import { CreateNote, DeleteNote, GetNote, GetNotes, UpdateNote } from "../controllers/noteController";
+import { CreateNote, DeleteNote, GetNote, GetNotes, MoveNote, UpdateNote } from "../controllers/noteController";
 import { RootState } from "../store";
 import { deleteGroupAsync } from "./groupReducer";
+import { all } from "axios";
 
 export type NoteAction<T = Note> = PayloadAction<
     { note?: T, id?: string }>
@@ -16,7 +17,7 @@ export const noteArraySelector = createSelector((state: RootState) => state.note
     for (const [key, value] of Object.entries(notes)) {
         notesWithDate[key] = { ...value, editedAt: new Date(value.editedAt) };
     }
-    return Object.values(notesWithDate)
+    return Object.values(notesWithDate).sort((a, b) => a.position - b.position)
 });
 
 export const ungroupedNotesSelector = createSelector((state: RootState) => state.notes, notes => {
@@ -24,7 +25,7 @@ export const ungroupedNotesSelector = createSelector((state: RootState) => state
     for (const [key, value] of Object.entries(notes)) {
         notesWithDate[key] = { ...value, editedAt: new Date(value.editedAt) };
     }
-    return Object.values(notesWithDate).filter(note => !note.parentId);
+    return Object.values(notesWithDate).filter(note => !note.parentId).sort((a, b) => a.position - b.position)
 });
 
 export const noteMapSelector = createSelector((state: RootState) => state.notes, notes => {
@@ -49,6 +50,10 @@ export const createNoteAsync = createAsyncThunk("notes/createAsync", async () =>
 })
 export const updateNoteAsync = createAsyncThunk("notes/updateAsync", async ({ id, note }: { id: string, note: Partial<Note> }) => {
     const newNote = await UpdateNote(id, note)
+    return { id, note: newNote }
+})
+export const moveNoteAsync = createAsyncThunk("notes/moveAsync", async ({ id, targetId, position }: { id: string, targetId: string, position: 'before' | 'after' }) => {
+    const newNote = await MoveNote(id, targetId, position)
     return { id, note: newNote }
 })
 export const deleteNoteAsync = createAsyncThunk("notes/deleteAsync", async (id: string) => {
@@ -76,6 +81,37 @@ export const noteSlice = createSlice({
         builder.addCase(updateNoteAsync.pending, (state, action) => {
             const id = action.meta.arg.id;
             state[id] = { ...state[id], ...action.meta.arg.note }
+        })
+        builder.addCase(moveNoteAsync.pending, (state, action) => {
+            const id = action.meta.arg.id;
+            const targetId = action.meta.arg.targetId;
+            const position = action.meta.arg.position;
+
+            const targetEntity = state[targetId]
+            const currentEntity = state[id]
+
+            const allEntities = Object.values(state).filter(note => note.parentId == currentEntity.parentId).sort((a, b) => a.position - b.position)
+
+            if (!targetEntity || !currentEntity) return;
+
+            if (position == "before") {
+                const index = allEntities.indexOf(targetEntity)
+                if (index == 0) {
+                    state[id].position = targetEntity.position / 2;
+                    return
+                }
+                state[id].position = (allEntities[index - 1].position + targetEntity.position) / 2
+                return
+            }
+            if (position == "after") {
+                const index = allEntities.indexOf(targetEntity)
+                if (index == allEntities.length - 1) {
+                    state[id].position = targetEntity.position + 100;
+                    return
+                }
+                state[id].position = (allEntities[index + 1].position + targetEntity.position) / 2
+                return
+            }
         })
         builder.addCase(deleteNoteAsync.pending, (state, action) => {
             const id = action.meta.arg;

@@ -7,7 +7,7 @@ import { twMerge } from 'tailwind-merge'
 import { motion, useMotionValue } from 'motion/react'
 import React, { RefObject, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteNoteAsync, noteMapSelector, updateNoteAsync } from "../reducers/noteReducer";
+import { deleteNoteAsync, moveNoteAsync, noteMapSelector, updateNoteAsync } from "../reducers/noteReducer";
 import { AppDispatch } from "../store";
 import { useDrag } from "../lib/useDrag";
 
@@ -27,8 +27,16 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
     // Helper
     const { Confirm } = useConfirm()
 
-    function onDrop(targetId: string) {
-        dispatch(updateNoteAsync({ id: noteId, note: { parentId: targetId } }));
+    function onDrop(target: Element, position: 'top' | 'middle' | 'bottom') {
+        const targetId = target.getAttribute('data-item-id');
+        if (target.getAttribute('data-group') && position == 'middle') {
+            dispatch(updateNoteAsync({ id: noteId, note: { parentId: targetId } }));
+            return
+        }
+        if (position == 'top' || position == 'bottom') {
+            const mappedPosition = position == 'top' ? 'before' : 'after'
+            dispatch(moveNoteAsync({ id: noteId, targetId, position: mappedPosition }));
+        }
     }
 
     async function HandleFavourite(e: React.MouseEvent<SVGSVGElement>) {
@@ -71,6 +79,7 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
                     onClick ? onClick() : defaultOnClick(e)
                 }
             }}
+            data-item-id={noteId}
             style={{ ...dragProps.style, paddingLeft: 0.5 + offset + "rem" }}
             className={
                 twMerge(

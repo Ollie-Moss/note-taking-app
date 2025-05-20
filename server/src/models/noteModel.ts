@@ -7,7 +7,6 @@ export interface NotePreview extends Moveable{
     title: string,
     editedAt: Date,
     favourite: boolean
-    parentId: Types.ObjectId | null
 }
 
 export interface INote extends NotePreview{
