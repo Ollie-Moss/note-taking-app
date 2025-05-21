@@ -1,19 +1,23 @@
 import { useLocation, useNavigate } from "react-router";
 import { useConfirm } from "../lib/confirmationProvider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAt, faFile, faStar as fasStar, faTimes} from "@fortawesome/free-solid-svg-icons";
+import { faAt, faFile, faStar as fasStar, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { faStar as farStar, faTrashCan } from '@fortawesome/free-regular-svg-icons'
 import { twMerge } from 'tailwind-merge'
 import { motion, useMotionValue } from 'motion/react'
-import React, { RefObject, useMemo, useRef } from "react";
+import React, { RefObject, useMemo, useReducer, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteNoteAsync, moveNoteAndMaybeRegroupAsync, moveNoteAsync, noteMapSelector, updateNoteAsync } from "../reducers/noteReducer";
 import { AppDispatch } from "../store";
 import { useDrag } from "../lib/useDrag";
+import { useSidebar } from "../lib/sidebarProvider";
 
 
 export function NoteDisplay({ noteId, className, onClick, dragConstraint, draggable, offset = 0 }: { offset?: number, dragConstraint?: RefObject<HTMLUListElement>, noteId: string, className?: string, onClick?: () => void, draggable?: boolean }) {
-    const { isDragging, dragProps } = useDrag<HTMLLIElement>({ dragConstraint, onDrop })
+    const { dragControls, isDragging, dragProps } = useDrag<HTMLLIElement>({ dragConstraint, onDrop })
+
+    const doubleClickDelay = 400;
+    const doubleClickTimeout = useRef<number | null>(null)
 
     // Note State
     const notes = useSelector(noteMapSelector)
@@ -24,8 +28,11 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
     const location = useLocation()
     const navigate = useNavigate();
 
+
     // Helper
     const { Confirm } = useConfirm()
+
+    const { setSideBar } = useSidebar();
 
     function onDrop(target: Element, position: 'top' | 'middle' | 'bottom') {
         const targetId = target.getAttribute('data-item-id');
@@ -67,6 +74,10 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
             pathname: "/notes",
             search: `?id=${note._id}`
         })
+        if (!window.matchMedia('(min-width: 1024px)').matches) {
+            setSideBar(false)
+        }
+
     }
 
     if (!note) return
@@ -78,10 +89,19 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
                 layoutId: noteId
             } : {})}
             {...dragProps}
-            onClick={(e) => {
-                if (!isDragging.current) {
-                    onClick ? onClick() : defaultOnClick(e)
+            onPointerDown={(e) => {
+                if (doubleClickTimeout.current) {
+                    clearTimeout(doubleClickTimeout.current)
+                    doubleClickTimeout.current = null
+                    dragControls.start(e)
+                    return
                 }
+                doubleClickTimeout.current = setTimeout(() => {
+                    if (!isDragging.current) {
+                        onClick ? onClick() : defaultOnClick(e)
+                    }
+                    doubleClickTimeout.current = null
+                }, doubleClickDelay)
             }}
             data-item-id={noteId}
             style={{ ...dragProps.style, paddingLeft: 0.5 + offset + "rem" }}
@@ -103,10 +123,10 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
             <div className="flex gap-1 items-center justify-between">
                 <FontAwesomeIcon
                     className="hover:text-yellow-500 fa-regular text-white size-[16px]"
-                    onClick={HandleFavourite}
+                    onPointerDown={HandleFavourite}
                     icon={note.favourite ? fasStar : farStar} />
                 <FontAwesomeIcon
-                    onClick={HandleDelete}
+                    onPointerDown={HandleDelete}
                     className="hover:text-red-400 text-white size-[16px]"
                     icon={faTrashCan} />
             </div>
