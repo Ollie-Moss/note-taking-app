@@ -40,12 +40,12 @@ export const moveGroupAsync = createAsyncThunk("groups/moveAsync", async ({ id, 
     return { id, note: newNote }
 })
 
-export const moveGroupAndMaybeRegroupAsync = createAsyncThunk("groups/moveAsync", async ({ id, targetId, position }: { id: string, targetId: string, position: 'before' | 'after' }, { dispatch, getState }) => {
+export const moveGroupAndMaybeRegroupAsync = createAsyncThunk("groups/moveAndRegroupAsync", async ({ id, targetId, position }: { id: string, targetId: string, position: 'before' | 'after' }, { dispatch, getState }) => {
     const state = getState() as RootState;
     const notes = state.notes;
     const groups = state.groups;
     const current = groups[id];
-    const target =  groups[targetId] || notes[targetId]
+    const target = groups[targetId] || notes[targetId]
 
     if (!current || !target) return;
 
@@ -77,6 +77,16 @@ export const moveGroupAndMaybeRegroupAsync = createAsyncThunk("groups/moveAsync"
     }
     await dispatch(moveGroupAsync({ id, targetId, position, finalPosition }));
 })
+export const deleteGroupAndChildrenAsync = createAsyncThunk("groups/deleteRecursive", async (id: string, { dispatch, getState }) => {
+    const state = getState() as RootState;
+    const groups = state.groups;
+    const group = groups[id]
+    for (const childId of group.children) {
+        await dispatch(deleteGroupAsync(childId))
+    }
+    await dispatch(deleteGroupAsync(id))
+})
+
 export const deleteGroupAsync = createAsyncThunk("groups/deleteAsync", async (id: string) => {
     return { id: await DeleteGroup(id).then(group => group._id) }
 })
