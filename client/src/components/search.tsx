@@ -1,11 +1,13 @@
-import { SetStateAction, useEffect, useRef, useState } from "react";
+import { SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 import { Note } from "../models/note";
 import ReactQuill from "react-quill-new";
 import Fuse from "fuse.js"
 import { useNavigate } from "react-router";
 import { NoteDisplay } from "./noteDisplay";
-import { useSelector } from "react-redux";
-import { noteArraySelector } from "../reducers/noteReducer";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchNoteAsync, noteArraySelector, noteMapSelector } from "../reducers/noteReducer";
+import useNoteAsync from "../hooks/useNoteAsync";
+import { AppDispatch } from "../store";
 
 export default function Search({ isOpen, closeSearch }: { isOpen: boolean, closeSearch: () => void }) {
     const navigate = useNavigate();
@@ -19,7 +21,7 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
     useEffect(() => {
         const fuse = new Fuse(notes as Note[], {
             keys: ['title'],
-            threshold: 0.3 // Lower = stricter match
+            threshold: 0.3
         });
 
         if (searchQuery === "") return setResults(notes as Note[]);
@@ -44,6 +46,7 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
 
 
     useEffect(() => {
+        if (!isOpen) return;
         function Overrides(e: any): void {
             switch (e.key) {
                 case "Tab":
@@ -75,7 +78,7 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
         return () => {
             window.removeEventListener("keydown", Overrides);
         }
-    }, [results, selectedIndex])
+    }, [results, selectedIndex, isOpen])
 
 
     return (
@@ -91,14 +94,24 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
                         searchQuery={searchQuery}
                         setSearchQuery={setSearchQuery} />
                 </div>
-                <SearchPreview note={results[selectedIndex]} />
+                <SearchPreview noteId={(results.length > 0 && results[selectedIndex]) ? results[selectedIndex]._id : null} />
             </div>
         </div>
     )
 }
 
-function SearchPreview({ note }: { note: Note }) {
+function SearchPreview({ noteId }: { noteId: string | null }) {
     const editorRef = useRef<ReactQuill>(null)
+
+    const notes = useSelector(noteMapSelector)
+    const note = useMemo(() => notes[noteId], [notes, noteId])
+
+    const dispatch: AppDispatch = useDispatch()
+
+    useEffect(() => {
+        if(!note) return
+        dispatch(fetchNoteAsync(noteId))
+    }, [noteId])
 
     useEffect(() => {
         editorRef.current?.editor?.setContents(JSON.parse(note.contents ?? "{}"));
