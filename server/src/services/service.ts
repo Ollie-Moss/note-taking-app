@@ -1,7 +1,7 @@
 import { Model, Types } from "mongoose";
 
 export class Service<T> {
-    constructor(protected model: Model<T>) { }
+    constructor(public model: Model<T>) { }
     protected uid: string | null = null;
 
     setUser(id: string) {

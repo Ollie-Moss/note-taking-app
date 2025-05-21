@@ -22,7 +22,7 @@ export class GroupService extends MoveableService<IGroup> {
 
     async move(id: string, targetId: string, position: "before" | "after"): Promise<(IGroup & { _id: Types.ObjectId; }) | null | undefined> {
         const currentEntity = await this.findById(id);
-        const allEntities = [...await this.findAll({ parentId: currentEntity?.parentId }), ...await noteService.findAll({ parentId: currentEntity?.parentId })]
+        const allEntities = [...await this.model.find({ parentId: currentEntity?.parentId }), ...await noteService.model.find({ parentId: currentEntity?.parentId })]
         return await this.moveInList(id, targetId, position, allEntities);
     }
 
