@@ -44,6 +44,7 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
 
 
     useEffect(() => {
+        if(!isOpen) return;
         function Overrides(e: any): void {
             switch (e.key) {
                 case "Tab":
@@ -75,7 +76,7 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
         return () => {
             window.removeEventListener("keydown", Overrides);
         }
-    }, [results, selectedIndex])
+    }, [results, selectedIndex, isOpen])
 
 
     return (

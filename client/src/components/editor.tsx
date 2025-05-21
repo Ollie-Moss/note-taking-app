@@ -43,6 +43,7 @@ export default function Editor({ note: initialNote }: { note: Note }) {
 
     useEffect(() => {
         shouldUpdate.current = false
+        lastUpdates.current = {};
         // manually update as quill has some weird quirks
         if (initialNote.contents) {
             editorRef.current?.editor?.setContents(JSON.parse(initialNote.contents));
