@@ -12,27 +12,29 @@ export default function Editor({ note: initialNote }: { note: Note }) {
     const titleRef = useRef<HTMLHeadingElement>(null);
     const shouldUpdate = useRef<boolean>(false)
 
+    const lastUpdates = useRef<Partial<Note>>({})
+
     const { createNotification } = useToast()
     const dispatch: AppDispatch = useDispatch()
 
     const autoSaveDelay = 2000;
     const autoSaveTimeoutRef = useRef<number>(null);
 
-    const [delta, setDelta] = useState<Delta>(JSON.parse(initialNote ? initialNote.contents ?? "{}" : "{}"));
-    const [title, setTitle] = useState<string>(initialNote ? initialNote.title ?? "" : "");
+    const [hasTitle, setHasTitle] = useState<boolean>(false)
 
-    function UpdateNote(newTitle: string, newDelta: Delta) {
-        const updates: { id: string, note: Partial<Note> } =
-            { id: initialNote._id, note: { contents: JSON.stringify(newDelta, null, 2), title: newTitle } }
-
+    function UpdateNote(updates: Partial<Note>) {
         if (!shouldUpdate.current) return
+
         if (autoSaveTimeoutRef.current) {
             clearTimeout(autoSaveTimeoutRef.current);
         }
-        dispatch(updateNoteAsync.pending("manual-" + Date.now(), updates))
+
+        const fullUpdate = { ...lastUpdates.current, ...updates };
+        dispatch(updateNoteAsync.pending("manual-" + Date.now(), { id: initialNote._id, note: fullUpdate }))
+        lastUpdates.current = fullUpdate;
 
         autoSaveTimeoutRef.current = setTimeout(() => {
-            dispatch(updateNoteAsync(updates))
+            dispatch(updateNoteAsync({ id: initialNote._id, note: fullUpdate }))
             createNotification({ message: "Note Updated!", type: "success" })
         }, autoSaveDelay);
     }
@@ -44,20 +46,24 @@ export default function Editor({ note: initialNote }: { note: Note }) {
         if (initialNote.contents) {
             editorRef.current?.editor?.setContents(JSON.parse(initialNote.contents));
         }
-        setTitle(initialNote.title);
+        titleRef.current.textContent = initialNote.title
+        setHasTitle(initialNote.title != "");
         shouldUpdate.current = true
     }, [initialNote])
 
     function SetDelta(_value: string, _delta: Delta, _source: EmitterSource, editor: ReactQuill.UnprivilegedEditor): void {
         const newDelta: Delta = editor.getContents();
-        setDelta(newDelta)
-        UpdateNote(title, newDelta)
+        UpdateNote({ contents: JSON.stringify(newDelta) })
     }
 
     function SetTitle(e: React.FormEvent<HTMLHeadingElement>): void {
         const newTitle = e.currentTarget.textContent ?? "";
-        setTitle(newTitle)
-        UpdateNote(newTitle, delta)
+        setHasTitle(newTitle != "");
+        // stops newline from appearing when empty
+        if(newTitle == ""){
+            titleRef.current.innerText = ""
+        }
+        UpdateNote({ title: newTitle })
     }
 
     // Ensures only plain text can be pasted
@@ -85,7 +91,7 @@ export default function Editor({ note: initialNote }: { note: Note }) {
         initialNote ?
             <div className="px-24 pt-10">
                 <h1 className={`text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1
-                            ${title == "" ? untitledNoteStyle : ""} `}
+                            ${!hasTitle && untitledNoteStyle}`}
                     contentEditable={true}
                     suppressContentEditableWarning={true}
                     onInput={SetTitle}

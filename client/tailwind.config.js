@@ -18,6 +18,7 @@ const config = {
                 'bg-dark': '#191919',
                 'bg-light': '#2D2D2D',
                 hl: '#3D3D3D',
+                'hl-light': '#636363',
                 'hl-dark': '#474747',
                 white: '#D3D3D3',
                 'semantic-red': '#F64646',

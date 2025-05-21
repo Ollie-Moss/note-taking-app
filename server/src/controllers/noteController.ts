@@ -6,12 +6,16 @@ import { noteService } from "../services/services";
 
 export async function MoveNoteHandler(req: Request, res: Response, next: NextFunction) {
     try {
-        const note = await noteService.move(req.note._id.toString(), req.body.beforeId)
-        res.status(200).send({ message: "Note moved!", note: note });
+        if (!req.query.targetId) throw new AppError("targetId query parameter is required!", 400)
+        if (!req.query.position) throw new AppError("position query parameter is required!", 400)
+        if (!(req.query.position == 'before' || req.query.position == 'after')) throw new AppError("position query must be either 'before' or 'after'!", 400)
+
+        const note = await noteService.move(req.note._id.toString(), req.query.targetId.toString(), req.query.position)
         if (!note) {
             res.status(404).json({ message: "Note not found!" })
             return;
         }
+        res.status(200).send({ message: "Note moved!", note: note});
     } catch (error) {
         next(error)
     }

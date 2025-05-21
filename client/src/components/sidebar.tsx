@@ -11,6 +11,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { createGroupAsync, groupArraySelector, rootGroupSelector } from "../reducers/groupReducer";
 import { AppDispatch } from "../store";
 import { createNoteAsync, ungroupedNotesSelector } from "../reducers/noteReducer";
+import { AnimatePresence } from "motion/react";
+import { Group } from "../models/group";
 
 
 export default function Sidebar() {
@@ -67,16 +69,27 @@ export default function Sidebar() {
                             } />
                     </div>
                 </li>
-                {groups.map(group => (
-                    <GroupTree key={group._id} group={group} dragConstraint={listRef} />
-                ))}
-                {notes.map(note => (
-                    <NoteDisplay
-                        key={note._id}
-                        noteId={note._id}
-                        draggable={true}
-                        dragConstraint={listRef}
-                    />))}
+                <AnimatePresence mode="wait">
+                    <ul>
+                        {
+                            [...(groups.map(group => ({ ...group, type: "group" }))),
+                            ...notes.map(note => ({ ...note, type: "note" }))]
+                                .sort((a, b) => a.position - b.position).map(item =>
+                                    item.type == "group" ?
+                                        < GroupTree
+                                            key={item._id}
+                                            group={item as Group}
+                                            dragConstraint={listRef} />
+                                        :
+                                        <NoteDisplay
+                                            key={item._id}
+                                            noteId={item._id}
+                                            draggable={true}
+                                            dragConstraint={listRef}
+                                        />)
+                        }
+                    </ul>
+                </AnimatePresence>
             </ul>
 
         </aside>

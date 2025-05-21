@@ -16,7 +16,6 @@ export async function noteValidator(req: Request, res: Response, next: NextFunct
     if (req.method == "POST" || req.method == "PATCH") {
         if (!req.body?.note) return next(new AppError("Note is required!", 400));
 
-
         if (!Types.ObjectId.isValid(req.body.note._id)) req.body.note._id = new Types.ObjectId()
         const updates = { ...req.body.note, uid: req.user._id };
 

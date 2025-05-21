@@ -1,28 +1,38 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFolder, faFolderClosed, faFolderOpen, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faFolderClosed, faFolderOpen, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { NoteDisplay } from "./noteDisplay";
 import { RefObject } from "react";
 import { useConfirm } from '../lib/confirmationProvider'
 import { useNavigate } from "react-router";
 import { Group } from "../models/group";
-import { deleteGroupAsync, groupMapSelector, updateGroupAsync } from "../reducers/groupReducer";
+import { deleteGroupAsync, groupMapSelector, moveGroupAndMaybeRegroupAsync, moveGroupAsync, updateGroupAsync } from "../reducers/groupReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../store";
-import { motion, transform } from "motion/react";
+import { motion } from "motion/react";
 import { useDrag } from "../lib/useDrag";
+import { noteMapSelector } from "../reducers/noteReducer";
+import { MoveGroup } from "../controllers/groupController";
 
 export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: number, dragConstraint: RefObject<HTMLUListElement>, group: Group }) {
-    const { isDragging, dragProps } = useDrag<HTMLDivElement>({ dragConstraint, onDrop })
+    const { isDragging, dragProps } = useDrag<HTMLLIElement>({ dragConstraint, onDrop })
 
     const { Confirm } = useConfirm()
     const navigate = useNavigate()
     const groups = useSelector(groupMapSelector)
+    const notes = useSelector(noteMapSelector)
 
     const dispatch: AppDispatch = useDispatch()
 
-    function onDrop(targetId: string) {
-        if (targetId == group._id) return;
-        dispatch(updateGroupAsync({ id: group._id, group: { parentId: targetId } }));
+    function onDrop(target: Element, position: 'top' | 'middle' | 'bottom') {
+        const targetId = target.getAttribute('data-item-id');
+        if (target.getAttribute('data-group') && position == 'middle') {
+            dispatch(updateGroupAsync({ id: group._id, group: { parentId: targetId } }));
+            return
+        }
+        if (position == 'top' || position == 'bottom') {
+            const mappedPosition = position == 'top' ? 'before' : 'after'
+            dispatch(moveGroupAndMaybeRegroupAsync({ id: group._id, targetId, position: mappedPosition }))
+        }
     }
     async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault();
@@ -47,42 +57,56 @@ export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: numb
 
     return (
         <li>
-            <motion.div
-                drag="y"
-                {...dragProps}
-                onClick={() => dispatch(updateGroupAsync({ group: { open: !group.open }, id: group._id }))}
-                data-parent-id={group._id}
-                style={{ ...dragProps.style, paddingLeft: 0.5 + offset + "rem" }} className="bg-bg-dark hover:cursor-pointer transition-colors w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg">
-                <div className="w-full justify-between overflow-x-hidden flex items-center gap-[8px]">
-                    <FontAwesomeIcon className="text-white h-[20px]" icon={group.open ? faFolderOpen : faFolderClosed} />
-                    <p className={`flex-1 overflow-x-hidden whitespace-nowrap text-ellipsis text-xs text-white 
+            <ul>
+                <motion.li
+                    drag
+                    {...dragProps}
+                    onClick={() => dispatch(updateGroupAsync({ group: { open: !group.open }, id: group._id }))}
+                    data-item-id={group._id}
+                    data-group
+                    layout layoutId={group._id}
+                    style={{ ...dragProps.style, paddingLeft: 0.5 + offset + "rem" }}
+                    className={`hover:bg-bg-light bg-bg-dark hover:cursor-pointer transition-colors w-full max-w-full justify-between flex items-center  py-1.5 px-2 rounded-lg`}>
+                    <div className="transition-[border,background-color] w-full justify-between overflow-x-hidden flex items-center gap-[8px]">
+                        <FontAwesomeIcon className="text-white h-[20px]" icon={group.open ? faFolderOpen : faFolderClosed} />
+                        <p className={`flex-1 overflow-x-hidden whitespace-nowrap text-ellipsis text-xs text-white 
                                 ${group.title == "" ? "opacity-[0.6] italic" : ""}`}>
-                        {group.title == "" ?
-                            "Untitled Group"
-                            :
-                            group.title
-                        }</p>
+                            {group.title == "" ?
+                                "Untitled Group"
+                                :
+                                group.title
+                            }</p>
 
-                    <FontAwesomeIcon
-                        onClick={HandleDelete}
-                        className="hover:text-red-400 text-white size-[16px]"
-                        icon={faTimes} />
-                </div>
-            </motion.div>
-            {group.open ?
-                <ul >
-                    {group.notes.map(noteId => (
-                        <NoteDisplay
-                            draggable={true}
-                            key={noteId} noteId={noteId} dragConstraint={dragConstraint} offset={offset + 1} />
-                    ))}
-                    {group.children.map(childId => (
-                        <GroupTree key={childId} group={groups[childId]} dragConstraint={dragConstraint} offset={offset + 1} />
-                    ))}
-                </ul>
-                :
-                <></>
-            }
+                        <FontAwesomeIcon
+                            onClick={HandleDelete}
+                            className="hover:text-red-400 text-white size-[16px]"
+                            icon={faTimes} />
+                    </div>
+                </motion.li>
+            </ul>
+            <ul >
+                {group.open ?
+                    [...(group.children.map(id => ({ ...groups[id], type: "group" }))),
+                    ...group.notes.map(id => ({ ...notes[id], type: "note" }))]
+                        .sort((a, b) => a.position - b.position).map(item =>
+                            item.type == "group" ?
+                                <GroupTree
+                                    key={item._id}
+                                    offset={offset + 1}
+                                    group={item as Group}
+                                    dragConstraint={dragConstraint} />
+                                :
+                                <NoteDisplay
+                                    key={item._id}
+                                    offset={offset + 1}
+                                    noteId={item._id}
+                                    draggable={true}
+                                    dragConstraint={dragConstraint}
+                                />)
+
+                    :
+                    <></>}
+            </ul>
         </li>
     );
 }

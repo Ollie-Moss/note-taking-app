@@ -7,7 +7,7 @@ import { twMerge } from 'tailwind-merge'
 import { motion, useMotionValue } from 'motion/react'
 import React, { RefObject, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteNoteAsync, noteMapSelector, updateNoteAsync } from "../reducers/noteReducer";
+import { deleteNoteAsync, moveNoteAndMaybeRegroupAsync, moveNoteAsync, noteMapSelector, updateNoteAsync } from "../reducers/noteReducer";
 import { AppDispatch } from "../store";
 import { useDrag } from "../lib/useDrag";
 
@@ -27,8 +27,16 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
     // Helper
     const { Confirm } = useConfirm()
 
-    function onDrop(targetId: string) {
-        dispatch(updateNoteAsync({ id: noteId, note: { parentId: targetId } }));
+    function onDrop(target: Element, position: 'top' | 'middle' | 'bottom') {
+        const targetId = target.getAttribute('data-item-id');
+        if (target.getAttribute('data-group') && position == 'middle') {
+            dispatch(updateNoteAsync({ id: noteId, note: { parentId: targetId } }));
+            return
+        }
+        if (position == 'top' || position == 'bottom') {
+            const mappedPosition = position == 'top' ? 'before' : 'after'
+            dispatch(moveNoteAndMaybeRegroupAsync({ id: noteId, targetId, position: mappedPosition }))
+        }
     }
 
     async function HandleFavourite(e: React.MouseEvent<SVGSVGElement>) {
@@ -64,17 +72,22 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
     if (!note) return
     return (
         <motion.li
-            {...(draggable ? { drag: "y" } : {})}
+            {...(draggable ? {
+                drag: true,
+                layout: true,
+                layoutId: noteId
+            } : {})}
             {...dragProps}
             onClick={(e) => {
                 if (!isDragging.current) {
                     onClick ? onClick() : defaultOnClick(e)
                 }
             }}
+            data-item-id={noteId}
             style={{ ...dragProps.style, paddingLeft: 0.5 + offset + "rem" }}
             className={
                 twMerge(
-                    "bg-bg-dark hover:cursor-pointer transition-colors w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg",
+                    "bg-bg-dark transition-[border,background-color] hover:cursor-pointer w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg",
                     className
                 )}>
             <div className="justify-between overflow-x-hidden flex items-center gap-[8px]">

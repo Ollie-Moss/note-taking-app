@@ -1,8 +1,10 @@
 import { createAsyncThunk, createSelector, createSlice, PayloadAction, } from "@reduxjs/toolkit";
 import { Group, NewGroup } from "../models/group";
-import { CreateGroup, DeleteGroup, GetGroups, UpdateGroup } from "../controllers/groupController";
+import { CreateGroup, DeleteGroup, GetGroups, MoveGroup, UpdateGroup } from "../controllers/groupController";
 import { RootState } from "../store";
-import { updateNoteAsync } from "./noteReducer";
+import { moveNoteAsync, updateNoteAsync } from "./noteReducer";
+import { act } from "react";
+import { activeAnimations } from "motion/react";
 
 export type GroupAction<T = Group> = PayloadAction<
     { group?: T, id?: string }>
@@ -33,6 +35,48 @@ export const updateGroupAsync = createAsyncThunk("groups/updateAsync", async ({ 
     const newGroup = await UpdateGroup(id, group)
     return { id, group: newGroup }
 })
+export const moveGroupAsync = createAsyncThunk("groups/moveAsync", async ({ id, targetId, position, finalPosition }: { id: string, targetId: string, position: 'before' | 'after', finalPosition: number }) => {
+    const newNote = await MoveGroup(id, targetId, position)
+    return { id, note: newNote }
+})
+
+export const moveGroupAndMaybeRegroupAsync = createAsyncThunk("groups/moveAsync", async ({ id, targetId, position }: { id: string, targetId: string, position: 'before' | 'after' }, { dispatch, getState }) => {
+    const state = getState() as RootState;
+    const notes = state.notes;
+    const groups = state.groups;
+    const current = groups[id];
+    const target =  groups[targetId] || notes[targetId]
+
+    if (!current || !target) return;
+
+    if (current.parentId !== target.parentId) {
+        await dispatch(updateGroupAsync({ id, group: { parentId: target.parentId } }));
+    }
+
+    if (!target || !current) return;
+
+    const allEntities = [...Object.values(groups), ...Object.values(notes)].filter(item => item.parentId == target.parentId).sort((a, b) => a.position - b.position)
+
+    let finalPosition = current.position;
+
+    if (position == "before") {
+        const index = allEntities.findIndex(group => group._id == target._id)
+        if (index == 0 || allEntities.length <= 1) {
+            finalPosition = target.position / 2;
+        } else {
+            finalPosition = (allEntities[index - 1].position + target.position) / 2
+        }
+    }
+    if (position == "after") {
+        const index = allEntities.findIndex(group => group._id == target._id)
+        if (index == allEntities.length - 1) {
+            finalPosition = target.position + 100;
+        } else {
+            finalPosition = (allEntities[index + 1].position + target.position) / 2
+        }
+    }
+    await dispatch(moveGroupAsync({ id, targetId, position, finalPosition }));
+})
 export const deleteGroupAsync = createAsyncThunk("groups/deleteAsync", async (id: string) => {
     return { id: await DeleteGroup(id).then(group => group._id) }
 })
@@ -50,6 +94,9 @@ export const groupSlice = createSlice({
         })
         builder.addCase(createGroupAsync.fulfilled, (state, action: GroupAction) => {
             state[action.payload.group._id] = action.payload.group
+        })
+        builder.addCase(moveGroupAsync.pending, (state, action) => {
+            state[action.meta.arg.id].position = action.meta.arg.finalPosition
         })
         builder.addCase(updateGroupAsync.pending, (state, action) => {
             const updates = action.meta.arg.group;

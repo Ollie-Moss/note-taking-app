@@ -36,6 +36,22 @@ export async function GetNote(noteId: string, uid: string = TEST_UID): Promise<N
         throw error;
     }
 }
+export async function MoveNote(id: string, targetId: string, position: 'before' | 'after', uid: string = TEST_UID): Promise<Note> {
+    try {
+        const updatedNote = await axios.patch(`${BASE_URL}/note/move?targetId=${targetId}&position=${position}`, { note: { _id: id } },
+            {
+                headers: {
+                    Authorization: `Bearer ${uid}`
+                },
+            })
+            .then(res => {
+                return res.data.note as Note;
+            })
+        return updatedNote
+    } catch (error: unknown) {
+        throw error
+    }
+}
 
 export async function UpdateNote(id: string, note: Partial<Note>, uid: string = TEST_UID): Promise<Note> {
     try {

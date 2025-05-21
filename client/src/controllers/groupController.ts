@@ -48,6 +48,23 @@ export async function UpdateGroup(id: string, group: Partial<Group>, uid: string
     }
 }
 
+export async function MoveGroup(id: string, targetId: string, position: 'before' | 'after', uid: string = TEST_UID): Promise<Group> {
+    try {
+        const updatedGroup = await axios.patch(`${BASE_URL}/group/move?targetId=${targetId}&position=${position}`, { group: { _id: id } },
+            {
+                headers: {
+                    Authorization: `Bearer ${uid}`
+                },
+            })
+            .then(res => {
+                return res.data.group as Group;
+            })
+        return updatedGroup
+    } catch (error: unknown) {
+        throw error
+    }
+}
+
 export async function DeleteGroup(id: string, uid: string = TEST_UID): Promise<Group> {
     try {
         const res = await axios.delete(`${BASE_URL}/group/${id}`,
