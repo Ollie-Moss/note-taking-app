@@ -31,6 +31,28 @@ export class GroupService extends MoveableService<IGroup> {
         noteService.setUser(id)
     };
 
+    async checkInGroup(targetId: string, groupId: string): Promise<boolean> {
+        const children = await this.findAll({ parentId: groupId })
+        for (const child of children) {
+            if (child._id.toString() == targetId) {
+                return true
+            }
+            if (await this.checkInGroup(targetId, child._id.toString())) {
+                return true
+            }
+        }
+        return false
+    }
+
+    async update(id: string, data: Partial<IGroup>): Promise<(IGroup & { _id: Types.ObjectId }) | null> {
+        if (data.parentId) {
+            if (await this.checkInGroup(data.parentId.toString(), id)) {
+                delete data.parentId;
+            }
+        }
+        return super.update(id, data);
+    }
+
     async delete(id: string): Promise<(IGroup & { _id: Types.ObjectId }) | null> {
         const notes: Note[] = await noteService.findNotes({ parentId: id })
         for (const note of notes) {
