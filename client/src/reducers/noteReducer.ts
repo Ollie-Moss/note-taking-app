@@ -51,21 +51,46 @@ export const updateNoteAsync = createAsyncThunk("notes/updateAsync", async ({ id
     const newNote = await UpdateNote(id, note)
     return { id, note: newNote }
 })
-export const moveNoteAsync = createAsyncThunk("notes/moveAsync", async ({ id, targetId, position }: { id: string, targetId: string, position: 'before' | 'after' }) => {
+export const moveNoteAsync = createAsyncThunk("notes/moveAsync", async ({ id, targetId, position, finalPosition }: { id: string, targetId: string, position: 'before' | 'after', finalPosition: number }) => {
     const newNote = await MoveNote(id, targetId, position)
     return { id, note: newNote }
 })
-export const moveAndMaybeRegroupAsync = createAsyncThunk("notes/moveAsync", async ({ id, targetId, position }: { id: string, targetId: string, position: 'before' | 'after' }, { dispatch, getState }) => {
+export const moveNoteAndMaybeRegroupAsync = createAsyncThunk("notes/moveAsync", async ({ id, targetId, position }: { id: string, targetId: string, position: 'before' | 'after' }, { dispatch, getState }) => {
     const state = getState() as RootState;
     const notes = state.notes;
+    const groups = state.groups;
     const current = notes[id];
-    const target = notes[targetId];
+    const target = notes[targetId] || groups[targetId]
+
     if (!current || !target) return;
 
     if (current.parentId !== target.parentId) {
         await dispatch(updateNoteAsync({ id, note: { parentId: target.parentId } }));
     }
-    await dispatch(moveNoteAsync({ id, targetId, position }));
+
+    if (!target || !current) return;
+
+    const allEntities = [...Object.values(groups), ...Object.values(notes)].filter(item => item.parentId == target.parentId).sort((a, b) => a.position - b.position)
+
+    let finalPosition = current.position;
+
+    if (position == "before") {
+        const index = allEntities.findIndex(note => note._id == target._id)
+        if (index == 0 || allEntities.length <= 1) {
+            finalPosition = target.position / 2;
+        } else {
+            finalPosition = (allEntities[index - 1].position + target.position) / 2
+        }
+    }
+    if (position == "after") {
+        const index = allEntities.findIndex(note => note._id == target._id)
+        if (index == allEntities.length - 1) {
+            finalPosition = target.position + 100;
+        } else {
+            finalPosition = (allEntities[index + 1].position + target.position) / 2
+        }
+    }
+    await dispatch(moveNoteAsync({ id, targetId, position, finalPosition }));
 })
 export const deleteNoteAsync = createAsyncThunk("notes/deleteAsync", async (id: string) => {
     return { id: await DeleteNote(id).then(note => note._id) }
@@ -94,35 +119,7 @@ export const noteSlice = createSlice({
             state[id] = { ...state[id], ...action.meta.arg.note }
         })
         builder.addCase(moveNoteAsync.pending, (state, action) => {
-            const id = action.meta.arg.id;
-            const targetId = action.meta.arg.targetId;
-            const position = action.meta.arg.position;
-
-            const targetEntity = state[targetId]
-            const currentEntity = state[id]
-            if (!targetEntity || !currentEntity) return;
-
-            const allEntities = Object.values(state).filter(note => note.parentId == targetEntity.parentId).sort((a, b) => a.position - b.position)
-
-            if (position == "before") {
-                const index = allEntities.findIndex(note => note._id == targetEntity._id)
-                if (index == 0 || allEntities.length <= 1) {
-                    state[id].position = targetEntity.position / 2;
-                    console.log(state[id].position)
-                    return
-                }
-                state[id].position = (allEntities[index - 1].position + targetEntity.position) / 2
-                return
-            }
-            if (position == "after") {
-                const index = allEntities.findIndex(note => note._id == targetEntity._id)
-                if (index == allEntities.length - 1) {
-                    state[id].position = targetEntity.position + 100;
-                    return
-                }
-                state[id].position = (allEntities[index + 1].position + targetEntity.position) / 2
-                return
-            }
+            state[action.meta.arg.id].position = action.meta.arg.finalPosition
         })
         builder.addCase(deleteNoteAsync.pending, (state, action) => {
             const id = action.meta.arg;

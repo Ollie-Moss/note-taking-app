@@ -1,19 +1,29 @@
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { MoveableService } from "./moveableService";
 import { INote } from "../models/noteModel";
+import { groupService } from "./services";
 
 export class NoteService extends MoveableService<INote> {
     constructor(model: Model<INote>) { super(model) }
 
     async create(data: Partial<INote>): Promise<INote> {
-        const notes = await this.findNotes({ parentId: null });
+        const entities = [...await this.findAll({ parentId: null }),
+        ...await groupService.findAll({ parentId: null })];
+
         let position = 100;
-        if (notes.length > 0) {
-            position = notes[notes.length - 1].position + 100
+        if (entities.length > 0) {
+            position = entities[entities.length - 1].position + 100
         }
-        const note = await super.create({ ...data, position });
-        return note
+        const entity = await super.create({ ...data, position });
+        return entity
     }
+
+    async move(id: string, targetId: string, position: "before" | "after"): Promise<(INote & { _id: Types.ObjectId; }) | null | undefined> {
+        const currentEntity = await this.findById(id);
+        const allEntities = [...await this.findAll({ parentId: currentEntity?.parentId }), ...await groupService.findAll({ parentId: currentEntity?.parentId })]
+        return await this.moveInList(id, targetId, position, allEntities);
+    }
+
     async findNotes({ parentId, preview }:
         { parentId?: string | null, preview?: boolean }) {
 

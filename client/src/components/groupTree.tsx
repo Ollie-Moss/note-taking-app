@@ -5,7 +5,7 @@ import { RefObject } from "react";
 import { useConfirm } from '../lib/confirmationProvider'
 import { useNavigate } from "react-router";
 import { Group } from "../models/group";
-import { deleteGroupAsync, groupMapSelector, moveGroupAsync, updateGroupAsync } from "../reducers/groupReducer";
+import { deleteGroupAsync, groupMapSelector, moveGroupAndMaybeRegroupAsync, moveGroupAsync, updateGroupAsync } from "../reducers/groupReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../store";
 import { motion } from "motion/react";
@@ -31,9 +31,7 @@ export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: numb
         }
         if (position == 'top' || position == 'bottom') {
             const mappedPosition = position == 'top' ? 'before' : 'after'
-            //dispatch(moveNoteAsync({ id: noteId, targetId, position: mappedPosition }));
-
-            dispatch(moveGroupAsync.pending("manual-" + Date.now(), { id: group._id, targetId, position: mappedPosition }))
+            dispatch(moveGroupAndMaybeRegroupAsync({ id: group._id, targetId, position: mappedPosition }))
         }
     }
     async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
@@ -88,16 +86,24 @@ export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: numb
             </ul>
             <ul >
                 {group.open ?
-                    <>
-                        {group.notes.map(id => notes[id]).sort((a, b) => a.position - b.position).map(note => (
-                            <NoteDisplay
-                                draggable={true}
-                                key={note._id} noteId={note._id} dragConstraint={dragConstraint} offset={offset + 1} />
-                        ))}
-                        {group.children.map(childId => (
-                            <GroupTree key={childId} group={groups[childId]} dragConstraint={dragConstraint} offset={offset + 1} />
-                        ))}
-                    </>
+                    [...(group.children.map(id => ({ ...groups[id], type: "group" }))),
+                    ...group.notes.map(id => ({ ...notes[id], type: "note" }))]
+                        .sort((a, b) => a.position - b.position).map(item =>
+                            item.type == "group" ?
+                                <GroupTree
+                                    key={item._id}
+                                    offset={offset + 1}
+                                    group={item as Group}
+                                    dragConstraint={dragConstraint} />
+                                :
+                                <NoteDisplay
+                                    key={item._id}
+                                    offset={offset + 1}
+                                    noteId={item._id}
+                                    draggable={true}
+                                    dragConstraint={dragConstraint}
+                                />)
+
                     :
                     <></>}
             </ul>

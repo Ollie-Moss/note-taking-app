@@ -7,7 +7,7 @@ import { twMerge } from 'tailwind-merge'
 import { motion, useMotionValue } from 'motion/react'
 import React, { RefObject, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteNoteAsync, moveAndMaybeRegroupAsync, moveNoteAsync, noteMapSelector, updateNoteAsync } from "../reducers/noteReducer";
+import { deleteNoteAsync, moveNoteAndMaybeRegroupAsync, moveNoteAsync, noteMapSelector, updateNoteAsync } from "../reducers/noteReducer";
 import { AppDispatch } from "../store";
 import { useDrag } from "../lib/useDrag";
 
@@ -35,10 +35,7 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
         }
         if (position == 'top' || position == 'bottom') {
             const mappedPosition = position == 'top' ? 'before' : 'after'
-            //dispatch(moveNoteAsync({ id: noteId, targetId, position: mappedPosition }));
-
-            //dispatch(moveNoteAsync.pending("manual-" + Date.now(), { id: noteId, targetId, position: mappedPosition }))
-            dispatch(moveAndMaybeRegroupAsync({ id: noteId, targetId, position: mappedPosition }))
+            dispatch(moveNoteAndMaybeRegroupAsync({ id: noteId, targetId, position: mappedPosition }))
         }
     }
 

@@ -1,16 +1,14 @@
 import { Service } from "./service";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { Moveable } from "../models/moveableModel";
 
 export class MoveableService<T extends Moveable> extends Service<T> {
     constructor(model: Model<T>) { super(model) }
 
-    async move(id: string, targetId: string, position: 'before' | 'after') {
+    async moveInList(id: string, targetId: string, position: 'before' | 'after', allEntities: (Moveable & { _id: Types.ObjectId })[]) {
         const currentEntity = await this.findById(id);
 
-        const allEntities: (T & { _id: string })[] = await this.model.find({ parentId: currentEntity?.parentId }).sort({ position: 1 }).lean<(T & { _id: string })[]>();
-
-        const targetEntity = allEntities.find(entity => entity._id == targetId);
+        const targetEntity = allEntities.find(entity => entity._id.toString() == targetId);
 
         if (!targetEntity || !currentEntity) return;
 
