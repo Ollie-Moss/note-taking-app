@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFolderClosed, faFolderOpen, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faEdit, faFolderClosed, faFolderOpen, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { NoteDisplay } from "./noteDisplay";
-import { RefObject } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import { useConfirm } from '../lib/confirmationProvider'
 import { useNavigate } from "react-router";
 import { Group } from "../models/group";
@@ -12,6 +12,7 @@ import { motion } from "motion/react";
 import { useDrag } from "../lib/useDrag";
 import { noteMapSelector } from "../reducers/noteReducer";
 import { MoveGroup } from "../controllers/groupController";
+import PlainTextPasteHandler from "../lib/plaintextPaste";
 
 export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: number, dragConstraint: RefObject<HTMLUListElement>, group: Group }) {
     const { isDragging, dragProps } = useDrag<HTMLLIElement>({ dragConstraint, onDrop })
@@ -20,6 +21,9 @@ export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: numb
     const navigate = useNavigate()
     const groups = useSelector(groupMapSelector)
     const notes = useSelector(noteMapSelector)
+    const titleRef = useRef<HTMLParagraphElement>(null)
+    const [title, setTitle] = useState<string>(group.title)
+    const [isEditing, setIsEditing] = useState<boolean>(false)
 
     const dispatch: AppDispatch = useDispatch()
 
@@ -34,6 +38,39 @@ export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: numb
             dispatch(moveGroupAndMaybeRegroupAsync({ id: group._id, targetId, position: mappedPosition }))
         }
     }
+    useEffect(() => {
+        if (titleRef.current) {
+            titleRef.current.scrollLeft = 0;
+        }
+    }, [isEditing]);
+    function HandleEdit(e: React.MouseEvent<SVGSVGElement>) {
+        e.preventDefault();
+        e.stopPropagation()
+
+        titleRef.current.focus()
+        setIsEditing(true)
+    }
+    function SetTitle(e: React.FormEvent<HTMLHeadingElement>): void {
+        const newTitle = e.currentTarget.textContent ?? "";
+        setTitle(newTitle);
+        // stops newline from appearing when empty
+        if (newTitle == "") {
+            titleRef.current.innerText = ""
+        }
+    }
+    function Cancel(e: React.MouseEvent<SVGSVGElement>) {
+        e.preventDefault();
+        e.stopPropagation()
+        setIsEditing(false)
+        setTitle(group.title)
+    }
+    function Save(e: React.MouseEvent<SVGSVGElement>) {
+        e.preventDefault();
+        e.stopPropagation()
+        setIsEditing(false)
+        dispatch(updateGroupAsync({ id: group._id, group: { title } }))
+    }
+
     async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault();
         e.stopPropagation()
@@ -54,6 +91,7 @@ export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: numb
             }
         }
     }
+    const untitledNoteStyle = "after:inline after:font-light after:opacity-[0.6] after:italic after:content-['Untitled_Note...']"
 
     return (
         <li>
@@ -61,26 +99,51 @@ export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: numb
                 <motion.li
                     drag
                     {...dragProps}
-                    onClick={() => dispatch(updateGroupAsync({ group: { open: !group.open }, id: group._id }))}
+                    onClick={() => {
+                        if (isEditing || isDragging.current) return
+                        dispatch(updateGroupAsync({ group: { open: !group.open }, id: group._id }))
+                    }}
                     data-item-id={group._id}
                     data-group
                     layout layoutId={group._id}
                     style={{ ...dragProps.style, paddingLeft: 0.5 + offset + "rem" }}
-                    className={`hover:bg-bg-light bg-bg-dark hover:cursor-pointer transition-colors w-full max-w-full justify-between flex items-center  py-1.5 px-2 rounded-lg`}>
+                    className={`hover:bg-bg-light bg-bg-dark hover:cursor-pointer transition-colors w-full max-w-full justify-between flex items-center  py-1 px-2 rounded-lg
+                            ${isEditing && "bg-bg-light"} `}>
                     <div className="transition-[border,background-color] w-full justify-between overflow-x-hidden flex items-center gap-[8px]">
                         <FontAwesomeIcon className="text-white h-[20px]" icon={group.open ? faFolderOpen : faFolderClosed} />
-                        <p className={`flex-1 overflow-x-hidden whitespace-nowrap text-ellipsis text-xs text-white 
-                                ${group.title == "" ? "opacity-[0.6] italic" : ""}`}>
-                            {group.title == "" ?
-                                "Untitled Group"
-                                :
-                                group.title
-                            }</p>
+                        <p
+                            ref={titleRef}
+                            onInput={SetTitle}
+                            onPaste={PlainTextPasteHandler}
+                            contentEditable={isEditing}
+                            suppressContentEditableWarning
+                            className={`outline-none rounded-md py-0.5 px-1 flex-1 overflow-x-hidden whitespace-nowrap text-ellipsis text-xs text-white 
+                            ${title == "" && untitledNoteStyle} 
+                            ${isEditing && "bg-bg-dark"}`}>{group.title}</p>
 
-                        <FontAwesomeIcon
-                            onClick={HandleDelete}
-                            className="hover:text-red-400 text-white size-[16px]"
-                            icon={faTimes} />
+                        {isEditing ? <>
+                            <FontAwesomeIcon
+                                onClick={Save}
+                                className="hover:text-green-400 text-white size-[16px]"
+                                icon={faCheck} />
+                            <FontAwesomeIcon
+                                onClick={Cancel}
+                                className="hover:text-red-400 text-white size-[16px]"
+                                icon={faTimes} />
+                        </> :
+                            <>
+                                <FontAwesomeIcon
+                                    onClick={HandleEdit}
+                                    className="hover:text-green-400 text-white size-[16px]"
+                                    icon={faEdit} />
+                                <FontAwesomeIcon
+                                    onClick={HandleDelete}
+                                    className="hover:text-red-400 text-white size-[16px]"
+                                    icon={faTimes} />
+
+                            </>
+
+                        }
                     </div>
                 </motion.li>
             </ul>

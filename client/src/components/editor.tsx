@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { updateNoteAsync } from "../reducers/noteReducer";
 import { AppDispatch } from "../store";
 import { useToast } from "../lib/toastProvider";
+import PlainTextPasteHandler from "../lib/plaintextPaste";
 
 export default function Editor({ note: initialNote }: { note: Note }) {
     const editorRef = useRef<ReactQuill>(null);
@@ -66,24 +67,6 @@ export default function Editor({ note: initialNote }: { note: Note }) {
         UpdateNote({ title: newTitle })
     }
 
-    // Ensures only plain text can be pasted
-    function HandlePaste(e: React.ClipboardEvent<HTMLHeadingElement>): void {
-        e.preventDefault();
-
-        const text = e.clipboardData?.getData('text/plain');
-        const selectedRange = window.getSelection()?.getRangeAt(0);
-        if (!selectedRange || !text) {
-            return;
-        }
-
-        selectedRange.deleteContents();
-        selectedRange.insertNode(document.createTextNode(text));
-        selectedRange.setStart(selectedRange.endContainer, selectedRange.endOffset);
-
-        // Trigger change event to ensure that state is updated
-        const changeEvent: Event = new Event('input', { bubbles: true });
-        e.currentTarget.dispatchEvent(changeEvent);
-    }
 
     const untitledNoteStyle = "after:inline after:font-light after:opacity-[0.6] after:italic after:content-['Untitled_Note...']"
 
@@ -95,7 +78,7 @@ export default function Editor({ note: initialNote }: { note: Note }) {
                     contentEditable={true}
                     suppressContentEditableWarning={true}
                     onInput={SetTitle}
-                    onPaste={HandlePaste}
+                    onPaste={PlainTextPasteHandler}
                     ref={titleRef}
                 >{initialNote.title}</h1>
                 <ReactQuill
