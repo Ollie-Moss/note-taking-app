@@ -20,7 +20,7 @@ export class NoteService extends MoveableService<INote> {
 
     async move(id: string, targetId: string, position: "before" | "after"): Promise<(INote & { _id: Types.ObjectId; }) | null | undefined> {
         const currentEntity = await this.findById(id);
-        const allEntities = [...await this.findAll({ parentId: currentEntity?.parentId }), ...await groupService.findAll({ parentId: currentEntity?.parentId })]
+        const allEntities = [...await this.model.find({ parentId: currentEntity?.parentId }), ...await groupService.model.find({ parentId: currentEntity?.parentId })]
         return await this.moveInList(id, targetId, position, allEntities);
     }
 
