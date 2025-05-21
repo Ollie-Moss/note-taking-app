@@ -1,4 +1,4 @@
-import { animate, PanInfo, useMotionValue } from "motion/react";
+import { animate, PanInfo, useDragControls, useMotionValue } from "motion/react";
 import React, { RefObject, useRef } from "react";
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from "../store";
@@ -8,6 +8,7 @@ export function useDrag<E extends HTMLElement>({
     dragConstraint, onDrop }:
     { onDrop: (dropTarget: Element, position: 'top' | 'middle' | 'bottom') => void, dragConstraint?: RefObject<HTMLUListElement> }) {
 
+    const dragControls = useDragControls()
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
@@ -106,8 +107,10 @@ export function useDrag<E extends HTMLElement>({
     }
 
     return {
+        dragControls,
         isDragging,
         dragProps: {
+            dragControls: dragControls,
             dragElastic: 0,
             dragMomentum: false,
             style: { x, y },

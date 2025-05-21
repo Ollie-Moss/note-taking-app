@@ -73,7 +73,7 @@ export default function Editor({ note: initialNote }: { note: Note }) {
 
     return (
         initialNote ?
-            <div className="px-24 pt-10">
+            <div className="px-12 pt-10 lg:px-24">
                 <h1 className={`text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1
                             ${!hasTitle && untitledNoteStyle}`}
                     contentEditable={true}
