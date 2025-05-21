@@ -5,7 +5,7 @@ import { RefObject, useEffect, useRef, useState } from "react";
 import { useConfirm } from '../lib/confirmationProvider'
 import { useNavigate } from "react-router";
 import { Group } from "../models/group";
-import { deleteGroupAsync, groupMapSelector, moveGroupAndMaybeRegroupAsync, moveGroupAsync, updateGroupAsync } from "../reducers/groupReducer";
+import { deleteGroupAndChildrenAsync, deleteGroupAsync, groupMapSelector, moveGroupAndMaybeRegroupAsync, moveGroupAsync, updateGroupAsync } from "../reducers/groupReducer";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../store";
 import { motion } from "motion/react";
@@ -79,7 +79,7 @@ export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: numb
         const confirmed = await Confirm("Are you sure you wish to delete this group?");
         if (!confirmed) return
 
-        dispatch(deleteGroupAsync(group._id))
+        dispatch(deleteGroupAndChildrenAsync(group._id))
 
         // navigate to home if a note that was deleted was selected
         const params = new URLSearchParams(location.search)

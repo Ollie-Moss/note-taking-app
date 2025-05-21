@@ -55,7 +55,7 @@ export const moveNoteAsync = createAsyncThunk("notes/moveAsync", async ({ id, ta
     const newNote = await MoveNote(id, targetId, position)
     return { id, note: newNote }
 })
-export const moveNoteAndMaybeRegroupAsync = createAsyncThunk("notes/moveAsync", async ({ id, targetId, position }: { id: string, targetId: string, position: 'before' | 'after' }, { dispatch, getState }) => {
+export const moveNoteAndMaybeRegroupAsync = createAsyncThunk("notes/moveAndRegroupAsync", async ({ id, targetId, position }: { id: string, targetId: string, position: 'before' | 'after' }, { dispatch, getState }) => {
     const state = getState() as RootState;
     const notes = state.notes;
     const groups = state.groups;

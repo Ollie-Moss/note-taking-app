@@ -30,12 +30,16 @@ export class GroupService extends MoveableService<IGroup> {
         super.setUser(id)
         noteService.setUser(id)
     };
+
     async delete(id: string): Promise<(IGroup & { _id: Types.ObjectId }) | null> {
         const notes: Note[] = await noteService.findNotes({ parentId: id })
         for (const note of notes) {
-            noteService.delete(note._id.toString())
+            await noteService.delete(note._id.toString())
         }
-
+        const children: Group[] = await this.findGroups({ parentId: id })
+        for (const child of children) {
+            await this.delete(child._id.toString());
+        }
         return super.delete(id)
     }
     async findGroups({ parentId, withNotes, withChildren }:
