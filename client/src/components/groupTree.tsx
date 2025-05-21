@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCheck, faEdit, faFolderClosed, faFolderOpen, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faEdit, faFolderClosed, faFolderOpen, faTimes, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { NoteDisplay } from "./noteDisplay";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { useConfirm } from '../lib/confirmationProvider'
@@ -13,6 +13,7 @@ import { useDrag } from "../lib/useDrag";
 import { noteMapSelector } from "../reducers/noteReducer";
 import { MoveGroup } from "../controllers/groupController";
 import PlainTextPasteHandler from "../lib/plaintextPaste";
+import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 
 export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: number, dragConstraint: RefObject<HTMLUListElement>, group: Group }) {
     const { isDragging, dragProps } = useDrag<HTMLLIElement>({ dragConstraint, onDrop })
@@ -139,7 +140,7 @@ export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: numb
                                 <FontAwesomeIcon
                                     onClick={HandleDelete}
                                     className="hover:text-red-400 text-white size-[16px]"
-                                    icon={faTimes} />
+                                    icon={faTrashCan} />
 
                             </>
 

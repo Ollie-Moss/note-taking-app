@@ -1,8 +1,8 @@
 import { useLocation, useNavigate } from "react-router";
 import { useConfirm } from "../lib/confirmationProvider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFile, faStar as fasStar, faTimes } from "@fortawesome/free-solid-svg-icons";
-import { faStar as farStar } from '@fortawesome/free-regular-svg-icons'
+import { faAt, faFile, faStar as fasStar, faTimes} from "@fortawesome/free-solid-svg-icons";
+import { faStar as farStar, faTrashCan } from '@fortawesome/free-regular-svg-icons'
 import { twMerge } from 'tailwind-merge'
 import { motion, useMotionValue } from 'motion/react'
 import React, { RefObject, useMemo, useRef } from "react";
@@ -108,7 +108,7 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
                 <FontAwesomeIcon
                     onClick={HandleDelete}
                     className="hover:text-red-400 text-white size-[16px]"
-                    icon={faTimes} />
+                    icon={faTrashCan} />
             </div>
         </motion.li >
     )
