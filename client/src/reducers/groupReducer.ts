@@ -31,6 +31,18 @@ export const createGroupAsync = createAsyncThunk("groups/createAsync", async () 
     const group: Group = NewGroup();
     return { group: await CreateGroup(group) }
 })
+function checkInGroup(targetId: string, groupId: string, groups: Group[]): boolean {
+    const children = groups.filter(group => group.parentId == groupId)
+    for (const child of children) {
+        if (child._id == targetId) {
+            return true
+        }
+        if (checkInGroup(targetId, child._id, groups)) {
+            return true
+        }
+    }
+    return false
+}
 export const updateGroupAsync = createAsyncThunk("groups/updateAsync", async ({ id, group }: { id: string, group: Partial<Group> }) => {
     const newGroup = await UpdateGroup(id, group)
     return { id, group: newGroup }
@@ -52,8 +64,6 @@ export const moveGroupAndMaybeRegroupAsync = createAsyncThunk("groups/moveAndReg
     if (current.parentId !== target.parentId) {
         await dispatch(updateGroupAsync({ id, group: { parentId: target.parentId } }));
     }
-
-    if (!target || !current) return;
 
     const allEntities = [...Object.values(groups), ...Object.values(notes)].filter(item => item.parentId == target.parentId).sort((a, b) => a.position - b.position)
 
@@ -111,6 +121,10 @@ export const groupSlice = createSlice({
         builder.addCase(updateGroupAsync.pending, (state, action) => {
             const updates = action.meta.arg.group;
             const id = action.meta.arg.id;
+
+            if (checkInGroup(updates.parentId, id, Object.values(state))) {
+                delete updates.parentId;
+            }
             state[id] = { ...state[id], ...action.meta.arg.group }
 
             if (!updates.hasOwnProperty("parentId")) return
@@ -124,6 +138,7 @@ export const groupSlice = createSlice({
                     state[group._id].children.push(id)
                 }
             }
+
         })
         builder.addCase(deleteGroupAsync.pending, (state, action) => {
             const id = action.meta.arg;
