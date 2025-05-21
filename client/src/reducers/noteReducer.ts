@@ -3,7 +3,6 @@ import { Note, NewNote } from "../models/note";
 import { CreateNote, DeleteNote, GetNote, GetNotes, MoveNote, UpdateNote } from "../controllers/noteController";
 import { RootState } from "../store";
 import { deleteGroupAsync } from "./groupReducer";
-import { all } from "axios";
 
 export type NoteAction<T = Note> = PayloadAction<
     { note?: T, id?: string }>
@@ -56,6 +55,18 @@ export const moveNoteAsync = createAsyncThunk("notes/moveAsync", async ({ id, ta
     const newNote = await MoveNote(id, targetId, position)
     return { id, note: newNote }
 })
+export const moveAndMaybeRegroupAsync = createAsyncThunk("notes/moveAsync", async ({ id, targetId, position }: { id: string, targetId: string, position: 'before' | 'after' }, { dispatch, getState }) => {
+    const state = getState() as RootState;
+    const notes = state.notes;
+    const current = notes[id];
+    const target = notes[targetId];
+    if (!current || !target) return;
+
+    if (current.parentId !== target.parentId) {
+        await dispatch(updateNoteAsync({ id, note: { parentId: target.parentId } }));
+    }
+    await dispatch(moveNoteAsync({ id, targetId, position }));
+})
 export const deleteNoteAsync = createAsyncThunk("notes/deleteAsync", async (id: string) => {
     return { id: await DeleteNote(id).then(note => note._id) }
 })
@@ -89,22 +100,22 @@ export const noteSlice = createSlice({
 
             const targetEntity = state[targetId]
             const currentEntity = state[id]
-
-            const allEntities = Object.values(state).filter(note => note.parentId == currentEntity.parentId).sort((a, b) => a.position - b.position)
-
             if (!targetEntity || !currentEntity) return;
 
+            const allEntities = Object.values(state).filter(note => note.parentId == targetEntity.parentId).sort((a, b) => a.position - b.position)
+
             if (position == "before") {
-                const index = allEntities.indexOf(targetEntity)
-                if (index == 0) {
+                const index = allEntities.findIndex(note => note._id == targetEntity._id)
+                if (index == 0 || allEntities.length <= 1) {
                     state[id].position = targetEntity.position / 2;
+                    console.log(state[id].position)
                     return
                 }
                 state[id].position = (allEntities[index - 1].position + targetEntity.position) / 2
                 return
             }
             if (position == "after") {
-                const index = allEntities.indexOf(targetEntity)
+                const index = allEntities.findIndex(note => note._id == targetEntity._id)
                 if (index == allEntities.length - 1) {
                     state[id].position = targetEntity.position + 100;
                     return
@@ -117,7 +128,6 @@ export const noteSlice = createSlice({
             const id = action.meta.arg;
             delete state[id]
         })
-
 
         // Group Updates
         builder.addCase(deleteGroupAsync.pending, (state, action) => {

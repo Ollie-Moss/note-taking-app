@@ -7,7 +7,7 @@ export class NoteService extends MoveableService<INote> {
 
     async create(data: Partial<INote>): Promise<INote> {
         const notes = await this.findNotes({ parentId: null });
-        let position = 0;
+        let position = 100;
         if (notes.length > 0) {
             position = notes[notes.length - 1].position + 100
         }

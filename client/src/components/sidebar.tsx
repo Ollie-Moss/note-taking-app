@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { createGroupAsync, groupArraySelector, rootGroupSelector } from "../reducers/groupReducer";
 import { AppDispatch } from "../store";
 import { createNoteAsync, ungroupedNotesSelector } from "../reducers/noteReducer";
+import { AnimatePresence } from "motion/react";
 
 
 export default function Sidebar() {
@@ -67,16 +68,23 @@ export default function Sidebar() {
                             } />
                     </div>
                 </li>
-                {groups.map(group => (
-                    <GroupTree key={group._id} group={group} dragConstraint={listRef} />
-                ))}
-                {notes.map(note => (
-                    <NoteDisplay
-                        key={note._id}
-                        noteId={note._id}
-                        draggable={true}
-                        dragConstraint={listRef}
-                    />))}
+                <AnimatePresence mode="popLayout">
+                    <ul>
+                        {groups.map(group => (
+                            <GroupTree
+                                key={group._id}
+                                group={group}
+                                dragConstraint={listRef} />
+                        ))}
+                        {notes.map(note => (
+                            <NoteDisplay
+                                key={note._id}
+                                noteId={note._id}
+                                draggable={true}
+                                dragConstraint={listRef}
+                            />))}
+                    </ul>
+                </AnimatePresence>
             </ul>
 
         </aside>

@@ -32,7 +32,6 @@ export async function CreateGroupHandler(req: Request, res: Response, next: Next
 }
 
 export async function GetAllGroupsHandler(req: Request, res: Response, next: NextFunction) {
-    console.log("start")
     try {
         let groups = await groupService.findGroups({
             parentId: req.params.root ? null : undefined,

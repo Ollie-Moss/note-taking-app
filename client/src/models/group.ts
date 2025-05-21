@@ -2,7 +2,7 @@ export function NewGroup(): Group {
     return {
         _id: "temp_id",
         title: "",
-        position: 0,
+        position: 100,
         uid: "",
         parentId: null,
         open: false,

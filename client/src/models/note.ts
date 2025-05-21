@@ -5,7 +5,7 @@ export function NewNote(): Note {
         contents: "{}",
         favourite: false,
         editedAt: new Date(Date.now()),
-        position: 0,
+        position: 100,
         uid: "",
         parentId: null
     } as Note;

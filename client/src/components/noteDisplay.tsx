@@ -7,7 +7,7 @@ import { twMerge } from 'tailwind-merge'
 import { motion, useMotionValue } from 'motion/react'
 import React, { RefObject, useMemo, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteNoteAsync, moveNoteAsync, noteMapSelector, updateNoteAsync } from "../reducers/noteReducer";
+import { deleteNoteAsync, moveAndMaybeRegroupAsync, moveNoteAsync, noteMapSelector, updateNoteAsync } from "../reducers/noteReducer";
 import { AppDispatch } from "../store";
 import { useDrag } from "../lib/useDrag";
 
@@ -37,7 +37,8 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
             const mappedPosition = position == 'top' ? 'before' : 'after'
             //dispatch(moveNoteAsync({ id: noteId, targetId, position: mappedPosition }));
 
-            dispatch(moveNoteAsync.pending("manual-" + Date.now(), { id: noteId, targetId, position: mappedPosition }))
+            //dispatch(moveNoteAsync.pending("manual-" + Date.now(), { id: noteId, targetId, position: mappedPosition }))
+            dispatch(moveAndMaybeRegroupAsync({ id: noteId, targetId, position: mappedPosition }))
         }
     }
 
@@ -74,9 +75,12 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
     if (!note) return
     return (
         <motion.li
-            {...(draggable ? { drag: "y" } : {})}
+            {...(draggable ? {
+                drag: true,
+                layout: true,
+                layoutId: noteId
+            } : {})}
             {...dragProps}
-            layout
             onClick={(e) => {
                 if (!isDragging.current) {
                     onClick ? onClick() : defaultOnClick(e)

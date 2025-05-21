@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSelector, createSlice, PayloadAction, } from "@reduxjs/toolkit";
 import { Group, NewGroup } from "../models/group";
-import { CreateGroup, DeleteGroup, GetGroups, UpdateGroup } from "../controllers/groupController";
+import { CreateGroup, DeleteGroup, GetGroups, MoveGroup, UpdateGroup } from "../controllers/groupController";
 import { RootState } from "../store";
 import { moveNoteAsync, updateNoteAsync } from "./noteReducer";
 
@@ -32,6 +32,10 @@ export const createGroupAsync = createAsyncThunk("groups/createAsync", async () 
 export const updateGroupAsync = createAsyncThunk("groups/updateAsync", async ({ id, group }: { id: string, group: Partial<Group> }) => {
     const newGroup = await UpdateGroup(id, group)
     return { id, group: newGroup }
+})
+export const moveGroupAsync = createAsyncThunk("groups/moveAsync", async ({ id, targetId, position }: { id: string, targetId: string, position: 'before' | 'after' }) => {
+    const newNote = await MoveGroup(id, targetId, position)
+    return { id, note: newNote }
 })
 export const deleteGroupAsync = createAsyncThunk("groups/deleteAsync", async (id: string) => {
     return { id: await DeleteGroup(id).then(group => group._id) }

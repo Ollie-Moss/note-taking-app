@@ -1,42 +1,37 @@
-import { animate, useMotionValue } from "motion/react";
+import { animate, PanInfo, useMotionValue } from "motion/react";
 import React, { RefObject, useRef } from "react";
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch } from "../store";
 import { moveNoteAsync, noteMapSelector } from "../reducers/noteReducer";
 
-export function useDrag<T, E extends HTMLElement>({
-    index, items, setItems, dragConstraint, onDrop }:
-    { index: number, items: T[], setItems: React.Dispatch<React.SetStateAction<T[]>>, onDrop: (dropTarget: Element, position: 'top' | 'middle' | 'bottom') => void, dragConstraint?: RefObject<HTMLUListElement> }) {
+export function useDrag<E extends HTMLElement>({
+    dragConstraint, onDrop }:
+    { onDrop: (dropTarget: Element, position: 'top' | 'middle' | 'bottom') => void, dragConstraint?: RefObject<HTMLUListElement> }) {
 
-    // Drag state
+    const x = useMotionValue(0);
     const y = useMotionValue(0);
+
     const isDragging = useRef<boolean>(false);
     const elementRef = useRef<E>(null)
-    const dispatch: AppDispatch = useDispatch()
-    const notes = useSelector(noteMapSelector)
 
     const bestTarget = useRef<Element | null>(null);
     const positionInTarget = useRef<'top' | 'middle' | 'bottom' | null>(null);
-    const deadZone = 10;
+    const deadZone = 7;
 
     const maxOverlapArea = useRef<number>(0);
 
-    function getNewIndex(currentIndex: number, pointerY: number) {
-        const offset = Math.round((pointerY - currentIndex * itemHeight) / itemHeight);
-        return Math.max(0, Math.min(items.length - 1, currentIndex + offset));
-    }
-    function handleDragStart(event: MouseEvent, info) {
+    function handleDragStart(event: MouseEvent, info: PanInfo) {
         isDragging.current = true;
     }
-    function handleDragging(event: MouseEvent, info) {
+    function handleDragging(event: MouseEvent, info: PanInfo) {
         isDragging.current = true;
-        CalculateBestTarget()
+        CalculateBestTarget(info)
         document.querySelectorAll("[data-item-id]").forEach((el) => {
             el.classList.remove("highlight-top-drop-target");
             el.classList.remove("highlight-drop-target")
             el.classList.remove("highlight-bottom-drop-target");
         });
-        if (bestTarget.current && maxOverlapArea.current > 0) {
+        if (bestTarget.current) {
             switch (positionInTarget.current) {
                 case 'top':
                     bestTarget.current.classList.add("highlight-top-drop-target");
@@ -48,20 +43,13 @@ export function useDrag<T, E extends HTMLElement>({
                     bestTarget.current.classList.add("highlight-bottom-drop-target");
                     break;
             }
-            const newIndex = getNewIndex(index, pointerY);
-            if (newIndex !== index) {
-                const reordered = [...items];
-                const [moved] = reordered.splice(index, 1);
-                reordered.splice(newIndex, 0, moved);
-                setItems(reordered);
-            }
         }
+        y.set(0)
+        x.set(0)
     }
     function handleDragEnd(event: MouseEvent, info) {
         const currentElement = elementRef.current;
         if (!currentElement) return;
-
-        CalculateBestTarget()
 
         document.querySelectorAll("[data-item-id]").forEach((el) => {
             el.classList.remove("highlight-top-drop-target");
@@ -69,68 +57,65 @@ export function useDrag<T, E extends HTMLElement>({
             el.classList.remove("highlight-bottom-drop-target");
         });
 
-        if (bestTarget.current && maxOverlapArea.current > 0) {
+        if (bestTarget.current) {
             onDrop(bestTarget.current, positionInTarget.current);
         }
-
-        requestAnimationFrame(() => {
-            y.stop()
-            animate(y, 0, {
-                type: "spring",
-                stiffness: 500,
-                damping: 30
-            })
-        });
 
         setTimeout(() => {
             isDragging.current = false;
         }, 0);
     }
 
-    function CalculateBestTarget() {
-        maxOverlapArea.current = 0;
-
+    function CalculateBestTarget(info: PanInfo) {
         const currentElement = elementRef.current;
         if (!currentElement) return;
 
-        const elemRect = currentElement.getBoundingClientRect();
-        document.querySelectorAll("[data-item-id]").forEach((dropTarget) => {
-            const targetRect = dropTarget.getBoundingClientRect();
+        const elementsUnderPointer = document.elementsFromPoint(info.point.x, info.point.y);
 
-            const overlapX = Math.max(0, Math.min(elemRect.right, targetRect.right) - Math.max(elemRect.left, targetRect.left));
-            const overlapY = Math.max(0, Math.min(elemRect.bottom, targetRect.bottom) - Math.max(elemRect.top, targetRect.top));
-            const overlapArea = overlapX * overlapY;
+        const validTarget = elementsUnderPointer.find((el) => {
+            if (el === currentElement) return false;
+            return el.hasAttribute("data-item-id");
+        });
 
-            if (overlapArea > maxOverlapArea.current && dropTarget != currentElement) {
-                maxOverlapArea.current = overlapArea;
-                bestTarget.current = dropTarget;
+        const hysteresis = 2; // You can tweak this value
+        if (validTarget) {
+            bestTarget.current = validTarget;
 
-                // Determine whether the element is over the top or bottom half
-                const draggedCenterY = (elemRect.top + elemRect.bottom) / 2;
-                const targetCenterY = (targetRect.top + targetRect.bottom) / 2;
+            const targetRect = validTarget.getBoundingClientRect();
+            const centerY = (targetRect.top + targetRect.bottom) / 2;
+            const distance = info.point.y - centerY;
 
-                const distanceFromCenter = draggedCenterY - targetCenterY;
-
-                if (Math.abs(distanceFromCenter) <= deadZone) {
-                    positionInTarget.current = 'middle';
+            if (Math.abs(distance) < deadZone) {
+                positionInTarget.current = 'middle';
+            } else {
+                // Hysteresis logic
+                if (positionInTarget.current === 'middle') {
+                    if (distance < -deadZone - hysteresis) {
+                        positionInTarget.current = 'top';
+                    } else if (distance > deadZone + hysteresis) {
+                        positionInTarget.current = 'bottom';
+                    }
                 } else {
-                    positionInTarget.current = distanceFromCenter < 0 ? 'top' : 'bottom';
+                    positionInTarget.current = distance < 0 ? 'top' : 'bottom';
                 }
             }
-        });
+        } else {
+            bestTarget.current = null;
+            positionInTarget.current = null;
+        }
     }
 
     return {
         isDragging,
         dragProps: {
             dragElastic: 0,
-            style: { y },
+            dragMomentum: false,
+            style: { x, y },
             dragConstraints: dragConstraint,
             onDragEnd: handleDragEnd,
             onDragStart: handleDragStart,
             onDrag: handleDragging,
-            dragMomentum: false,
-            ref: elementRef
+            ref: elementRef,
         }
     }
 }
