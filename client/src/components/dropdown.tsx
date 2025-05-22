@@ -1,5 +1,7 @@
 import { SetStateAction, useEffect, useRef } from "react";
 
+// Custom drop down
+// Displays buttons for each option with custom onclick event for each
 export default function Dropdown({ isOpen, setIsOpen, options }:
     {
         isOpen: boolean,
@@ -8,12 +10,14 @@ export default function Dropdown({ isOpen, setIsOpen, options }:
     }) {
 
     const dropdownRef = useRef(null);
+    // If clicked outside the dropdown close it
     const handleClickOutside = (event: MouseEvent) => {
         if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
             setIsOpen(false);
         }
     };
 
+    // setup onclick listeners
     useEffect(() => {
         if (isOpen) {
             document.addEventListener('mousedown', handleClickOutside);
@@ -29,8 +33,9 @@ export default function Dropdown({ isOpen, setIsOpen, options }:
     return (
         isOpen && (
             <div ref={dropdownRef}
-                className="absolute z-10 flex flex-col  w-44 rounded-md ring ring-hl text-white bg-bg-light">
+                className="absolute z-10 flex flex-col w-44 rounded-md ring ring-hl text-white bg-bg-light">
                 <div >
+                    {/* display button for each option */}
                     {options.map(option => (
                         <button
                             key={option.title}
