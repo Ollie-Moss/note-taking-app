@@ -42,10 +42,10 @@ export default function NoteCardButtons({ note }: { note: Note }) {
         <div className="flex gap-1 items-center justify-between">
             <FontAwesomeIcon
                 className="hover:text-yellow-500 fa-regular text-white size-[16px]"
-                onPointerDown={HandleFavourite}
+                onPointerUp={HandleFavourite}
                 icon={note.favourite ? fasStar : farStar} />
             <FontAwesomeIcon
-                onPointerDown={HandleDelete}
+                onPointerUp={HandleDelete}
                 className="hover:text-red-400 text-white size-[16px]"
                 icon={faTrashCan} />
         </div>

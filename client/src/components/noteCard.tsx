@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFile, faStar as fasStar } from "@fortawesome/free-solid-svg-icons";
 import { twMerge } from 'tailwind-merge'
 import { useDragControls } from 'motion/react'
-import React, { RefObject, useMemo, useReducer, useRef } from "react";
+import React, { RefObject, useEffect, useMemo, useReducer, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteNoteAsync, moveNoteAndMaybeRegroupAsync, updateNoteAsync } from "../slices/noteSlice";
 import { noteMapSelector } from "../selectors/noteSelectors";
@@ -24,7 +24,9 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
 
     // Double click state
     const doubleClickDelay = 400;
-    const doubleClickTimeout = useRef<number | null>(null)
+    const timeStart = useRef<number>(0);
+    const pointerDownTimeout = useRef<number | null>(null)
+    const canClick = useRef<boolean>(true)
 
     // Note State
     const notes = useSelector(noteMapSelector)
@@ -55,20 +57,38 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
 
     }
 
-    function HandleDoubleClick(e: React.PointerEvent<HTMLDivElement>) {
-        if (doubleClickTimeout.current) {
-            clearTimeout(doubleClickTimeout.current)
-            doubleClickTimeout.current = null
+    function HandlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
+        if (!pointerDownTimeout.current && canClick && !isDragging.current) {
+            onClick ? onClick() : defaultOnClick(e)
+            return
+        }
+        if (pointerDownTimeout.current) {
+            const timeLeft = doubleClickDelay - (Date.now() - timeStart.current);
+            pointerDownTimeout.current = setTimeout(() => {
+                onClick ? onClick() : defaultOnClick(e)
+                pointerDownTimeout.current = null
+            }, timeLeft)
+        }
+    }
+
+    function HandlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+        if (pointerDownTimeout.current) {
+            clearTimeout(pointerDownTimeout.current)
+            pointerDownTimeout.current = null
+            canClick.current = false
             dragControls.start(e)
             return
         }
-        doubleClickTimeout.current = setTimeout(() => {
-            if (!isDragging.current) {
-                onClick ? onClick() : defaultOnClick(e)
-            }
-            doubleClickTimeout.current = null
+        timeStart.current = Date.now()
+        pointerDownTimeout.current = setTimeout(() => {
+            canClick.current = true;
+            pointerDownTimeout.current = null
         }, doubleClickDelay)
     }
+
+    useEffect(() => {
+        pointerDownTimeout.current = null
+    }, [])
 
     if (!note) return
     return (
@@ -87,7 +107,8 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
             data-item-id={noteId}
             /* Events */
             onDrop={onDrop}
-            onPointerDown={HandleDoubleClick}
+            onPointerDown={HandlePointerDown}
+            onPointerUp={HandlePointerUp}
             /* Styles */
             style={{ paddingLeft: 0.5 + offset + "rem" }}
             className={twMerge("bg-bg-dark transition-[border,background-color] hover:cursor-pointer w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg",
