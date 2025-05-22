@@ -80,11 +80,11 @@ describe('Note API Routes', () => {
         });
     });
 
-    describe('PUT /api/note', () => {
+    describe('PATCH /api/note', () => {
         it('should update a note', async () => {
             const updated = { ...testNote, _id: noteId, title: 'Updated Note' };
             const res = await request(app)
-                .put('/api/note')
+                .patch('/api/note')
                 .set('Authorization', `Bearer ${userId}`)
                 .send({ note: updated });
 
@@ -93,30 +93,36 @@ describe('Note API Routes', () => {
         });
     });
 
-    describe('PUT /api/note/move', () => {
-        it('should move a note to the end if no before/after IDs', async () => {
-            const res = await request(app)
-                .put('/api/note/move')
-                .set('Authorization', `Bearer ${userId}`)
-                .send({ note: testNote });
-
-            expect(res.status).toBe(200);
-            expect(res.body.message).toBe('Note moved!');
-        });
-
-        it('should move a note between others if beforeId and afterId are provided', async () => {
+    describe('PATCH /api/note/move', () => {
+        it('should move the note after the target note', async () => {
+            await NoteModel.deleteMany({});
+            const targetNote = await NoteModel.create({ ...testNote, position: 100 });
+            const anotherNote = await NoteModel.create({ ...testNote, position: 200 });
             const note = await NoteModel.create({ ...testNote, position: 300 });
-            const noteA = await NoteModel.create({ ...testNote, position: 100 });
-            const noteB = await NoteModel.create({ ...testNote, position: 200 });
 
             const res = await request(app)
-                .put('/api/note/move')
+                .patch(`/api/note/move?targetId=${targetNote._id}&position=after`)
                 .set('Authorization', `Bearer ${userId}`)
-                .send({ note, beforeId: noteA._id, afterId: noteB._id });
+                .send({ note });
 
             expect(res.status).toBe(200);
             expect(res.body.message).toBe('Note moved!');
             expect(res.body.note.position).toBe(150);
+        });
+
+        it('should move the note before the target note', async () => {
+            await NoteModel.deleteMany({});
+            const targetNote = await NoteModel.create({ ...testNote, position: 100 });
+            const note = await NoteModel.create({ ...testNote, position: 200 });
+
+            const res = await request(app)
+                .patch(`/api/note/move?targetId=${targetNote._id}&position=before`)
+                .set('Authorization', `Bearer ${userId}`)
+                .send({ note });
+
+            expect(res.status).toBe(200);
+            expect(res.body.message).toBe('Note moved!');
+            expect(res.body.note.position).toBe(50);
         });
     });
 

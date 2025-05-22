@@ -79,11 +79,11 @@ describe('Group API Routes', () => {
         });
     });
 
-    describe('PUT /api/group', () => {
+    describe('PATCH /api/group', () => {
         it('should update a group', async () => {
             const updated = { ...testGroup, _id: groupId, title: 'Updated Group' };
             const res = await request(app)
-                .put('/api/group')
+                .patch('/api/group')
                 .set('Authorization', `Bearer ${userId}`)
                 .send({ group: updated });
 
@@ -92,30 +92,36 @@ describe('Group API Routes', () => {
         });
     });
 
-    describe('PUT /api/group/move', () => {
-        it('should move a group to the end if no before/after IDs', async () => {
-            const res = await request(app)
-                .put('/api/group/move')
-                .set('Authorization', `Bearer ${userId}`)
-                .send({ group: testGroup });
-
-            expect(res.status).toBe(200);
-            expect(res.body.message).toBe('Group moved!');
-        });
-
-        it('should move a group between others if beforeId and afterId are provided', async () => {
+    describe('PATCH /api/group/move', () => {
+        it('should move a group after the target note', async () => {
+            await GroupModel.deleteMany({});
+            const targetGroup = await GroupModel.create({ ...testGroup, position: 100 });
+            const anotherGroup = await GroupModel.create({ ...testGroup, position: 200 });
             const group = await GroupModel.create({ ...testGroup, position: 300 });
-            const groupA = await GroupModel.create({ ...testGroup, position: 100 });
-            const groupB = await GroupModel.create({ ...testGroup, position: 200 });
 
             const res = await request(app)
-                .put('/api/group/move')
+                .patch(`/api/group/move?targetId=${targetGroup._id}&position=after`)
                 .set('Authorization', `Bearer ${userId}`)
-                .send({ group, beforeId: groupA._id, afterId: groupB._id });
+                .send({ group });
 
             expect(res.status).toBe(200);
             expect(res.body.message).toBe('Group moved!');
             expect(res.body.group.position).toBe(150);
+        });
+
+        it('should move a group before the target note', async () => {
+            await GroupModel.deleteMany({});
+            const targetGroup = await GroupModel.create({ ...testGroup, position: 100 });
+            const group = await GroupModel.create({ ...testGroup, position: 200 });
+
+            const res = await request(app)
+                .patch(`/api/group/move?targetId=${targetGroup._id}&position=before`)
+                .set('Authorization', `Bearer ${userId}`)
+                .send({ group });
+
+            expect(res.status).toBe(200);
+            expect(res.body.message).toBe('Group moved!');
+            expect(res.body.group.position).toBe(50);
         });
     });
 
