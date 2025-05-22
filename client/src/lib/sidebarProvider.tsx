@@ -1,21 +1,38 @@
 import React, { createContext, ReactNode, SetStateAction, useContext, useRef, useState } from "react";
 
-const sidebarContext = createContext<{ isSidebarOpen: boolean, toggleSideBar: () => void, setSideBar: React.Dispatch<SetStateAction<boolean>> }>({
+const sidebarContext = createContext<{
+    isSidebarOpen: boolean,
+    toggleSidebar: () => void,
+    closeSidebarIfMobile: () => void,
+    setIsSidebarOpen: React.Dispatch<SetStateAction<boolean>>
+}>({
     isSidebarOpen: false,
-    toggleSideBar: function(): void {
+    toggleSidebar: function(): void {
         throw new Error("Function not implemented.");
     },
-    setSideBar: function(value: React.SetStateAction<boolean>): void {
+    setIsSidebarOpen: function(value: React.SetStateAction<boolean>): void {
+        throw new Error("Function not implemented.");
+    },
+    closeSidebarIfMobile: function(): void {
         throw new Error("Function not implemented.");
     }
 })
 
 export function SidebarProvider({ children }: Readonly<{ children: ReactNode }>) {
     const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
-    const toggleSideBar = () => setIsSidebarOpen(prev => !prev);
+
+    function toggleSidebar() {
+        setIsSidebarOpen(prev => !prev)
+    };
+
+    function closeSidebarIfMobile() {
+        if (!window.matchMedia('(min-width: 1024px)').matches) {
+            setIsSidebarOpen(false)
+        }
+    }
 
     return (
-        <sidebarContext.Provider value={{ isSidebarOpen, toggleSideBar, setSideBar: setIsSidebarOpen }}>
+        <sidebarContext.Provider value={{ isSidebarOpen, toggleSidebar, closeSidebarIfMobile, setIsSidebarOpen }}>
             {children}
         </sidebarContext.Provider>
     )

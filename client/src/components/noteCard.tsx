@@ -1,19 +1,25 @@
 import { useLocation, useNavigate } from "react-router";
 import { useConfirm } from "../lib/confirmationProvider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAt, faFile, faStar as fasStar, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faFile, faStar as fasStar, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { faStar as farStar, faTrashCan } from '@fortawesome/free-regular-svg-icons'
 import { twMerge } from 'tailwind-merge'
-import { motion, useMotionValue } from 'motion/react'
+import { motion } from 'motion/react'
 import React, { RefObject, useMemo, useReducer, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteNoteAsync, moveNoteAndMaybeRegroupAsync, moveNoteAsync, noteMapSelector, updateNoteAsync } from "../reducers/noteReducer";
+import { deleteNoteAsync, moveNoteAndMaybeRegroupAsync, updateNoteAsync } from "../slices/noteSlice";
+import { noteMapSelector } from "../selectors/noteSelectors";
 import { AppDispatch } from "../store";
 import { useDrag } from "../lib/useDrag";
 import { useSidebar } from "../lib/sidebarProvider";
+import { createOnDrop } from "../lib/createOnDropHandler";
 
 
-export function NoteDisplay({ noteId, className, onClick, dragConstraint, draggable, offset = 0 }: { offset?: number, dragConstraint?: RefObject<HTMLUListElement>, noteId: string, className?: string, onClick?: () => void, draggable?: boolean }) {
+export function NoteCard({ noteId, className, onClick, dragConstraint, draggable, offset = 0 }: { offset?: number, dragConstraint?: RefObject<HTMLUListElement>, noteId: string, className?: string, onClick?: () => void, draggable?: boolean }) {
+    const onDrop = createOnDrop({
+        update: (updates) => dispatch(updateNoteAsync({ id: noteId, note: updates })),
+        move: (targetId, position) => dispatch(moveNoteAndMaybeRegroupAsync({ id: noteId, targetId, position }))
+    })
     const { dragControls, isDragging, dragProps } = useDrag<HTMLLIElement>({ dragConstraint, onDrop })
 
     const doubleClickDelay = 400;
@@ -32,26 +38,14 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
     // Helper
     const { Confirm } = useConfirm()
 
-    const { setSideBar } = useSidebar();
+    const { setIsSidebarOpen } = useSidebar();
 
-    function onDrop(target: Element, position: 'top' | 'middle' | 'bottom') {
-        const targetId = target.getAttribute('data-item-id');
-        if (target.getAttribute('data-group') && position == 'middle') {
-            dispatch(updateNoteAsync({ id: noteId, note: { parentId: targetId } }));
-            return
-        }
-        if (position == 'top' || position == 'bottom') {
-            const mappedPosition = position == 'top' ? 'before' : 'after'
-            dispatch(moveNoteAndMaybeRegroupAsync({ id: noteId, targetId, position: mappedPosition }))
-        }
-    }
 
     async function HandleFavourite(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault()
         e.stopPropagation()
         dispatch(updateNoteAsync({ id: noteId, note: { favourite: !note.favourite } }));
     }
-
 
     async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault();
@@ -75,7 +69,7 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
             search: `?id=${note._id}`
         })
         if (!window.matchMedia('(min-width: 1024px)').matches) {
-            setSideBar(false)
+            setIsSidebarOpen(false)
         }
 
     }
@@ -130,6 +124,6 @@ export function NoteDisplay({ noteId, className, onClick, dragConstraint, dragga
                     className="hover:text-red-400 text-white size-[16px]"
                     icon={faTrashCan} />
             </div>
-        </motion.li >
+        </motion.li>
     )
 }

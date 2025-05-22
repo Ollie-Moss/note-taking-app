@@ -2,9 +2,7 @@ import { createAsyncThunk, createSelector, createSlice, PayloadAction, } from "@
 import { Group, NewGroup } from "../models/group";
 import { CreateGroup, DeleteGroup, GetGroups, MoveGroup, UpdateGroup } from "../controllers/groupController";
 import { RootState } from "../store";
-import { moveNoteAsync, updateNoteAsync } from "./noteReducer";
-import { act } from "react";
-import { activeAnimations } from "motion/react";
+import { updateNoteAsync } from "./noteSlice";
 
 export type GroupAction<T = Group> = PayloadAction<
     { group?: T, id?: string }>
@@ -12,15 +10,6 @@ export type GroupAction<T = Group> = PayloadAction<
 export interface Groups {
     [key: string]: Group
 }
-
-export const groupArraySelector = createSelector((state: RootState) => state.groups, groups => {
-    return Object.values(groups)
-});
-export const rootGroupSelector = createSelector((state: RootState) => state.groups, groups => {
-    return Object.values(groups).filter(group => !group.parentId)
-});
-
-export const groupMapSelector = (state: RootState) => state.groups
 
 const initialState: Groups = {}
 
@@ -32,12 +21,15 @@ export const createGroupAsync = createAsyncThunk("groups/createAsync", async () 
     return { group: await CreateGroup(group) }
 })
 function checkInGroup(targetId: string, groupId: string, groups: Group[]): boolean {
-    const children = groups.filter(group => group.parentId == groupId)
-    for (const child of children) {
-        if (child._id == targetId) {
+    const group = groups.find(group => group._id == groupId)
+    if (targetId == groupId) {
+        return true
+    }
+    for (const childId of group.children) {
+        if (childId == targetId) {
             return true
         }
-        if (checkInGroup(targetId, child._id, groups)) {
+        if (checkInGroup(targetId, childId, groups)) {
             return true
         }
     }
@@ -60,6 +52,10 @@ export const moveGroupAndMaybeRegroupAsync = createAsyncThunk("groups/moveAndReg
     const target = groups[targetId] || notes[targetId]
 
     if (!current || !target) return;
+
+    if (checkInGroup(target.parentId, id, Object.values(groups))) {
+        return
+    }
 
     if (current.parentId !== target.parentId) {
         await dispatch(updateGroupAsync({ id, group: { parentId: target.parentId } }));

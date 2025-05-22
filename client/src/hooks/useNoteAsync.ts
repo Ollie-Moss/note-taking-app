@@ -1,9 +1,12 @@
 import { useDispatch, useSelector } from "react-redux";
-import { fetchNoteAsync, noteMapSelector } from "../reducers/noteReducer";
+import { fetchNoteAsync} from "../slices/noteSlice";
+import { noteMapSelector } from "../selectors/noteSelectors";
 import { useEffect, useRef, useState } from "react";
 import { AppDispatch } from "../store";
 import { Note } from "../models/note";
 
+// Dispatches a fetch to backend for a given note
+// Will only provide state updates if the id changes
 export default function useNoteAsync(noteId: string) {
     const notes = useSelector(noteMapSelector)
     const [note, setNote] = useState<Note | null>(null)

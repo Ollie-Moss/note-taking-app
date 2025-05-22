@@ -1,8 +1,5 @@
-import { animate, PanInfo, useDragControls, useMotionValue } from "motion/react";
-import React, { RefObject, useRef } from "react";
-import { useDispatch, useSelector } from 'react-redux'
-import { AppDispatch } from "../store";
-import { moveNoteAsync, noteMapSelector } from "../reducers/noteReducer";
+import { PanInfo, useDragControls, useMotionValue } from "motion/react";
+import { RefObject, useRef } from "react";
 
 export function useDrag<E extends HTMLElement>({
     dragConstraint, onDrop }:
@@ -18,8 +15,6 @@ export function useDrag<E extends HTMLElement>({
     const bestTarget = useRef<Element | null>(null);
     const positionInTarget = useRef<'top' | 'middle' | 'bottom' | null>(null);
     const deadZone = 7;
-
-    const maxOverlapArea = useRef<number>(0);
 
     function handleDragStart(event: MouseEvent, info: PanInfo) {
         isDragging.current = true;

@@ -2,7 +2,7 @@ import { createAsyncThunk, createSelector, createSlice, PayloadAction, } from "@
 import { Note, NewNote } from "../models/note";
 import { CreateNote, DeleteNote, GetNote, GetNotes, MoveNote, UpdateNote } from "../controllers/noteController";
 import { RootState } from "../store";
-import { deleteGroupAsync } from "./groupReducer";
+import { deleteGroupAsync } from "./groupSlice";
 
 export type NoteAction<T = Note> = PayloadAction<
     { note?: T, id?: string }>
@@ -10,30 +10,6 @@ export type NoteAction<T = Note> = PayloadAction<
 export interface Notes {
     [key: string]: Note
 }
-
-export const noteArraySelector = createSelector((state: RootState) => state.notes, notes => {
-    const notesWithDate: Notes = {}
-    for (const [key, value] of Object.entries(notes)) {
-        notesWithDate[key] = { ...value, editedAt: new Date(value.editedAt) };
-    }
-    return Object.values(notesWithDate).sort((a, b) => a.position - b.position)
-});
-
-export const ungroupedNotesSelector = createSelector((state: RootState) => state.notes, notes => {
-    const notesWithDate: Notes = {}
-    for (const [key, value] of Object.entries(notes)) {
-        notesWithDate[key] = { ...value, editedAt: new Date(value.editedAt) };
-    }
-    return Object.values(notesWithDate).filter(note => !note.parentId).sort((a, b) => a.position - b.position)
-});
-
-export const noteMapSelector = createSelector((state: RootState) => state.notes, notes => {
-    const notesWithDate: Notes = {}
-    for (const [key, value] of Object.entries(notes)) {
-        notesWithDate[key] = { ...value, editedAt: new Date(value.editedAt) };
-    }
-    return notesWithDate
-});
 
 const initialState: Notes = {}
 

@@ -3,7 +3,7 @@ import { Note } from "../models/note";
 import { Delta, EmitterSource } from "quill";
 import ReactQuill from "react-quill-new";
 import { useDispatch } from "react-redux";
-import { updateNoteAsync } from "../reducers/noteReducer";
+import { updateNoteAsync } from "../slices/noteSlice";
 import { AppDispatch } from "../store";
 import { useToast } from "../lib/toastProvider";
 import PlainTextPasteHandler from "../lib/plaintextPaste";

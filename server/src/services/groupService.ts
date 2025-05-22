@@ -1,4 +1,4 @@
-import { Document, Model, Types } from "mongoose"
+import { Model, Types } from "mongoose"
 import { Group, IGroup } from "../models/groupModel"
 import { MoveableService } from "./moveableService"
 import { Note, NotePreview } from "../models/noteModel"
@@ -33,6 +33,9 @@ export class GroupService extends MoveableService<IGroup> {
 
     async checkInGroup(targetId: string, groupId: string): Promise<boolean> {
         const children = await this.findAll({ parentId: groupId })
+        if(targetId == groupId){
+            return true
+        }
         for (const child of children) {
             if (child._id.toString() == targetId) {
                 return true
