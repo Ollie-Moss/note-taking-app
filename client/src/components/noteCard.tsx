@@ -1,27 +1,28 @@
-import { useLocation, useNavigate } from "react-router";
-import { useConfirm } from "../lib/confirmationProvider";
+import { useNavigate } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFile, faStar as fasStar, faTimes } from "@fortawesome/free-solid-svg-icons";
-import { faStar as farStar, faTrashCan } from '@fortawesome/free-regular-svg-icons'
+import { faFile, faStar as fasStar } from "@fortawesome/free-solid-svg-icons";
 import { twMerge } from 'tailwind-merge'
-import { motion } from 'motion/react'
+import { useDragControls } from 'motion/react'
 import React, { RefObject, useMemo, useReducer, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteNoteAsync, moveNoteAndMaybeRegroupAsync, updateNoteAsync } from "../slices/noteSlice";
 import { noteMapSelector } from "../selectors/noteSelectors";
 import { AppDispatch } from "../store";
-import { useDrag } from "../lib/useDrag";
 import { useSidebar } from "../lib/sidebarProvider";
 import { createOnDrop } from "../lib/createOnDropHandler";
+import Draggable from "./draggable";
+import NoteCardButtons from "./noteCardButtons";
 
 
 export function NoteCard({ noteId, className, onClick, dragConstraint, draggable, offset = 0 }: { offset?: number, dragConstraint?: RefObject<HTMLUListElement>, noteId: string, className?: string, onClick?: () => void, draggable?: boolean }) {
+    // Drop behaviour
+    // Updates the displayed note 
     const onDrop = createOnDrop({
         update: (updates) => dispatch(updateNoteAsync({ id: noteId, note: updates })),
         move: (targetId, position) => dispatch(moveNoteAndMaybeRegroupAsync({ id: noteId, targetId, position }))
     })
-    const { dragControls, isDragging, dragProps } = useDrag<HTMLLIElement>({ dragConstraint, onDrop })
 
+    // Double click state
     const doubleClickDelay = 400;
     const doubleClickTimeout = useRef<number | null>(null)
 
@@ -30,39 +31,19 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
     const note = useMemo(() => notes[noteId], [noteId, notes])
     const dispatch: AppDispatch = useDispatch();
 
-    // navigation
-    const location = useLocation()
+    // Navigation
     const navigate = useNavigate();
 
+    // Drag state
+    const isDragging = useRef<boolean>(false);
+    const dragControls = useDragControls();
 
-    // Helper
-    const { Confirm } = useConfirm()
-
+    // Helpers
     const { setIsSidebarOpen } = useSidebar();
 
 
-    async function HandleFavourite(e: React.MouseEvent<SVGSVGElement>) {
-        e.preventDefault()
-        e.stopPropagation()
-        dispatch(updateNoteAsync({ id: noteId, note: { favourite: !note.favourite } }));
-    }
-
-    async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
-        e.preventDefault();
-        e.stopPropagation()
-        const confirmed = await Confirm("Are you sure you wish to delete this note?");
-        if (confirmed) {
-            dispatch(deleteNoteAsync(note._id));
-            const params = new URLSearchParams(location.search)
-            if (location.pathname == "/notes" && params.has("id", note._id)) {
-                navigate({
-                    pathname: "/notes/home", search: ""
-                })
-            }
-        }
-    }
-
-    function defaultOnClick(e: React.MouseEvent<HTMLLIElement>) {
+    // Default behaviour navigates to note that is being displayed
+    function defaultOnClick(e: React.MouseEvent<HTMLDivElement>) {
         e.preventDefault()
         navigate({
             pathname: "/notes",
@@ -74,36 +55,44 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
 
     }
 
+    function HandleDoubleClick(e: React.PointerEvent<HTMLDivElement>) {
+        if (doubleClickTimeout.current) {
+            clearTimeout(doubleClickTimeout.current)
+            doubleClickTimeout.current = null
+            dragControls.start(e)
+            return
+        }
+        doubleClickTimeout.current = setTimeout(() => {
+            if (!isDragging.current) {
+                onClick ? onClick() : defaultOnClick(e)
+            }
+            doubleClickTimeout.current = null
+        }, doubleClickDelay)
+    }
+
     if (!note) return
     return (
-        <motion.li
+        <Draggable
+            /* Drag properties */
+            /* If draggable set layout for auto animation */
             {...(draggable ? {
                 drag: true,
                 layout: true,
                 layoutId: noteId
             } : {})}
-            {...dragProps}
-            onPointerDown={(e) => {
-                if (doubleClickTimeout.current) {
-                    clearTimeout(doubleClickTimeout.current)
-                    doubleClickTimeout.current = null
-                    dragControls.start(e)
-                    return
-                }
-                doubleClickTimeout.current = setTimeout(() => {
-                    if (!isDragging.current) {
-                        onClick ? onClick() : defaultOnClick(e)
-                    }
-                    doubleClickTimeout.current = null
-                }, doubleClickDelay)
-            }}
+            dragConstraints={dragConstraint}
+            dragControls={dragControls}
+            isdragging={isDragging}
+            /* Drop target properties */
             data-item-id={noteId}
-            style={{ ...dragProps.style, paddingLeft: 0.5 + offset + "rem" }}
-            className={
-                twMerge(
-                    "bg-bg-dark transition-[border,background-color] hover:cursor-pointer w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg",
-                    className
-                )}>
+            /* Events */
+            onDrop={onDrop}
+            onPointerDown={HandleDoubleClick}
+            /* Styles */
+            style={{ paddingLeft: 0.5 + offset + "rem" }}
+            className={twMerge("bg-bg-dark transition-[border,background-color] hover:cursor-pointer w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg",
+                className)}>
+            {/* Main content */}
             <div className="justify-between overflow-x-hidden flex items-center gap-[8px]">
                 <FontAwesomeIcon className="text-white size-[20px]" icon={faFile} />
                 <p className={`flex-1 overflow-x-hidden whitespace-nowrap text-ellipsis text-xs text-white 
@@ -111,19 +100,11 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
                     {note.title == "" ?
                         "Untitled Note"
                         :
-                        note.title
-                    }</p>
+                        note.title}
+                </p>
             </div>
-            <div className="flex gap-1 items-center justify-between">
-                <FontAwesomeIcon
-                    className="hover:text-yellow-500 fa-regular text-white size-[16px]"
-                    onPointerDown={HandleFavourite}
-                    icon={note.favourite ? fasStar : farStar} />
-                <FontAwesomeIcon
-                    onPointerDown={HandleDelete}
-                    className="hover:text-red-400 text-white size-[16px]"
-                    icon={faTrashCan} />
-            </div>
-        </motion.li>
+            <NoteCardButtons note={note} />
+        </Draggable >
     )
 }
+

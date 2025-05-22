@@ -22,7 +22,7 @@ export default function Sidebar() {
                     gridTemplateColumns: isSidebarOpen ? '1fr' : '0fr',
                 }}
                 transition={{ duration: 0.3 }}
-                className="grid w-full h-full grid-cols-[0fr]">
+                className="grid w-full h-full grid-cols-[0fr] lg:grid-cols-[1fr]">
 
                 {/* Sidebar Container */}
                 <div className="overflow-hidden w-full h-full">

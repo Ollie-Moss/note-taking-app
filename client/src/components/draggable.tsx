@@ -1,20 +1,25 @@
-import { PanInfo, useDragControls, useMotionValue } from "motion/react";
-import { RefObject, useRef } from "react";
+import { HTMLMotionProps, motion, PanInfo, useMotionValue } from "motion/react";
+import { useRef } from "react";
 
-export function useDrag<E extends HTMLElement>({
-    dragConstraint, onDrop }:
-    { onDrop: (dropTarget: Element, position: 'top' | 'middle' | 'bottom') => void, dragConstraint?: RefObject<HTMLUListElement> }) {
+// Ensures that dragConstraints is required & onDrop is set to the custom prop
+type RequiredDragConstraints = Required<Pick<HTMLMotionProps<"div">, "dragConstraints">>;
+type HTMLMotionDivProps = Omit<HTMLMotionProps<"div">, "dragConstraints" | "onDrop"> & RequiredDragConstraints;
 
-    const dragControls = useDragControls()
+export default function Draggable({ onDrop, isdragging: isDragging, children, ...rest }: { isdragging: React.RefObject<boolean>, onDrop: (dropTarget: Element, position: 'top' | 'middle' | 'bottom') => void } & Omit<React.HTMLAttributes<HTMLDivElement>, "onDrop"> & HTMLMotionDivProps) {
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
-    const isDragging = useRef<boolean>(false);
-    const elementRef = useRef<E>(null)
+    const elementRef = useRef<HTMLDivElement>(null)
 
     const bestTarget = useRef<Element | null>(null);
     const positionInTarget = useRef<'top' | 'middle' | 'bottom' | null>(null);
+
+    // Detirmines how big "middle" of the drop target is in px
     const deadZone = 7;
+    // Detirmines the extra distance required to switch from "middle" to "top" or "bottom"
+    // Fixes weird flickering when hovering around the border
+    // between "middle" and "top" or "bottom"
+    const positionChangePadding = 2;
 
     function handleDragStart(event: MouseEvent, info: PanInfo) {
         isDragging.current = true;
@@ -73,7 +78,6 @@ export function useDrag<E extends HTMLElement>({
             return el.hasAttribute("data-item-id");
         });
 
-        const hysteresis = 2; // You can tweak this value
         if (validTarget) {
             bestTarget.current = validTarget;
 
@@ -84,11 +88,11 @@ export function useDrag<E extends HTMLElement>({
             if (Math.abs(distance) < deadZone) {
                 positionInTarget.current = 'middle';
             } else {
-                // Hysteresis logic
+                // If previous position is "middle" add padding
                 if (positionInTarget.current === 'middle') {
-                    if (distance < -deadZone - hysteresis) {
+                    if (distance < -deadZone - positionChangePadding) {
                         positionInTarget.current = 'top';
-                    } else if (distance > deadZone + hysteresis) {
+                    } else if (distance > deadZone + positionChangePadding) {
                         positionInTarget.current = 'bottom';
                     }
                 } else {
@@ -101,19 +105,18 @@ export function useDrag<E extends HTMLElement>({
         }
     }
 
-    return {
-        dragControls,
-        isDragging,
-        dragProps: {
-            dragControls: dragControls,
-            dragElastic: 0,
-            dragMomentum: false,
-            style: { x, y },
-            dragConstraints: dragConstraint,
-            onDragEnd: handleDragEnd,
-            onDragStart: handleDragStart,
-            onDrag: handleDragging,
-            ref: elementRef,
-        }
-    }
+    return (
+        <motion.div
+            {...rest}
+            dragElastic={0}
+            dragMomentum={false}
+            style={{ ...rest.style, x, y }}
+            onDragEnd={handleDragEnd}
+            onDragStart={handleDragStart}
+            onDrag={handleDragging}
+            ref={elementRef}
+        >
+            {children}
+        </motion.div >
+    )
 }
