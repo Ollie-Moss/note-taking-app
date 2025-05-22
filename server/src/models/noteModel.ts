@@ -2,16 +2,19 @@ import { model, Schema, Types } from "mongoose";
 import { MoveableService } from "../services/moveableService";
 import { Moveable } from "./moveableModel";
 
-export interface NotePreview extends Moveable{
+export interface NotePreview extends Moveable {
     _id: Types.ObjectId,
     title: string,
     editedAt: Date,
     favourite: boolean
 }
 
-export interface INote extends NotePreview{
+export interface INote extends Moveable {
     contents: string,
     uid: Types.ObjectId,
+    title: string,
+    editedAt: Date,
+    favourite: boolean
 }
 
 export type Note = INote & {

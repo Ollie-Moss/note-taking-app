@@ -41,7 +41,6 @@ export async function GetAllGroupsHandler(req: Request, res: Response, next: Nex
         res.status(200).send({
             groups: groups,
         });
-        console.log("end")
     } catch (error) {
         next(error)
     }
