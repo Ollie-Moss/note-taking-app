@@ -10,6 +10,9 @@ import { createOnDrop } from "../lib/createOnDropHandler";
 import Draggable from "./draggable";
 
 
+// Group with buttons for deleting and renaming it
+// Onclick opens and closes the group
+// Uses draggable component to all moving it
 export default function GroupCard({ dragConstraint, group, offset = 0 }: { offset?: number, dragConstraint: RefObject<HTMLUListElement>, group: Group }) {
 
     const [isEditing, setIsEditing] = useState<boolean>(false)

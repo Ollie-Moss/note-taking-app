@@ -3,6 +3,7 @@ import { Note, NewNote } from "../models/note";
 import { CreateNote, DeleteNote, GetNote, GetNotes, MoveNote, UpdateNote } from "../controllers/noteController";
 import { RootState } from "../store";
 import { deleteGroupAsync } from "./groupSlice";
+import { act } from "react";
 
 export type NoteAction<T = Note> = PayloadAction<
     { note?: T, id?: string }>
@@ -85,14 +86,19 @@ export const noteSlice = createSlice({
             }
         })
         builder.addCase(fetchNoteAsync.fulfilled, (state, action: NoteAction) => {
-            state[action.payload.note._id] = action.payload.note
+            // only retrieve content as to not interupt any current requests
+            state[action.payload.note._id] = {
+                ...state[action.payload.note._id],
+                contents: action.payload.note.contents
+            }
         })
         builder.addCase(createNoteAsync.fulfilled, (state, action: NoteAction) => {
             state[action.payload.note._id] = action.payload.note
         })
         builder.addCase(updateNoteAsync.pending, (state, action) => {
             const id = action.meta.arg.id;
-            state[id] = { ...state[id], ...action.meta.arg.note }
+            const updatedNote = { ...state[id], ...action.meta.arg.note }
+            state[id]= updatedNote
         })
         builder.addCase(moveNoteAsync.pending, (state, action) => {
             state[action.meta.arg.id].position = action.meta.arg.finalPosition

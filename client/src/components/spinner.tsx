@@ -1,4 +1,4 @@
-export default function LoadingSpinner({ size = 40, color = '#3b82f6', }: {
+export default function LoadingSpinner({ size = 40, color = '#D3D3D3', }: {
     size?: number;
     color?: string;
 }) {

@@ -19,16 +19,16 @@ export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: numb
                     offset={offset}
                     group={group} />
             </ul>
-            <ul >
-                {group.open ?
+            {group.open ?
+                <ul >
                     <ItemTree
                         items={[...(group.children.map(id => ({ ...groups[id], type: "group" }))), ...group.notes.map(id => ({ ...notes[id], type: "note" }))].sort((a, b) => a.position - b.position)}
                         offset={offset + 1}
                         container={dragConstraint}
                     />
-                    :
-                    <></>}
-            </ul>
+                </ul>
+                :
+                <></>}
         </li>
     );
 }

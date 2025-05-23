@@ -22,7 +22,8 @@ export class GroupService extends MoveableService<IGroup> {
 
     async move(id: string, targetId: string, position: "before" | "after"): Promise<(IGroup & { _id: Types.ObjectId; }) | null | undefined> {
         const currentEntity = await this.findById(id);
-        const allEntities = [...await this.model.find({ parentId: currentEntity?.parentId }), ...await noteService.model.find({ parentId: currentEntity?.parentId })]
+        const allEntities = [...await this.model.find({ parentId: currentEntity?.parentId }), ...await noteService.model.find({ parentId: currentEntity?.parentId })].sort((a, b) => a.position - b.position)
+
         return await this.moveInList(id, targetId, position, allEntities);
     }
 
@@ -33,7 +34,7 @@ export class GroupService extends MoveableService<IGroup> {
 
     async checkInGroup(targetId: string, groupId: string): Promise<boolean> {
         const children = await this.findAll({ parentId: groupId })
-        if(targetId == groupId){
+        if (targetId == groupId) {
             return true
         }
         for (const child of children) {

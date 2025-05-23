@@ -23,10 +23,10 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
     })
 
     // Double click state
-    const doubleClickDelay = 400;
+    const doubleClickDelay = 300;
     const timeStart = useRef<number>(0);
     const pointerDownTimeout = useRef<number | null>(null)
-    const canClick = useRef<boolean>(true)
+    const canClick = useRef<boolean>(false)
 
     // Note State
     const notes = useSelector(noteMapSelector)
@@ -41,8 +41,7 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
     const dragControls = useDragControls();
 
     // Helpers
-    const { setIsSidebarOpen } = useSidebar();
-
+    const { closeSidebarIfMobile } = useSidebar();
 
     // Default behaviour navigates to note that is being displayed
     function defaultOnClick(e: React.MouseEvent<HTMLDivElement>) {
@@ -51,27 +50,31 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
             pathname: "/notes",
             search: `?id=${note._id}`
         })
-        if (!window.matchMedia('(min-width: 1024px)').matches) {
-            setIsSidebarOpen(false)
-        }
-
+        closeSidebarIfMobile()
     }
 
     function HandlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
-        if (!pointerDownTimeout.current && canClick && !isDragging.current) {
+        if (!e.currentTarget.contains(e.target as Element)) return
+        if (!pointerDownTimeout.current && canClick.current && !isDragging.current) {
             onClick ? onClick() : defaultOnClick(e)
+            canClick.current = false
             return
         }
         if (pointerDownTimeout.current) {
-            const timeLeft = doubleClickDelay - (Date.now() - timeStart.current);
+            clearTimeout(pointerDownTimeout.current)
+            const timeLeft = Math.max(doubleClickDelay - (Date.now() - timeStart.current), 0);
             pointerDownTimeout.current = setTimeout(() => {
-                onClick ? onClick() : defaultOnClick(e)
+                if (!isDragging.current) {
+                    onClick ? onClick() : defaultOnClick(e)
+                }
                 pointerDownTimeout.current = null
+                canClick.current = false
             }, timeLeft)
         }
     }
 
     function HandlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
+        if (!e.currentTarget.contains(e.target as Element)) return
         if (pointerDownTimeout.current) {
             clearTimeout(pointerDownTimeout.current)
             pointerDownTimeout.current = null
@@ -88,6 +91,8 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
 
     useEffect(() => {
         pointerDownTimeout.current = null
+        clearTimeout(pointerDownTimeout.current)
+        canClick.current = false
     }, [])
 
     if (!note) return
