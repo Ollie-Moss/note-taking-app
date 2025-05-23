@@ -29,7 +29,7 @@ export default function Notes({ home }: { home: boolean }) {
             {/* Main page content */}
             <div className="w-full h-full flex">
                 <Sidebar />
-                <div className="h-full w-full lg:w-[80%] bg-bg">
+                <div className="h-full w-full lg:w-[75%] bg-bg">
                     {home ?
                         <NotesHomeSection />
                         :
