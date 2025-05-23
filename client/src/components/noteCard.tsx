@@ -14,9 +14,13 @@ import Draggable from "./draggable";
 import NoteCardButtons from "./noteCardButtons";
 
 
+// Represents a draggable note card
+// Navigates to the note on click
+// Can be dragged and dropped (doesnt move until drop)
+// Supports double-click to drag behavior
+// Includes buttons for deleting or favoriting the note
 export function NoteCard({ noteId, className, onClick, dragConstraint, draggable, offset = 0 }: { offset?: number, dragConstraint?: RefObject<HTMLUListElement>, noteId: string, className?: string, onClick?: () => void, draggable?: boolean }) {
-    // Drop behaviour
-    // Updates the displayed note 
+    // Custom drop behaviour - Updates the displayed note 
     const onDrop = createOnDrop({
         update: (updates) => dispatch(updateNoteAsync({ id: noteId, note: updates })),
         move: (targetId, position) => dispatch(moveNoteAndMaybeRegroupAsync({ id: noteId, targetId, position }))
@@ -53,6 +57,10 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
         closeSidebarIfMobile()
     }
 
+    // Double click handler 
+    // Its a bit goofy and doesnt work sometimes
+    // but essentially if you double click a note it will start dragging it
+    // instead of navigating to it
     function HandlePointerUp(e: React.PointerEvent<HTMLDivElement>) {
         if (!e.currentTarget.contains(e.target as Element)) return
         if (!pointerDownTimeout.current && canClick.current && !isDragging.current) {
@@ -73,6 +81,7 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
         }
     }
 
+    // Double click handler
     function HandlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
         if (!e.currentTarget.contains(e.target as Element)) return
         if (pointerDownTimeout.current) {
@@ -89,6 +98,7 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
         }, doubleClickDelay)
     }
 
+    // reset double click state
     useEffect(() => {
         pointerDownTimeout.current = null
         clearTimeout(pointerDownTimeout.current)
@@ -118,7 +128,7 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
             style={{ paddingLeft: 0.5 + offset + "rem" }}
             className={twMerge("bg-bg-dark transition-[border,background-color] hover:cursor-pointer w-full max-w-full justify-between flex items-center hover:bg-bg-light py-1.5 px-2 rounded-lg",
                 className)}>
-            {/* Main content */}
+            {/* Left side - Icon & title */}
             <div className="justify-between overflow-x-hidden flex items-center gap-[8px]">
                 <FontAwesomeIcon className="text-white size-[20px]" icon={faFile} />
                 <p className={`flex-1 overflow-x-hidden whitespace-nowrap text-ellipsis text-xs text-white 
@@ -129,6 +139,7 @@ export function NoteCard({ noteId, className, onClick, dragConstraint, draggable
                         note.title}
                 </p>
             </div>
+            {/* Right side - Buttons for favoriting and deleting */}
             <NoteCardButtons note={note} />
         </Draggable >
     )

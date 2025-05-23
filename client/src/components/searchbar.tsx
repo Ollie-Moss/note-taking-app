@@ -8,10 +8,12 @@ export default function SearchBar({ searchQuery, setSearchQuery }:
         setSearchQuery: React.Dispatch<SetStateAction<string>>
     }) {
     const InputRef = useRef<HTMLInputElement | null>(null);
+    // Update search query on input change
     function searchChanged(e: React.FormEvent<HTMLInputElement>) {
         setSearchQuery(e.currentTarget.value);
     }
 
+    // Focus input when rendered
     useEffect(() => {
         InputRef.current?.focus();
     }, [InputRef]);

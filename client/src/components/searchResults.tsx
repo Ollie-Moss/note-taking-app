@@ -2,13 +2,20 @@ import { useNavigate } from "react-router";
 import { NoteCard } from "./noteCard";
 import { Note } from "../models/note";
 
-// List of notes highlighting the selected one
+// Displays a list of notes 
+// Highlights selected note
+// Clicking a note selects it or navigates to it if already selected
 export default function SearchResults({ closeSearch, notes, selectedIndex, setSelectedIndex }:
     {
-        closeSearch: () => void, notes: Note[],
-        selectedIndex: number, setSelectedIndex: React.Dispatch<React.SetStateAction<number>>
+        closeSearch: () => void,
+        notes: Note[],
+        selectedIndex: number,
+        setSelectedIndex: React.Dispatch<React.SetStateAction<number>>
     }) {
     const navigate = useNavigate();
+
+    // Handles click on a note in the results
+    // Navigates if the note is already selected, otherwise sets selection
     function resultClicked(index: number) {
         if (selectedIndex == index) {
             navigate({
@@ -29,7 +36,8 @@ export default function SearchResults({ closeSearch, notes, selectedIndex, setSe
                     onClick={() => resultClicked(i)}
                     key={i}
                     noteId={note._id} draggable={false} />
-            ).reverse()}
+            ).reverse() // Show most relevant at bottom 
+            }
         </div>
     )
 }

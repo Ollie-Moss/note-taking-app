@@ -8,8 +8,8 @@ import { AppDispatch } from "../store";
 import { useToast } from "../lib/toastProvider";
 import PlainTextPasteHandler from "../lib/plaintextPaste";
 
+// Editor for a given note
 export default function Editor({ note: initialNote }: { note: Note }) {
-    const editorRef = useRef<ReactQuill>(null);
     const titleRef = useRef<HTMLHeadingElement>(null);
     const shouldUpdate = useRef<boolean>(false)
 
@@ -50,22 +50,20 @@ export default function Editor({ note: initialNote }: { note: Note }) {
         }, autoSaveDelay);
     }
 
-    // Manually updates the input fields as quill does
-    // not like being updated when 
+    // update values when note changes
     useEffect(() => {
         shouldUpdate.current = false
         lastUpdates.current = {};
         // manually update as quill has some weird quirks
         if (initialNote.contents) {
-            //editorRef.current?.editor?.setContents(JSON.parse(initialNote.contents));
             setDelta(JSON.parse(initialNote.contents));
         }
-        //titleRef.current.textContent = initialNote.title
         setTitle(initialNote.title);
         setHasTitle(initialNote.title != "");
         shouldUpdate.current = true
     }, [initialNote])
 
+    // updates note if content changes
     function SetDelta(_value: string, _delta: Delta, _source: EmitterSource, editor: ReactQuill.UnprivilegedEditor): void {
         const newDelta: Delta = editor.getContents();
         if (JSON.stringify(newDelta) != JSON.stringify(delta)) {
@@ -74,6 +72,7 @@ export default function Editor({ note: initialNote }: { note: Note }) {
         }
     }
 
+    // updates note if title changes
     function SetTitle(e: React.FormEvent<HTMLHeadingElement>): void {
         const newTitle = e.currentTarget.textContent ?? "";
         if (newTitle != title) {
@@ -104,7 +103,6 @@ export default function Editor({ note: initialNote }: { note: Note }) {
                     ref={titleRef}
                 >{title}</h1>
                 <ReactQuill
-                    ref={editorRef}
                     onChange={SetDelta}
                     className="text-white"
                     placeholder="Start your note here..."

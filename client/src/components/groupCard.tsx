@@ -12,13 +12,16 @@ import Draggable from "./draggable";
 
 // Group with buttons for deleting and renaming it
 // Onclick opens and closes the group
-// Uses draggable component to all moving it
+// Uses draggable component to allow moving it
 export default function GroupCard({ dragConstraint, group, offset = 0 }: { offset?: number, dragConstraint: RefObject<HTMLUListElement>, group: Group }) {
 
+    // title editing state
     const [isEditing, setIsEditing] = useState<boolean>(false)
 
     const dispatch: AppDispatch = useDispatch()
 
+    // drop functionality
+    // updates and moves group
     const onDrop = createOnDrop({
         update: (updates) => dispatch(updateGroupAsync({ id: group._id, group: updates })),
         move: (targetId, position) => dispatch(moveGroupAndMaybeRegroupAsync({ id: group._id, targetId, position }))

@@ -5,6 +5,7 @@ import { faHouse } from "@fortawesome/free-solid-svg-icons/faHouse";
 import { faMagnifyingGlass, faPlus, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
+// Sidebar navigation with Home and Search links
 export default function SidebarNavigation() {
     const { closeSidebarIfMobile } = useSidebar()
     const { OpenSearch } = useSearch()

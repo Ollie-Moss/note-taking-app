@@ -8,12 +8,20 @@ import { useSelector } from "react-redux";
 import { rootItemsArraySelector } from "../selectors/allSelectors";
 import { useEffect, useRef, useState } from "react";
 
+// Sidebar component includes:
+// User profile
+// Navigation
+// Notes and group list
+// Toggles visibility and animation based on screen size and sidebar state
+// Used in conjunction with sidebarProvider to allow for toggling anywhere in app
 export default function Sidebar() {
+    // Sidebar state (renders based on this)
     const { isSidebarOpen } = useSidebar()
     const allItems = useSelector(rootItemsArraySelector)
-
     const listRef = useRef(null)
 
+    // Track if screen is large (greater than 1024px wide) 
+    // to disable animation and keep sidebar open
     const [isLargeScreen, setIsLargeScreen] = useState(false);
     useEffect(() => {
         const mediaQuery = window.matchMedia("(min-width: 1024px)");
@@ -43,7 +51,7 @@ export default function Sidebar() {
                             <UserProfile />
                             <SidebarNavigation />
                         </div>
-                        {/* Bottom Section: Notes / Groups (Scrollable) */}
+                        {/* Bottom Section: Notes & Groups */}
                         <div className="mt-4 overflow-y-auto min-h-0 flex-grow">
                             <ul className="space-y-2">
                                 <ItemTreeHeader />

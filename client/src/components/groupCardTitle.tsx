@@ -10,6 +10,9 @@ import { AppDispatch } from "../store";
 import PlainTextPasteHandler from "../lib/plaintextPaste";
 import { faTrashCan } from "@fortawesome/free-regular-svg-icons";
 
+// Title for group card
+// has functionality for updating title 
+// and deleting group
 export default function GroupCardTitle({ group, isEditing, setIsEditing }: {
     group: Group,
     isEditing: boolean,
@@ -18,17 +21,21 @@ export default function GroupCardTitle({ group, isEditing, setIsEditing }: {
 
     const [title, setTitle] = useState<string>(group.title)
     const dispatch: AppDispatch = useDispatch()
+
     const titleRef = useRef<HTMLParagraphElement>(null)
     const { Confirm } = useConfirm()
     const navigate = useNavigate()
 
     const untitledNoteStyle = "after:inline after:font-light after:opacity-[0.6] after:italic after:content-['Untitled_Group...']"
 
+    // reset horizontal scroll after editing state changes
     useEffect(() => {
         if (titleRef.current) {
             titleRef.current.scrollLeft = 0;
         }
     }, [isEditing]);
+
+    // swap buttons when edit is pressed
     function HandleEdit(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault();
         e.stopPropagation()
@@ -36,6 +43,8 @@ export default function GroupCardTitle({ group, isEditing, setIsEditing }: {
         titleRef.current.focus()
         setIsEditing(true)
     }
+
+    // Update title state
     function SetTitle(e: React.FormEvent<HTMLHeadingElement>): void {
         const newTitle = e.currentTarget.textContent ?? "";
         setTitle(newTitle);
@@ -44,12 +53,14 @@ export default function GroupCardTitle({ group, isEditing, setIsEditing }: {
             titleRef.current.innerText = ""
         }
     }
+    // Cancel and discard changes
     function Cancel(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault();
         e.stopPropagation()
         setIsEditing(false)
         setTitle(group.title)
     }
+    // Save group (dispatch action)
     function Save(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault();
         e.stopPropagation()
@@ -57,6 +68,7 @@ export default function GroupCardTitle({ group, isEditing, setIsEditing }: {
         dispatch(updateGroupAsync({ id: group._id, group: { title } }))
     }
 
+    // Delete only if confirmed
     async function HandleDelete(e: React.MouseEvent<SVGSVGElement>) {
         e.preventDefault();
         e.stopPropagation()
@@ -89,6 +101,7 @@ export default function GroupCardTitle({ group, isEditing, setIsEditing }: {
                             ${title == "" && untitledNoteStyle} 
                             ${isEditing && "bg-bg-dark"}`}>{group.title}</p>
             {isEditing ? <>
+                {/* Editing Buttons */}
                 <FontAwesomeIcon
                     onClick={Save}
                     className="hover:text-green-400 text-white size-[16px]"
@@ -99,6 +112,7 @@ export default function GroupCardTitle({ group, isEditing, setIsEditing }: {
                     icon={faTimes} />
             </> :
                 <>
+                    {/* Edit & Delete Buttons */}
                     <FontAwesomeIcon
                         onClick={HandleEdit}
                         className="hover:text-green-400 text-white size-[16px]"

@@ -8,16 +8,24 @@ import NotePreview from "./notePreview";
 import SearchBar from "./searchbar";
 import SearchResults from "./searchResults";
 
+// Search modal for notes with fuzzy title search
+// Used in conjunction with searchProvider to allow toggling anywhere
+// Keyboard navigation
+// Live search updates
+// Note preview
 export default function Search({ isOpen, closeSearch }: { isOpen: boolean, closeSearch: () => void }) {
     const navigate = useNavigate();
 
+    // All notes from redux store
     const notes = useSelector(noteArraySelector);
 
+    // Search results & query state
     const [results, setResults] = useState<Note[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const [searchQuery, setSearchQuery] = useState<string>("");
 
-    // Update search results
+    // Fuse.js config 
+    // Update search on notes or query change
     useEffect(() => {
         const fuse = new Fuse(notes as Note[], {
             keys: ['title'],
@@ -45,7 +53,7 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
         })
     }
 
-    // Keyboard Shortcuts
+    // Keyboard shortcuts handler for navigation & selection
     useEffect(() => {
         if (!isOpen) return;
         function Overrides(e: any): void {

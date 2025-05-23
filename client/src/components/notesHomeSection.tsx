@@ -5,6 +5,12 @@ import { noteArraySelector } from "../selectors/noteSelectors"
 import { AppDispatch } from "../store"
 import NotesSection from "./noteSection"
 
+// Displays the main landing area for a user
+// Includes:
+// Welcome header
+// Quick links: search and create note
+// Recent notes section
+// Favourite notes section
 export default function NotesHomeSection() {
     const notes = useSelector(noteArraySelector)
     const { OpenSearch } = useSearch()
@@ -15,7 +21,7 @@ export default function NotesHomeSection() {
             <div className="items-center flex flex-col gap-6 py-20 w-[70%] lg:w-[60%]">
                 {/* Welcome Message */}
                 <h1 className="text-center text-[40px] text-white font-semibold">Welcome Back, Ollie!</h1>
-                {/* Quick Links */}
+                {/* Quick Links: Create & search */}
                 <div className="flex justify-center items-center gap-4">
                     <button
                         onClick={OpenSearch}

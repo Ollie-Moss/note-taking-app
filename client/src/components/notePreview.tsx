@@ -5,6 +5,9 @@ import { noteMapSelector } from "../selectors/noteSelectors"
 import { fetchNoteAsync } from "../slices/noteSlice"
 import { AppDispatch } from "../store"
 
+// Kinda useless but does the same thing as the editor but without the editing
+// Displays a note (its title and content)
+// Fetches content from server
 export default function NotePreview({ noteId }: { noteId: string | null }) {
     const editorRef = useRef<ReactQuill>(null)
 

@@ -1,16 +1,17 @@
-import { useRef } from "react"
-import { AnimatePresence } from "motion/react"
 import { GroupTree } from "./groupTree"
 import { NoteCard } from "./noteCard"
 import { Group } from "../models/group"
 import { Note } from "../models/note"
 
+// Recursively renders a mixed list of groups and notes
+// Groups are rendered using GroupTree 
+// Notes are rendered using NoteCard
+// Supports indentation using the offset prop
 export default function ItemTree({ items, container, offset = 0 }: {
     offset?: number,
     items: (Group & { type: string } | Note & { type: string })[],
     container: React.RefObject<any>
 }) {
-
     return (
         <ul className="space-y-1">
             {items.map(item =>

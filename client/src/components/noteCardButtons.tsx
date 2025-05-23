@@ -8,6 +8,10 @@ import { faStar as farStar, faTrashCan } from '@fortawesome/free-regular-svg-ico
 import { faStar as fasStar } from "@fortawesome/free-solid-svg-icons";
 import { Note } from "../models/note";
 
+// Displays buttons for modifying a note
+// Toggle favourite
+// Delete the note with confirmation
+// Used within NoteCard to provide quick actions
 export default function NoteCardButtons({ note }: { note: Note }) {
     const location = useLocation()
     const navigate = useNavigate();
@@ -38,6 +42,7 @@ export default function NoteCardButtons({ note }: { note: Note }) {
             }
         }
     }
+
     return (
         <div className="flex gap-1 items-center justify-between">
             <FontAwesomeIcon
