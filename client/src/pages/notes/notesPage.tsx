@@ -1,15 +1,15 @@
 import Sidebar from "../../components/sidebar";
-import Editor from "../../components/editor";
 import { useQueryParams } from "../../lib/useQueryParams";
 import NotesHomeSection from "../../components/notesHomeSection";
 import { SearchProvider } from "../../lib/searchProvider";
-import useNoteAsync from "../../hooks/useNoteAsync";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { useSidebar } from "../../lib/sidebarProvider";
-import LoadingSpinner from "../../components/spinner";
+import NoteEditorDisplay from "../../components/noteEditorDisplay";
 
-
+// Main Notes page component
+// Displays sidebar (always visible on large screens)
+// Main content area: Home section or note editor
 export default function Notes({ home }: { home: boolean }) {
     const query: URLSearchParams = useQueryParams();
 
@@ -31,9 +31,9 @@ export default function Notes({ home }: { home: boolean }) {
                 <Sidebar />
                 <div className="h-full w-full lg:w-[75%] bg-bg">
                     {home ?
-                        <NotesHomeSection />
+                        <NotesHomeSection /> // Home section if "home" is true
                         :
-                        <NoteDisplay noteId={query.get("id") ?? ""} />
+                        <NoteEditorDisplay noteId={query.get("id") ?? ""} />
                     }
                 </div>
             </div>
@@ -42,20 +42,3 @@ export default function Notes({ home }: { home: boolean }) {
 }
 
 
-function NoteDisplay({ noteId }: { noteId: string }) {
-    // this ensures that the note editor will only rerender when navigating to a
-    // different note and note when updates occur to the note
-    const { loading, note } = useNoteAsync(noteId)
-
-    return (
-        <div className="h-full w-full bg-bg">
-            {noteId == "" || loading || !note ?
-                <div className="px-12 pt-10 lg:px-24">
-                    <LoadingSpinner />
-                </div>
-                :
-                <Editor note={note} />
-            }
-        </div >
-    )
-}

@@ -1,6 +1,10 @@
 import { Link } from "react-router";
 import Header from "../../components/header";
 
+// Home page
+// Main header
+// Quick link to note creation
+// Marketing copy
 export default function Home() {
     return (
         <div className="min-h-full bg-bg-dark text-white flex flex-col">

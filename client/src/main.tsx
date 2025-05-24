@@ -5,6 +5,7 @@ import { store } from './store.ts'
 import App from './app.tsx'
 
 
+// Entry Point
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
         <Provider store={store}>

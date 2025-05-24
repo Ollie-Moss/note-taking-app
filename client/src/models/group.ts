@@ -1,3 +1,4 @@
+// Default Group creator
 export function NewGroup(): Group {
     return {
         _id: "temp_id",
@@ -11,6 +12,7 @@ export function NewGroup(): Group {
     }
 }
 
+// Group Model
 export type Group = {
     _id: string,
     title: string,

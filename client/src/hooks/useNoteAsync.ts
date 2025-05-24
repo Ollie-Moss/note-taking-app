@@ -9,9 +9,13 @@ import { Note } from "../models/note";
 // Will only provide a full note (requires content)
 // Will only provide state updates if the id changes
 export default function useNoteAsync(noteId: string) {
+    // all notes list
     const notes = useSelector(noteMapSelector)
+    // current note state
     const [note, setNote] = useState<Note | null>(null)
+    // if loading from server
     const [loading, setLoading] = useState<boolean>(false)
+    // keep track of id between re-renders
     const noteIdRef = useRef(null);
 
     const dispatch: AppDispatch = useDispatch()

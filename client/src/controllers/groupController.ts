@@ -1,7 +1,12 @@
 import axios from "axios";
 import { BASE_URL, TEST_UID } from "../lib/apiConfig";
 import { Group } from "../models/group";
+// Provides Wrappers for http requests to group endpoints
+// Provides typed return values
+// Catches any request errors
 
+// GET 'api/group'
+// Returns all a users groups
 export async function GetGroups(uid: string = TEST_UID): Promise<Group[]> {
     try {
         const res = await axios.get(`${BASE_URL}/group`,
@@ -18,6 +23,8 @@ export async function GetGroups(uid: string = TEST_UID): Promise<Group[]> {
     }
 }
 
+// POST 'api/group'
+// Creates a group
 export async function CreateGroup(group: Group, uid: string = TEST_UID): Promise<Group> {
     try {
         const res = await axios.post(`${BASE_URL}/group`, { group: { ...group, uid: uid } },
@@ -33,6 +40,8 @@ export async function CreateGroup(group: Group, uid: string = TEST_UID): Promise
     }
 }
 
+// PATCH 'api/group'
+// Updates a group
 export async function UpdateGroup(id: string, group: Partial<Group>, uid: string = TEST_UID): Promise<Group> {
     try {
         const res = await axios.patch(`${BASE_URL}/group`, { group: { _id: id, ...group } },
@@ -48,6 +57,8 @@ export async function UpdateGroup(id: string, group: Partial<Group>, uid: string
     }
 }
 
+// PATCH 'api/group/move?targetId&position'
+// Moves a group based on the target and position
 export async function MoveGroup(id: string, targetId: string, position: 'before' | 'after', uid: string = TEST_UID): Promise<Group> {
     try {
         const updatedGroup = await axios.patch(`${BASE_URL}/group/move?targetId=${targetId}&position=${position}`, { group: { _id: id } },
@@ -65,6 +76,8 @@ export async function MoveGroup(id: string, targetId: string, position: 'before'
     }
 }
 
+// DELETE 'api/group/:id'
+// Deletes a group
 export async function DeleteGroup(id: string, uid: string = TEST_UID): Promise<Group> {
     try {
         const res = await axios.delete(`${BASE_URL}/group/${id}`,

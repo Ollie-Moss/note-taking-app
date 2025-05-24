@@ -1,3 +1,7 @@
+// Custom User profile
+// User profile picture
+// Username
+// Future work: Fetch user data and render items based on it
 export default function UserProfile() {
     return (
         <div className="flex items-center gap-1 py-[20px]">

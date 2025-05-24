@@ -12,6 +12,10 @@ import Login from "./pages/auth/loginPage"
 import Error from "./pages/error/errorPage"
 import { SidebarProvider } from "./lib/sidebarProvider"
 
+// Main App
+// Global providers 
+// Routing
+// Inital state fetch
 export default function App() {
     const dispatch = useDispatch<AppDispatch>()
 

@@ -1,3 +1,4 @@
+// Default Note creator
 export function NewNote(): Note {
     return {
         _id: "temp_id",
@@ -11,6 +12,7 @@ export function NewNote(): Note {
     } as Note;
 }
 
+// Note Model
 export type Note = {
     _id: string,
     title: string,
