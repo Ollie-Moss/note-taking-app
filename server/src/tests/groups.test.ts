@@ -6,10 +6,8 @@ import mongoose, { disconnect, Types } from 'mongoose';
 import app from '../../src/app';
 import { Group, GroupModel, IGroup } from '../../src/models/groupModel';
 import { afterAll, beforeAll, describe, expect, it } from '@jest/globals'
-import InitializeMongoose from '../db/conn';
+import ConnectToMongoDB from '../db/conn';
 import { User, UserModel } from '../models/userModel';
-
-
 
 describe('Group API Routes', () => {
     let userId: Types.ObjectId;
@@ -32,7 +30,7 @@ describe('Group API Routes', () => {
     beforeAll(async () => {
 
         // Connect to test DB or use MongoMemoryServer
-        await InitializeMongoose(process.env.ATLAS_URI);
+        await ConnectToMongoDB(process.env.ATLAS_URI);
 
         const newUser: User = await UserModel.create(testUser)
         userId = newUser._id
@@ -100,9 +98,8 @@ describe('Group API Routes', () => {
             const group = await GroupModel.create({ ...testGroup, position: 300 });
 
             const res = await request(app)
-                .patch(`/api/group/move?targetId=${targetGroup._id}&position=after`)
+                .patch(`/api/group/move?groupId=${group._id}&targetId=${targetGroup._id}&position=after`)
                 .set('Authorization', `Bearer ${userId}`)
-                .send({ group });
 
             expect(res.status).toBe(200);
             expect(res.body.message).toBe('Group moved!');
@@ -115,9 +112,8 @@ describe('Group API Routes', () => {
             const group = await GroupModel.create({ ...testGroup, position: 200 });
 
             const res = await request(app)
-                .patch(`/api/group/move?targetId=${targetGroup._id}&position=before`)
+                .patch(`/api/group/move?groupId=${group._id}&targetId=${targetGroup._id}&position=before`)
                 .set('Authorization', `Bearer ${userId}`)
-                .send({ group });
 
             expect(res.status).toBe(200);
             expect(res.body.message).toBe('Group moved!');

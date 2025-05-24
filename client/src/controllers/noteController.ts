@@ -44,11 +44,11 @@ export async function GetNote(noteId: string, uid: string = TEST_UID): Promise<N
     }
 }
 
-// PATCH 'api/note/move?targetId&position'
+// PATCH 'api/note/move?noteId&targetId&position'
 // Moves a note based on the target and position
 export async function MoveNote(id: string, targetId: string, position: 'before' | 'after', uid: string = TEST_UID): Promise<Note> {
     try {
-        const updatedNote = await axios.patch(`${BASE_URL}/note/move?targetId=${targetId}&position=${position}`, { note: { _id: id } },
+        const updatedNote = await axios.patch(`${BASE_URL}/note/move?noteId=${id}&targetId=${targetId}&position=${position}`,{},
             {
                 headers: {
                     Authorization: `Bearer ${uid}`

@@ -24,9 +24,6 @@ export default function Editor({ note: initialNote }: { note: Note }) {
     const autoSaveDelay = 2000;
     const autoSaveTimeoutRef = useRef<{ [key: string]: number }>({});
 
-    // used to display placeholder in title input
-    const [hasTitle, setHasTitle] = useState<boolean>(false)
-
     const [delta, setDelta] = useState<Delta>(JSON.parse(initialNote.contents))
     const [title, setTitle] = useState<string>(initialNote.title)
 
@@ -59,7 +56,6 @@ export default function Editor({ note: initialNote }: { note: Note }) {
             setDelta(JSON.parse(initialNote.contents));
         }
         setTitle(initialNote.title);
-        setHasTitle(initialNote.title != "");
         shouldUpdate.current = true
     }, [initialNote])
 
@@ -76,7 +72,6 @@ export default function Editor({ note: initialNote }: { note: Note }) {
     function SetTitle(e: React.FormEvent<HTMLHeadingElement>): void {
         const newTitle = e.currentTarget.textContent ?? "";
         if (newTitle != title) {
-            setHasTitle(newTitle != "");
             setTitle(newTitle)
             // stops newline from appearing when empty
             if (newTitle == "") {
@@ -84,7 +79,6 @@ export default function Editor({ note: initialNote }: { note: Note }) {
             }
             UpdateNote()
         }
-
     }
 
 
@@ -95,13 +89,13 @@ export default function Editor({ note: initialNote }: { note: Note }) {
         initialNote ?
             <div className="px-12 pt-10 lg:px-24">
                 <h1 className={`text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1
-                            ${!hasTitle && untitledNoteStyle}`}
+                            ${title == "" ? untitledNoteStyle : ""}`}
                     contentEditable={true}
                     suppressContentEditableWarning={true}
                     onInput={SetTitle}
                     onPaste={PlainTextPasteHandler}
                     ref={titleRef}
-                >{title}</h1>
+                >{initialNote.title}</h1>
                 <ReactQuill
                     onChange={SetDelta}
                     className="text-white"

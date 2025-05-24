@@ -57,11 +57,11 @@ export async function UpdateGroup(id: string, group: Partial<Group>, uid: string
     }
 }
 
-// PATCH 'api/group/move?targetId&position'
+// PATCH 'api/group/move?groupId&targetId&position'
 // Moves a group based on the target and position
 export async function MoveGroup(id: string, targetId: string, position: 'before' | 'after', uid: string = TEST_UID): Promise<Group> {
     try {
-        const updatedGroup = await axios.patch(`${BASE_URL}/group/move?targetId=${targetId}&position=${position}`, { group: { _id: id } },
+        const updatedGroup = await axios.patch(`${BASE_URL}/group/move?groupId=${id}&targetId=${targetId}&position=${position}`, {},
             {
                 headers: {
                     Authorization: `Bearer ${uid}`

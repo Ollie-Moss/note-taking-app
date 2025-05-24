@@ -1,5 +1,4 @@
-import { Types } from "mongoose";
-import { IUser, User, UserModel, UserSchema } from "../models/userModel";
+import { IUser, User, UserModel } from "../models/userModel";
 
 export async function CreateUser(user: IUser): Promise<User> {
     const newUser: User = await UserModel.create(user)

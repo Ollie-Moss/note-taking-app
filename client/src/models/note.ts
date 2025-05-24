@@ -1,7 +1,6 @@
 // Default Note creator
 export function NewNote(): Note {
     return {
-        _id: "temp_id",
         title: "",
         contents: "{}",
         favourite: false,

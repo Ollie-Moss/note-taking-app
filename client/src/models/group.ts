@@ -1,7 +1,6 @@
 // Default Group creator
 export function NewGroup(): Group {
     return {
-        _id: "temp_id",
         title: "",
         position: 100,
         uid: "",
@@ -9,7 +8,7 @@ export function NewGroup(): Group {
         open: false,
         notes: [],
         children: []
-    }
+    } as Group
 }
 
 // Group Model
