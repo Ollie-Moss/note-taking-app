@@ -1,3 +1,11 @@
+# Quickstart
+- Open the client and server directories in the terminal
+- Run `npm install` to install required dependencies
+- In the server directory create a `.env` file
+- Add a `ATLAS_URI` variable containing a mongodb connection string
+- Run `npm run dev` in both the client and server terminals to start the application
+- Open `localhost:3000` to view the application
+
 # API
 The following documents all the API routes, their functionality along with any options they may feature
 ## Table of Contents
