@@ -3,15 +3,17 @@ import { GetUser } from '../controllers/userController';
 import { User } from '../models/userModel';
 import { Types } from 'mongoose';
 import { AppError } from './errorHandler';
+import { groupService, noteService } from '../services/services';
 
+// Add user to Request type to be used by route handlers
 declare module "express-serve-static-core" {
     interface Request {
-        user: User;
+        user?: User;
     }
 }
 
-// Example Auth Handler
-// Todo: Add proper oauth
+// Auth Handler
+// Todo: Add proper auth
 export async function authHandler(req: Request, res: Response, next: NextFunction) {
     const authHeader: string | undefined = req.header('authorization');
     const token: string | undefined = authHeader && authHeader.split(' ')[1];
@@ -19,9 +21,9 @@ export async function authHandler(req: Request, res: Response, next: NextFunctio
         res.status(401).json({ message: 'No token provided' });
         return
     }
-    // verify jwt token and retrieve uid
+    // Todo: verify jwt token and retrieve uid
 
-    // For as2 token will be uid
+    // for as2 token will be uid
 
     try {
         // validate userId
@@ -31,11 +33,19 @@ export async function authHandler(req: Request, res: Response, next: NextFunctio
 
         // retrieve user data
         const user: User | null = await GetUser(token);
+        // if no user is found return 401 forbidden
         if (!user) {
             res.status(401).send({ message: "User not found!" })
             return
         }
+        // set user object on request
         req.user = user;
+
+        // set user id in services
+        groupService.setUser(user._id.toString())
+        noteService.setUser(user._id.toString())
+
+        // call next route handler
         next();
     } catch (error) {
         next(error);

@@ -1,6 +1,10 @@
 import { Link } from "react-router";
 import Header from "../../components/header";
 
+// 404 not found page
+// Displayed when invalid url is provided
+// Main header
+// Navigation to home
 export default function Error() {
     return (
         <div className="min-h-full bg-bg-dark text-white flex flex-col">

@@ -1,23 +1,31 @@
-import { SetStateAction, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Note } from "../models/note";
-import ReactQuill from "react-quill-new";
 import Fuse from "fuse.js"
 import { useNavigate } from "react-router";
-import { NoteDisplay } from "./noteDisplay";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchNoteAsync, noteArraySelector, noteMapSelector } from "../reducers/noteReducer";
-import useNoteAsync from "../hooks/useNoteAsync";
-import { AppDispatch } from "../store";
+import { useSelector } from "react-redux";
+import { noteArraySelector } from "../selectors/noteSelectors";
+import NotePreview from "./notePreview";
+import SearchBar from "./searchbar";
+import SearchResults from "./searchResults";
 
+// Search modal for notes with fuzzy title search
+// Used in conjunction with searchProvider to allow toggling anywhere
+// Keyboard navigation
+// Live search updates
+// Note preview
 export default function Search({ isOpen, closeSearch }: { isOpen: boolean, closeSearch: () => void }) {
     const navigate = useNavigate();
 
+    // All notes from redux store
     const notes = useSelector(noteArraySelector);
 
+    // Search results & query state
     const [results, setResults] = useState<Note[]>([]);
     const [selectedIndex, setSelectedIndex] = useState<number>(0);
     const [searchQuery, setSearchQuery] = useState<string>("");
 
+    // Fuse.js config 
+    // Update search on notes or query change
     useEffect(() => {
         const fuse = new Fuse(notes as Note[], {
             keys: ['title'],
@@ -29,6 +37,7 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
 
     }, [notes, searchQuery])
 
+    // Handles looping selected index
     function changeSelectedIndex(amount: number) {
         setSelectedIndex((prev: number) => {
             const nextIndex = prev + amount;
@@ -44,7 +53,7 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
         })
     }
 
-
+    // Keyboard shortcuts handler for navigation & selection
     useEffect(() => {
         if (!isOpen) return;
         function Overrides(e: any): void {
@@ -94,97 +103,10 @@ export default function Search({ isOpen, closeSearch }: { isOpen: boolean, close
                         searchQuery={searchQuery}
                         setSearchQuery={setSearchQuery} />
                 </div>
-                <SearchPreview noteId={(results.length > 0 && results[selectedIndex]) ? results[selectedIndex]._id : null} />
+                <NotePreview noteId={(results.length > 0 && results[selectedIndex]) ? results[selectedIndex]._id : null} />
             </div>
         </div>
     )
 }
 
-function SearchPreview({ noteId }: { noteId: string | null }) {
-    const editorRef = useRef<ReactQuill>(null)
 
-    const notes = useSelector(noteMapSelector)
-    const note = useMemo(() => notes[noteId], [notes, noteId])
-
-    const dispatch: AppDispatch = useDispatch()
-
-    useEffect(() => {
-        if(!note) return
-        dispatch(fetchNoteAsync(noteId))
-    }, [noteId])
-
-    useEffect(() => {
-        editorRef.current?.editor?.setContents(JSON.parse(note.contents ?? "{}"));
-    }, [note])
-
-    const untitledNoteStyle = "after:inline after:font-light after:opacity-[0.6] after:italic after:content-['Untitled_Note...']"
-    return (
-        <div className="bg-bg p-4 w-1/2 rounded-lg break-words overflow-y-scroll">
-            {note ?
-                <>
-                    <h1 className={`text-white text-lg outline-none focus:bg-bg-dark rounded-lg px-2 py-1
-                            ${note.title == "" ? untitledNoteStyle : ""} `}>{note.title}</h1>
-                    <ReactQuill
-                        ref={editorRef}
-                        className="text-white"
-                        readOnly={true}
-                        key={note.contents}
-                        theme="bubble">
-                        <div className="[&>*]:outline-none [&>*]:rounded-lg" />
-                    </ReactQuill>
-                </>
-                :
-                <h1 className="text-white text-md px-2 py-1 after:inline opacity-[0.6] italic ">No Content</h1>
-            }
-        </div>
-    )
-}
-
-function SearchResults({ closeSearch, notes, selectedIndex, setSelectedIndex }: { closeSearch: () => void, notes: Note[], selectedIndex: number, setSelectedIndex: React.Dispatch<React.SetStateAction<number>> }) {
-    const navigate = useNavigate();
-    function resultClicked(index: number) {
-        if (selectedIndex == index) {
-            navigate({
-                pathname: "/notes",
-                search: `id=${notes[index]._id}`
-            })
-            closeSearch();
-        }
-        setSelectedIndex(index)
-
-    }
-
-    return (
-        <div className="h-full bg-bg p-4 rounded-lg flex flex-col gap-2 justify-end">
-            {notes.map((note, i) =>
-                <NoteDisplay
-                    className={i == selectedIndex ? "bg-bg-dark" : "bg-bg"}
-                    onClick={() => resultClicked(i)}
-                    key={i}
-                    noteId={note._id} draggable={false} />
-            ).reverse()}
-        </div>
-    )
-}
-
-function SearchBar({ searchQuery, setSearchQuery }: { searchQuery: string, setSearchQuery: React.Dispatch<SetStateAction<string>> }) {
-    const InputRef = useRef<HTMLInputElement | null>(null);
-    function searchChanged(e: React.FormEvent<HTMLInputElement>) {
-        setSearchQuery(e.currentTarget.value);
-    }
-
-    useEffect(() => {
-        InputRef.current?.focus();
-    }, [InputRef]);
-
-    return (
-        <div className="bg-bg p-4 rounded-lg">
-            <input
-                ref={InputRef}
-                onChange={searchChanged}
-                defaultValue={searchQuery}
-                className="w-full bg-transparent border-0 border-b-2 border-white text-white placeholder-white focus:outline-none focus:border-white"
-            />
-        </div>
-    )
-}

@@ -2,56 +2,48 @@ import { createAsyncThunk, createSelector, createSlice, PayloadAction, } from "@
 import { Group, NewGroup } from "../models/group";
 import { CreateGroup, DeleteGroup, GetGroups, MoveGroup, UpdateGroup } from "../controllers/groupController";
 import { RootState } from "../store";
-import { moveNoteAsync, updateNoteAsync } from "./noteReducer";
-import { act } from "react";
-import { activeAnimations } from "motion/react";
+import { updateNoteAsync } from "./noteSlice";
 
+// Contains all logic pertaining to the groups state in redux
+// Note: Replicates all business logic
+
+// Group action type
 export type GroupAction<T = Group> = PayloadAction<
     { group?: T, id?: string }>
 
+// Group State type
 export interface Groups {
     [key: string]: Group
 }
 
-export const groupArraySelector = createSelector((state: RootState) => state.groups, groups => {
-    return Object.values(groups)
-});
-export const rootGroupSelector = createSelector((state: RootState) => state.groups, groups => {
-    return Object.values(groups).filter(group => !group.parentId)
-});
-
-export const groupMapSelector = (state: RootState) => state.groups
-
 const initialState: Groups = {}
 
+// Async Thunks
+
+// Fetch all groups from server
 export const fetchGroupsAsync = createAsyncThunk("groups/fetchAllAsync", async () => {
     return await GetGroups()
 })
+
+// Create a new group
 export const createGroupAsync = createAsyncThunk("groups/createAsync", async () => {
     const group: Group = NewGroup();
     return { group: await CreateGroup(group) }
 })
-function checkInGroup(targetId: string, groupId: string, groups: Group[]): boolean {
-    const children = groups.filter(group => group.parentId == groupId)
-    for (const child of children) {
-        if (child._id == targetId) {
-            return true
-        }
-        if (checkInGroup(targetId, child._id, groups)) {
-            return true
-        }
-    }
-    return false
-}
+
+// Update a group
 export const updateGroupAsync = createAsyncThunk("groups/updateAsync", async ({ id, group }: { id: string, group: Partial<Group> }) => {
     const newGroup = await UpdateGroup(id, group)
     return { id, group: newGroup }
 })
+
+// Move a group
 export const moveGroupAsync = createAsyncThunk("groups/moveAsync", async ({ id, targetId, position, finalPosition }: { id: string, targetId: string, position: 'before' | 'after', finalPosition: number }) => {
     const newNote = await MoveGroup(id, targetId, position)
     return { id, note: newNote }
 })
 
+// Move a group and regroup to its target parent 
 export const moveGroupAndMaybeRegroupAsync = createAsyncThunk("groups/moveAndRegroupAsync", async ({ id, targetId, position }: { id: string, targetId: string, position: 'before' | 'after' }, { dispatch, getState }) => {
     const state = getState() as RootState;
     const notes = state.notes;
@@ -61,11 +53,18 @@ export const moveGroupAndMaybeRegroupAsync = createAsyncThunk("groups/moveAndReg
 
     if (!current || !target) return;
 
+    if (checkInGroup(target.parentId, id, Object.values(groups))) {
+        return
+    }
+
+    // Change parent if needed
     if (current.parentId !== target.parentId) {
         await dispatch(updateGroupAsync({ id, group: { parentId: target.parentId } }));
     }
-
-    const allEntities = [...Object.values(groups), ...Object.values(notes)].filter(item => item.parentId == target.parentId).sort((a, b) => a.position - b.position)
+    // Recalculate position
+    const allEntities = [...Object.values(groups), ...Object.values(notes)]
+        .filter(item => item.parentId == target.parentId)
+        .sort((a, b) => a.position - b.position)
 
     let finalPosition = current.position;
 
@@ -87,6 +86,8 @@ export const moveGroupAndMaybeRegroupAsync = createAsyncThunk("groups/moveAndReg
     }
     await dispatch(moveGroupAsync({ id, targetId, position, finalPosition }));
 })
+
+// Delete a group and all its children recursively
 export const deleteGroupAndChildrenAsync = createAsyncThunk("groups/deleteRecursive", async (id: string, { dispatch, getState }) => {
     const state = getState() as RootState;
     const groups = state.groups;
@@ -97,27 +98,48 @@ export const deleteGroupAndChildrenAsync = createAsyncThunk("groups/deleteRecurs
     await dispatch(deleteGroupAsync(id))
 })
 
+// Delete a single group
 export const deleteGroupAsync = createAsyncThunk("groups/deleteAsync", async (id: string) => {
     return { id: await DeleteGroup(id).then(group => group._id) }
 })
 
+// Utility to check if a group or note is within another group (prevents circular nesting)
+function checkInGroup(targetId: string, groupId: string, groups: Group[]): boolean {
+    const group = groups.find(group => group._id == groupId)
+    if (targetId == groupId) {
+        return true
+    }
+    for (const childId of group.children) {
+        if (childId == targetId) {
+            return true
+        }
+        if (checkInGroup(targetId, childId, groups)) {
+            return true
+        }
+    }
+    return false
+}
 export const groupSlice = createSlice({
     name: "group",
     initialState,
     reducers: {
     },
     extraReducers(builder) {
+        // When all groups are fetched
         builder.addCase(fetchGroupsAsync.fulfilled, (state, action: PayloadAction<Group[]>) => {
             for (const group of action.payload) {
                 state[group._id] = group;
             }
         })
+        // When a new group is created
         builder.addCase(createGroupAsync.fulfilled, (state, action: GroupAction) => {
             state[action.payload.group._id] = action.payload.group
         })
+        // Optimistically update position on move
         builder.addCase(moveGroupAsync.pending, (state, action) => {
             state[action.meta.arg.id].position = action.meta.arg.finalPosition
         })
+        // Optimistically update group properties
         builder.addCase(updateGroupAsync.pending, (state, action) => {
             const updates = action.meta.arg.group;
             const id = action.meta.arg.id;
@@ -140,12 +162,13 @@ export const groupSlice = createSlice({
             }
 
         })
+        // Optimistically remove group on delete
         builder.addCase(deleteGroupAsync.pending, (state, action) => {
             const id = action.meta.arg;
             delete state[id]
         })
 
-        // Note updates
+        // Handle note updates that change group parent
         builder.addCase(updateNoteAsync.pending, (state, action) => {
             const updates = action.meta.arg.note;
             const noteId = action.meta.arg.id;
