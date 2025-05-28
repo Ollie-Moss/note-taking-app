@@ -1,5 +1,5 @@
 import { Service } from "./service";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { Moveable, MoveableDocument } from "../models/moveableModel";
 
 // Derives from Generic Service class to enable CRUD operations
@@ -20,7 +20,7 @@ export class MoveableService<T extends Moveable> extends Service<T> {
 
     // Creates a new entity with a calculated position at the end of top-level entities
     // (entities where parentId = null)
-    async create(data: Partial<T>): Promise<T> {
+    async create(data: Partial<T>): Promise<T & { _id: Types.ObjectId }> {
         const entities = await this.allEntities({ parentId: null });
 
         // Position = 100 if empty otherwise position is last item + 100
