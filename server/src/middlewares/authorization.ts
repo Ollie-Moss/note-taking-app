@@ -3,7 +3,7 @@ import { GetUser } from '../controllers/userController';
 import { User } from '../models/userModel';
 import { Types } from 'mongoose';
 import { AppError } from './errorHandler';
-import { groupService, noteService } from '../services/services';
+import { groupService, noteService, userService } from '../services/services';
 
 // Add user to Request type to be used by route handlers
 declare module "express-serve-static-core" {
@@ -23,21 +23,22 @@ export async function authHandler(req: Request, res: Response, next: NextFunctio
     }
     // Todo: verify jwt token and retrieve uid
 
+
     // for as2 token will be uid
 
     try {
+        const user = await userService.validateToken(token);
         // validate userId
         if (!Types.ObjectId.isValid(token)) {
             throw new AppError("Invalid uid provided!", 404);
         }
 
-        // retrieve user data
-        const user: User | null = await GetUser(token);
         // if no user is found return 401 forbidden
         if (!user) {
             res.status(401).send({ message: "User not found!" })
             return
         }
+
         // set user object on request
         req.user = user;
 

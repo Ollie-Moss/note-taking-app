@@ -13,8 +13,9 @@ export class Service<T> {
     };
 
     // Create a new document
-    async create(data: Partial<T>): Promise<T> {
-        return this.model.create(data).then(data => data.toObject());
+    async create(data: Partial<T>): Promise<(T & { _id: Types.ObjectId })> {
+        const model = await this.model.create(data);
+        return model.toObject() as (T & { _id: Types.ObjectId })
     }
 
     // Find a single document by ID, scoped to current user

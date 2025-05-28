@@ -1,11 +1,11 @@
 import Header from "../../components/header";
 
-// Placeholder login page
-export default function Login() {
+// Placeholder signup page
+export default function Signup() {
     return (
         <div className="min-h-full bg-bg-dark text-white flex flex-col">
             <Header />
-            <h1>Login</h1>
+            <h1>Signup</h1>
         </div>
     )
 }
