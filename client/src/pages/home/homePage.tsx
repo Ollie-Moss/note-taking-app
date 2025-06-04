@@ -16,7 +16,7 @@ export default function Home() {
                 <p className="text-md text-gray-400 mb-8">
                     Create, edit, and manage your notes with ease. All in one place.
                 </p>
-                <Link to="/notes/home" className="px-6 py-3 bg-white text-bg-dark rounded-lg shadow-md hover:bg-gray-400 transition" >
+                <Link to="/auth/signup" className="px-6 py-3 bg-white text-bg-dark rounded-lg shadow-md hover:bg-gray-400 transition" >
                     Create Your First Note
                 </Link>
             </main>

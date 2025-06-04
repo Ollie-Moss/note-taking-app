@@ -4,6 +4,8 @@ import { createNoteAsync } from "../slices/noteSlice"
 import { noteArraySelector } from "../selectors/noteSelectors"
 import { AppDispatch } from "../store"
 import NotesSection from "./noteSection"
+import { userSelector } from "../selectors/userSelector"
+import LoadingSpinner from "./spinner"
 
 // Displays the main landing area for a user
 // Includes:
@@ -16,11 +18,15 @@ export default function NotesHomeSection() {
     const { OpenSearch } = useSearch()
     const dispatch: AppDispatch = useDispatch()
 
+    const { user, loading, error } = useSelector(userSelector);
+
+    if (loading || !user) return (<LoadingSpinner />)
+
     return (
         <div className="flex justify-center h-full w-full">
             <div className="items-center flex flex-col gap-6 py-20 w-[70%] lg:w-[60%]">
                 {/* Welcome Message */}
-                <h1 className="text-center text-[40px] text-white font-semibold">Welcome Back, Ollie!</h1>
+                <h1 className="text-center text-[40px] text-white font-semibold">Welcome Back, {user.name}!</h1>
                 {/* Quick Links: Create & search */}
                 <div className="flex justify-center items-center gap-4">
                     <button

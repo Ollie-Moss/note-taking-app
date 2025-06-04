@@ -19,7 +19,7 @@ export default function UserProfile() {
     return (
         <div className="flex items-center gap-2 py-[20px]">
             <div className="bg-bg-light w-[38px] h-[38px] rounded-[4px] flex items-center justify-center">
-                <p className="font-bold text-white text-md">{user.name[0]}</p>
+                <p className="font-bold text-white text-md">{(user.name[0] ?? "N").toUpperCase()}</p>
             </div>
             <p className="font-medium text-base text-white">{user.name}</p>
         </div>

@@ -33,7 +33,7 @@ export default function Dropdown({ isOpen, setIsOpen, options }:
     return (
         isOpen && (
             <div ref={dropdownRef}
-                className="fixed z-100 flex flex-col w-44 rounded-md ring ring-hl text-white bg-bg-light">
+                className="absolute right-2 lg:fixed lg:right-auto z-20 flex flex-col w-44 rounded-md ring ring-hl text-white bg-bg-light">
                 <div >
                     {/* display button for each option */}
                     {options.map(option => (

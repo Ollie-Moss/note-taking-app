@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../../components/header";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../store";
 import { loginAction } from "../../slices/userSlice";
 import { useNavigate } from "react-router";
+import { userSelector } from "../../selectors/userSelector";
 
 // Placeholder login page
 export default function Login() {
@@ -13,6 +14,13 @@ export default function Login() {
 
     const dispatch = useDispatch<AppDispatch>()
     const navigate = useNavigate();
+
+    const { user, loading } = useSelector(userSelector);
+    useEffect(() => {
+        if (user) {
+            navigate('/notes/home')
+        }
+    }, [user])
 
     const login = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()

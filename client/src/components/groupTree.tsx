@@ -15,30 +15,26 @@ export function GroupTree({ dragConstraint, group, offset = 0 }: { offset?: numb
     const notes = useSelector(noteMapSelector)
 
     return (
-        <li>
+        <>
             {/* Display a single GroupCard inside its own <ul> */}
-            <ul>
-                <GroupCard
-                    dragConstraint={dragConstraint}
-                    offset={offset}
-                    group={group} />
-            </ul>
+            <GroupCard
+                dragConstraint={dragConstraint}
+                offset={offset}
+                group={group} />
             {group.open ?
-                <ul >
-                    <ItemTree
-                        // Create a list of child groups and notes:
-                        // - Add type to distinguish between them
-                        // - Sort items by their position for correct order
-                        items={[...(group.children.map(id => ({ ...groups[id], type: "group" }))),
-                        ...group.notes.map(id => ({ ...notes[id], type: "note" }))]
-                            .sort((a, b) => a.position - b.position)}
-                        offset={offset + 1}
-                        container={dragConstraint}
-                    />
-                </ul>
+                <ItemTree
+                    // Create a list of child groups and notes:
+                    // - Add type to distinguish between them
+                    // - Sort items by their position for correct order
+                    items={[...(group.children.map(id => ({ ...groups[id], type: "group" }))),
+                    ...group.notes.map(id => ({ ...notes[id], type: "note" }))]
+                        .sort((a, b) => a.position - b.position)}
+                    offset={offset + 1}
+                    container={dragConstraint}
+                />
                 :
                 <></>}
-        </li>
+        </>
     );
 }
 
