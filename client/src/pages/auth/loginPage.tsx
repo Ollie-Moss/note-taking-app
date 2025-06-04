@@ -1,16 +1,21 @@
 import { useState } from "react";
 import Header from "../../components/header";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../store";
+import { loginAction } from "../../slices/userSlice";
 
 // Placeholder login page
 export default function Login() {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
 
+    const dispatch = useDispatch<AppDispatch>()
+
     const login = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        //signInWithEmailAndPass(email, password)
-
+        dispatch(loginAction({ email, password }));
     }
+
     return (
         <div className="min-h-full bg-bg-dark text-white flex flex-col">
             <Header />

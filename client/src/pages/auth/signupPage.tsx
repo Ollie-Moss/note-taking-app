@@ -1,16 +1,24 @@
 import { useState } from "react";
 import Header from "../../components/header";
+import { signupAction } from "../../slices/userSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../store";
 
 // Placeholder signup page
 export default function Signup() {
+    const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [reEnterPassword, setReEnterPassword] = useState<string>("")
     const [error, setError] = useState("")
 
+    const dispatch = useDispatch<AppDispatch>()
+
     const signup = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if (password === reEnterPassword) { }
+        if (password === reEnterPassword) {
+            dispatch(signupAction({ name, email, password }))
+        }
     }
 
     return (
@@ -22,6 +30,14 @@ export default function Signup() {
                     <h1 className="text-lg font-bold">Signup</h1>
 
                     <div className="mt-10 mb-5 flex flex-col">
+                        <label className="pb-1 font-light text-white">Name:</label>
+                        <input
+                            className="mb-3 border-background border-[1px] box-border border-transparent outline-none focus:border-white w-full bg-bg-darker text-white p-2 rounded-md text-sm"
+                            autoComplete="name"
+                            placeholder="Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
                         <label className="pb-1 font-light text-white">Email:</label>
                         <input
                             className="mb-3 border-background border-[1px] box-border border-transparent outline-none focus:border-white w-full bg-bg-darker text-white p-2 rounded-md text-sm"
@@ -61,7 +77,7 @@ export default function Signup() {
 
                     <button
                         className="w-full p-1 py-2 rounded-md bg-white text-bg-dark"
-                    >Login</button>
+                    >Signup</button>
                 </form>
             </div>
         </div>

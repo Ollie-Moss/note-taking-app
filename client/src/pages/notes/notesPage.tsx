@@ -6,6 +6,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { useSidebar } from "../../lib/sidebarProvider";
 import NoteEditorDisplay from "../../components/noteEditorDisplay";
+import { useEffect } from "react";
+import { fetchGroupsAsync } from "../../slices/groupSlice";
+import { fetchNotesAsync } from "../../slices/noteSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../store";
 
 // Main Notes page component
 // Displays sidebar (always visible on large screens)
@@ -14,6 +19,12 @@ export default function Notes({ home }: { home: boolean }) {
     const query: URLSearchParams = useQueryParams();
 
     const { toggleSidebar } = useSidebar()
+    const dispatch = useDispatch<AppDispatch>()
+
+    useEffect(() => {
+        dispatch(fetchGroupsAsync())
+        dispatch(fetchNotesAsync())
+    }, [dispatch])
 
     return (
         <SearchProvider>

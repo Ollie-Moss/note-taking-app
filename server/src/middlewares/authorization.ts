@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { GetUser } from '../controllers/userController';
 import { User } from '../models/userModel';
 import { Types } from 'mongoose';
 import { AppError } from './errorHandler';

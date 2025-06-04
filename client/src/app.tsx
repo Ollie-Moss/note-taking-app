@@ -18,12 +18,6 @@ import Signup from "./pages/auth/signupPage"
 // Routing
 // Inital state fetch
 export default function App() {
-    const dispatch = useDispatch<AppDispatch>()
-
-    useEffect(() => {
-        dispatch(fetchGroupsAsync())
-        dispatch(fetchNotesAsync())
-    }, [dispatch])
 
     return (
         <ToastProvider>

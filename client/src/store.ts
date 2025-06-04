@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit'
 import noteReducer from './slices/noteSlice'
 import groupReducer from './slices/groupSlice'
+import userReducer from './slices/userSlice'
 
 // reducers
 const reducer = {
     groups: groupReducer,
-    notes: noteReducer
+    notes: noteReducer,
+    user: userReducer
 }
 
 // setup redux store
