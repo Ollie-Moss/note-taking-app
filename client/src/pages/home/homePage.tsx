@@ -7,7 +7,7 @@ import Header from "../../components/header";
 // Marketing copy
 export default function Home() {
     return (
-        <div className="min-h-full bg-bg-dark text-white flex flex-col">
+        <div className="min-h-full bg-bg text-white flex flex-col">
             <Header />
             <main className="flex flex-col h-full items-center justify-center text-center py-20 lg:py-32 px-4">
                 <h2 className="text-lg lg:text-xl font-extrabold mb-4">

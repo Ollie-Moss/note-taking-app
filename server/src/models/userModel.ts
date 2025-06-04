@@ -11,6 +11,9 @@ export interface IUser {
 export type User = IUser & {
     _id: Types.ObjectId
 }
+export type UserStringId = IUser & {
+    _id: string
+}
 
 // Mongoose schema for the User collection
 export const UserSchema = new Schema<IUser>({

@@ -1,5 +1,5 @@
 import { Model } from "mongoose";
-import { IUser, User } from "../models/userModel";
+import { IUser, User, UserStringId } from "../models/userModel";
 import { Service } from "./service";
 import { sign, verify } from 'jsonwebtoken'
 import { AppError } from "../middlewares/errorHandler";
@@ -56,7 +56,7 @@ export class UserService extends Service<IUser> {
                 // create jwt using user information
                 const jwt = sign({
                     data: payload
-                }, String(process.env.JWT_SECRET), { expiresIn: '1m' })
+                }, String(process.env.JWT_SECRET), { expiresIn: '1hr' })
 
                 return { jwt, user: payload };
             }
@@ -64,10 +64,10 @@ export class UserService extends Service<IUser> {
         throw new AppError("Email or password invalid", 401);
     }
 
-    async validateToken(token: string): Promise<User> {
+    async validateToken(token: string): Promise<UserStringId> {
         try {
-            const user = verify(token, String(process.env.JWT_SECRET))
-            return user as User;
+            const user = verify(token, String(process.env.JWT_SECRET)) as { data: UserStringId }
+            return user.data;
         } catch (err) {
             throw new AppError("Invalid Token Provided", 401)
         }

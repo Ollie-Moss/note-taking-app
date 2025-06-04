@@ -12,12 +12,17 @@ import Login from "./pages/auth/loginPage"
 import Error from "./pages/error/errorPage"
 import { SidebarProvider } from "./lib/sidebarProvider"
 import Signup from "./pages/auth/signupPage"
+import { fetchUserAction, setToken } from "./slices/userSlice"
+import { getCookie } from "./lib/cookies"
 
 // Main App
 // Global providers 
 // Routing
-// Inital state fetch
 export default function App() {
+    const dispatch = useDispatch<AppDispatch>()
+    useEffect(() => {
+        dispatch(fetchUserAction());
+    }, [dispatch]);
 
     return (
         <ToastProvider>

@@ -3,6 +3,7 @@ import Header from "../../components/header";
 import { signupAction } from "../../slices/userSlice";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../../store";
+import { useNavigate } from "react-router";
 
 // Placeholder signup page
 export default function Signup() {
@@ -13,23 +14,24 @@ export default function Signup() {
     const [error, setError] = useState("")
 
     const dispatch = useDispatch<AppDispatch>()
+    const navigate = useNavigate();
 
     const signup = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (password === reEnterPassword) {
             dispatch(signupAction({ name, email, password }))
+            navigate('/notes/home');
         }
     }
 
     return (
-        <div className="min-h-full bg-bg-dark text-white flex flex-col">
+        <div className="min-h-full bg-bg text-white flex flex-col">
             <Header />
             <div className="flex justify-center">
-                <form onSubmit={signup} className="py-6 px-10 rounded-lg flex flex-col bg-background-variant w-[90%] lg:w-[40%]">
-                    {error !== "" ? <p className="text-red-500">{error}</p> : <></>}
+                <form onSubmit={signup} className="py-6 px-10 rounded-lg flex flex-col w-[90%] lg:w-[40%]">
                     <h1 className="text-lg font-bold">Signup</h1>
-
-                    <div className="mt-10 mb-5 flex flex-col">
+                    {error !== "" ? <p className="text-red-500">{error}</p> : <></>}
+                    <div className="mt-2 mb-5 flex flex-col">
                         <label className="pb-1 font-light text-white">Name:</label>
                         <input
                             className="mb-3 border-background border-[1px] box-border border-transparent outline-none focus:border-white w-full bg-bg-darker text-white p-2 rounded-md text-sm"

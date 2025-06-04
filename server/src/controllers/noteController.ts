@@ -40,7 +40,11 @@ export async function CreateNoteHandler(req: Request, res: Response, next: NextF
     try {
         console.log("POST 'api/note'")
         if (!req.note) throw new AppError("Note is required!", 400);
+        if (!req.user) throw new AppError("No user found", 401)
         console.log("note: ", req.note)
+        
+        // ensure incoming note has correct uid
+        req.note.uid = req.user._id;
 
         // validate the note
         const result = noteService.validate(req.note);

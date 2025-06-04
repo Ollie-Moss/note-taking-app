@@ -1,13 +1,24 @@
 import { createSelector } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { UserState } from "../slices/userSlice";
+import { User } from "../models/user";
 
 
-export const userSelector = createSelector((state: RootState) => state.user, (userState: UserState) => {
-    const result = { loading: false, error: false, user: userState.user };
+export type UserSelectorState = {
+    loading: boolean,
+    error: boolean,
+    user: User | null | undefined
+}
 
-    if (userState.status == 'loading') result.loading = true;
-    if (userState.status == 'error') result.error = true;
-
-    return result;
-});
+export const userSelector = createSelector(
+    (state: RootState) => state.user,
+    (userState: UserState) => {
+        const result: UserSelectorState =
+        {
+            loading: userState.status == 'loading',
+            error: userState.status == 'error',
+            user: userState.user
+        };
+        return result as UserSelectorState;
+    }
+);

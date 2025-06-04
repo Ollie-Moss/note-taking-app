@@ -40,7 +40,11 @@ export async function CreateGroupHandler(req: Request, res: Response, next: Next
     try {
         console.log("POST 'api/group'")
         if (!req.group) throw new AppError("Group is required!", 400);
+        if (!req.user) throw new AppError("No user found", 401)
         console.log("group: ", req.group)
+        
+        // ensure incoming group has correct uid
+        req.group.uid = req.user._id;
 
         // validate the group
         const result = groupService.validate(req.group);

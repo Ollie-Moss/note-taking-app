@@ -21,25 +21,33 @@ const initialState: Groups = {}
 // Async Thunks
 
 // Fetch all groups from server
-export const fetchGroupsAsync = createAsyncThunk("groups/fetchAllAsync", async () => {
-    return await GetGroups()
+export const fetchGroupsAsync = createAsyncThunk("groups/fetchAllAsync", async (_, { getState }) => {
+    const state = getState() as RootState;
+    const token = state.user.token;
+    return await GetGroups(token)
 })
 
 // Create a new group
-export const createGroupAsync = createAsyncThunk("groups/createAsync", async () => {
+export const createGroupAsync = createAsyncThunk("groups/createAsync", async (_, { getState }) => {
+    const state = getState() as RootState;
+    const token = state.user.token;
     const group: Group = NewGroup();
-    return { group: await CreateGroup(group) }
+    return { group: await CreateGroup(group, token) }
 })
 
 // Update a group
-export const updateGroupAsync = createAsyncThunk("groups/updateAsync", async ({ id, group }: { id: string, group: Partial<Group> }) => {
-    const newGroup = await UpdateGroup(id, group)
+export const updateGroupAsync = createAsyncThunk("groups/updateAsync", async ({ id, group }: { id: string, group: Partial<Group> }, { getState }) => {
+    const state = getState() as RootState;
+    const token = state.user.token;
+    const newGroup = await UpdateGroup(id, group, token)
     return { id, group: newGroup }
 })
 
 // Move a group
-export const moveGroupAsync = createAsyncThunk("groups/moveAsync", async ({ id, targetId, position, finalPosition }: { id: string, targetId: string, position: 'before' | 'after', finalPosition: number }) => {
-    const newNote = await MoveGroup(id, targetId, position)
+export const moveGroupAsync = createAsyncThunk("groups/moveAsync", async ({ id, targetId, position, finalPosition }: { id: string, targetId: string, position: 'before' | 'after', finalPosition: number }, { getState }) => {
+    const state = getState() as RootState;
+    const token = state.user.token;
+    const newNote = await MoveGroup(id, targetId, position, token)
     return { id, note: newNote }
 })
 
@@ -99,8 +107,10 @@ export const deleteGroupAndChildrenAsync = createAsyncThunk("groups/deleteRecurs
 })
 
 // Delete a single group
-export const deleteGroupAsync = createAsyncThunk("groups/deleteAsync", async (id: string) => {
-    return { id: await DeleteGroup(id).then(group => group._id) }
+export const deleteGroupAsync = createAsyncThunk("groups/deleteAsync", async (id: string, { getState }) => {
+    const state = getState() as RootState;
+    const token = state.user.token;
+    return { id: await DeleteGroup(id, token).then(group => group._id) }
 })
 
 // Utility to check if a group or note is within another group (prevents circular nesting)

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { User } from '../models/userModel';
+import { User, UserModel } from '../models/userModel';
 import { Types } from 'mongoose';
 import { AppError } from './errorHandler';
 import { groupService, noteService, userService } from '../services/services';
@@ -27,23 +27,23 @@ export async function authHandler(req: Request, res: Response, next: NextFunctio
 
     try {
         const user = await userService.validateToken(token);
-        // validate userId
-        if (!Types.ObjectId.isValid(token)) {
-            throw new AppError("Invalid uid provided!", 404);
-        }
+        const fullUser = await userService.findById(user._id);
 
         // if no user is found return 401 forbidden
-        if (!user) {
+        if (!user || !fullUser) {
             res.status(401).send({ message: "User not found!" })
             return
         }
 
         // set user object on request
-        req.user = user;
+        req.user = {
+            ...user,
+            _id: new Types.ObjectId(user._id)
+        };
 
         // set user id in services
-        groupService.setUser(user._id.toString())
-        noteService.setUser(user._id.toString())
+        groupService.setUser(req.user._id.toString())
+        noteService.setUser(req.user._id.toString())
 
         // call next route handler
         next();

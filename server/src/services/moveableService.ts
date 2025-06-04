@@ -1,10 +1,11 @@
 import { Service } from "./service";
 import { Model, Types } from "mongoose";
 import { Moveable, MoveableDocument } from "../models/moveableModel";
+import { ProtectedService } from "./protectedService";
 
 // Derives from Generic Service class to enable CRUD operations
 // Adds position-based sorting logic for moveable entities (notes, groups)
-export class MoveableService<T extends Moveable> extends Service<T> {
+export class MoveableService<T extends Moveable> extends ProtectedService<T> {
     constructor(model: Model<T>) { super(model); }
 
     // Minimum gap between positions before recalculating positions

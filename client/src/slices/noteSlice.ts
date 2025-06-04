@@ -19,30 +19,40 @@ export interface Notes {
 const initialState: Notes = {}
 
 // Fetch all notes
-export const fetchNotesAsync = createAsyncThunk("notes/fetchAllAsync", async () => {
-    return await GetNotes()
+export const fetchNotesAsync = createAsyncThunk("notes/fetchAllAsync", async (_, { getState }) => {
+    const state = getState() as RootState;
+    const token = state.user.token;
+    return await GetNotes(token)
 })
 
 // Fetch a single note by ID
-export const fetchNoteAsync = createAsyncThunk("notes/fetchAsync", async (id: string) => {
-    return { note: await GetNote(id) }
+export const fetchNoteAsync = createAsyncThunk("notes/fetchAsync", async (id: string, { getState }) => {
+    const state = getState() as RootState;
+    const token = state.user.token;
+    return { note: await GetNote(id, token) }
 })
 
 // Create a new note
-export const createNoteAsync = createAsyncThunk("notes/createAsync", async () => {
+export const createNoteAsync = createAsyncThunk("notes/createAsync", async (_, { getState }) => {
+    const state = getState() as RootState;
+    const token = state.user.token;
     const note: Note = NewNote();
-    return { note: await CreateNote(note) }
+    return { note: await CreateNote(note, token) }
 })
 
 // Update an existing note
-export const updateNoteAsync = createAsyncThunk("notes/updateAsync", async ({ id, note }: { id: string, note: Partial<Note> }) => {
-    const newNote = await UpdateNote(id, note)
+export const updateNoteAsync = createAsyncThunk("notes/updateAsync", async ({ id, note }: { id: string, note: Partial<Note> }, { getState }) => {
+    const state = getState() as RootState;
+    const token = state.user.token;
+    const newNote = await UpdateNote(id, note, token)
     return { id, note: newNote }
 })
 
 // Move a note 
-export const moveNoteAsync = createAsyncThunk("notes/moveAsync", async ({ id, targetId, position, finalPosition }: { id: string, targetId: string, position: 'before' | 'after', finalPosition: number }) => {
-    const newNote = await MoveNote(id, targetId, position)
+export const moveNoteAsync = createAsyncThunk("notes/moveAsync", async ({ id, targetId, position, finalPosition }: { id: string, targetId: string, position: 'before' | 'after', finalPosition: number }, { getState }) => {
+    const state = getState() as RootState;
+    const token = state.user.token;
+    const newNote = await MoveNote(id, targetId, position, token)
     return { id, note: newNote }
 })
 
@@ -86,8 +96,10 @@ export const moveNoteAndMaybeRegroupAsync = createAsyncThunk("notes/moveAndRegro
 })
 
 // Delete a note by ID
-export const deleteNoteAsync = createAsyncThunk("notes/deleteAsync", async (id: string) => {
-    return { id: await DeleteNote(id).then(note => note._id) }
+export const deleteNoteAsync = createAsyncThunk("notes/deleteAsync", async (id: string, { getState }) => {
+    const state = getState() as RootState;
+    const token = state.user.token;
+    return { id: await DeleteNote(id, token).then(note => note._id) }
 })
 
 export const noteSlice = createSlice({
