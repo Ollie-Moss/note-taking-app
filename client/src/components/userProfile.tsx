@@ -12,8 +12,6 @@ import LoadingSpinner from "./spinner";
 // Future work: Fetch user data and render items based on it
 export default function UserProfile() {
     const { user, loading, error } = useSelector(userSelector);
-    const dispatch = useDispatch<AppDispatch>();
-    const navigate = useNavigate();
 
     if (loading || !user) return (<LoadingSpinner />)
     return (
