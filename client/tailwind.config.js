@@ -16,6 +16,7 @@ const config = {
             colors: {
                 bg: '#202020',
                 'bg-dark': '#191919',
+                'bg-darker': '#151515',
                 'bg-light': '#2D2D2D',
                 hl: '#3D3D3D',
                 'hl-light': '#636363',

@@ -1,10 +1,11 @@
 import { Service } from "./service";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { Moveable, MoveableDocument } from "../models/moveableModel";
+import { ProtectedService } from "./protectedService";
 
 // Derives from Generic Service class to enable CRUD operations
 // Adds position-based sorting logic for moveable entities (notes, groups)
-export class MoveableService<T extends Moveable> extends Service<T> {
+export class MoveableService<T extends Moveable> extends ProtectedService<T> {
     constructor(model: Model<T>) { super(model); }
 
     // Minimum gap between positions before recalculating positions
@@ -20,7 +21,7 @@ export class MoveableService<T extends Moveable> extends Service<T> {
 
     // Creates a new entity with a calculated position at the end of top-level entities
     // (entities where parentId = null)
-    async create(data: Partial<T>): Promise<T> {
+    async create(data: Partial<T>): Promise<T & { _id: Types.ObjectId }> {
         const entities = await this.allEntities({ parentId: null });
 
         // Position = 100 if empty otherwise position is last item + 100

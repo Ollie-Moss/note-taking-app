@@ -24,7 +24,7 @@ export default function ItemTreeHeader() {
             {/* Section label */}
             <p className="text-m text-white">Notes</p>
 
-            <div>
+            <div className="relative">
                 {/* Add button that toggles dropdown */}
                 <FontAwesomeIcon
                     onClick={toggleDropdown}

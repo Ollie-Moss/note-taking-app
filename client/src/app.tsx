@@ -11,18 +11,18 @@ import Notes from "./pages/notes/notesPage"
 import Login from "./pages/auth/loginPage"
 import Error from "./pages/error/errorPage"
 import { SidebarProvider } from "./lib/sidebarProvider"
+import Signup from "./pages/auth/signupPage"
+import { fetchUserAction, setToken } from "./slices/userSlice"
+import { getCookie } from "./lib/cookies"
 
 // Main App
 // Global providers 
 // Routing
-// Inital state fetch
 export default function App() {
     const dispatch = useDispatch<AppDispatch>()
-
     useEffect(() => {
-        dispatch(fetchGroupsAsync())
-        dispatch(fetchNotesAsync())
-    }, [dispatch])
+        dispatch(fetchUserAction());
+    }, [dispatch]);
 
     return (
         <ToastProvider>
@@ -36,7 +36,10 @@ export default function App() {
                                 <Route path="" element={<Notes home={false} />} />
                                 <Route path="home" element={<Notes home={true} />} />
                             </Route>
-                            <Route path="/login" element={<Login />} />
+                            <Route path="/auth">
+                                <Route path="login" element={<Login />} />
+                                <Route path="signup" element={<Signup />} />
+                            </Route >
 
                             <Route path="/*" element={<Error />} />
                         </Routes>

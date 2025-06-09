@@ -1,16 +1,24 @@
 import { configureStore } from '@reduxjs/toolkit'
 import noteReducer from './slices/noteSlice'
 import groupReducer from './slices/groupSlice'
+import userReducer from './slices/userSlice'
+import { setCookie } from './lib/cookies'
 
 // reducers
 const reducer = {
     groups: groupReducer,
-    notes: noteReducer
+    notes: noteReducer,
+    user: userReducer
 }
 
 // setup redux store
 export const store = configureStore({
     reducer,
+})
+
+store.subscribe(() => {
+    const token = store.getState().user.token;
+    setCookie('token', token ?? '', 7);
 })
 
 // Docs: https://redux-toolkit.js.org/tutorials/typescript

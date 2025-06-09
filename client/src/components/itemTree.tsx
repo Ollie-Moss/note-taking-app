@@ -13,7 +13,7 @@ export default function ItemTree({ items, container, offset = 0 }: {
     container: React.RefObject<any>
 }) {
     return (
-        <ul className="space-y-1">
+        <>
             {items.map(item =>
                 item.type === "group" ? (
                     <GroupTree
@@ -32,7 +32,7 @@ export default function ItemTree({ items, container, offset = 0 }: {
                     />
                 )
             )}
-        </ul>
+        </>
     )
 }
 

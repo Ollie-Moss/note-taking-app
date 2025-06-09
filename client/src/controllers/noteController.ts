@@ -1,6 +1,6 @@
 import axios from "axios"
 import { Note } from "../models/note";
-import { BASE_URL, TEST_UID } from "../lib/apiConfig";
+import { BASE_URL } from "../lib/apiConfig";
 
 // Provides Wrappers for http requests to note endpoints
 // Provides typed return values
@@ -8,12 +8,12 @@ import { BASE_URL, TEST_UID } from "../lib/apiConfig";
 
 // GET 'api/note'
 // Returns all a users notes
-export async function GetNotes(uid: string = TEST_UID): Promise<(Note)[]> {
+export async function GetNotes(token: string): Promise<(Note)[]> {
     try {
         const res = await axios.get(`${BASE_URL}/note?preview=true`,
             {
                 headers: {
-                    Authorization: `Bearer ${uid}`
+                    Authorization: `Bearer ${token}`
                 }
             });
         const notes: Note[] = res.data.notes;
@@ -27,12 +27,12 @@ export async function GetNotes(uid: string = TEST_UID): Promise<(Note)[]> {
 
 // GET 'api/note/:id'
 // Returns a specific note
-export async function GetNote(noteId: string, uid: string = TEST_UID): Promise<Note | null> {
+export async function GetNote(noteId: string, token: string): Promise<Note | null> {
     try {
         const note: Note | null = await axios.get(`${BASE_URL}/note/${noteId}`,
             {
                 headers: {
-                    Authorization: `Bearer ${uid}`
+                    Authorization: `Bearer ${token}`
                 }
             })
             .then(res => {
@@ -46,12 +46,12 @@ export async function GetNote(noteId: string, uid: string = TEST_UID): Promise<N
 
 // PATCH 'api/note/move?noteId&targetId&position'
 // Moves a note based on the target and position
-export async function MoveNote(id: string, targetId: string, position: 'before' | 'after', uid: string = TEST_UID): Promise<Note> {
+export async function MoveNote(id: string, targetId: string, position: 'before' | 'after', token: string): Promise<Note> {
     try {
-        const updatedNote = await axios.patch(`${BASE_URL}/note/move?noteId=${id}&targetId=${targetId}&position=${position}`,{},
+        const updatedNote = await axios.patch(`${BASE_URL}/note/move?noteId=${id}&targetId=${targetId}&position=${position}`, {},
             {
                 headers: {
-                    Authorization: `Bearer ${uid}`
+                    Authorization: `Bearer ${token}`
                 },
             })
             .then(res => {
@@ -65,12 +65,12 @@ export async function MoveNote(id: string, targetId: string, position: 'before' 
 
 // PATCH 'api/note'
 // Updates a note
-export async function UpdateNote(id: string, note: Partial<Note>, uid: string = TEST_UID): Promise<Note> {
+export async function UpdateNote(id: string, note: Partial<Note>, token: string): Promise<Note> {
     try {
         const updatedNote = await axios.patch(`${BASE_URL}/note`, { note: { _id: id, ...note } },
             {
                 headers: {
-                    Authorization: `Bearer ${uid}`
+                    Authorization: `Bearer ${token}`
                 },
             })
             .then(res => {
@@ -84,12 +84,12 @@ export async function UpdateNote(id: string, note: Partial<Note>, uid: string = 
 
 // POST 'api/note'
 // Creates a note 
-export async function CreateNote(note: Note, uid: string = TEST_UID): Promise<Note | null> {
+export async function CreateNote(note: Note, token: string): Promise<Note | null> {
     try {
-        const res = await axios.post(`${BASE_URL}/note`, { note: { ...note, uid: uid } },
+        const res = await axios.post(`${BASE_URL}/note`, { note: { ...note, uid: token } },
             {
                 headers: {
-                    Authorization: `Bearer ${uid}`
+                    Authorization: `Bearer ${token}`
                 },
             });
         const newNote = res.data.note as Note;
@@ -102,12 +102,12 @@ export async function CreateNote(note: Note, uid: string = TEST_UID): Promise<No
 
 // DELETE 'api/group/:id'
 // Deletes a group
-export async function DeleteNote(noteId: string, uid: string = TEST_UID): Promise<Note | null> {
+export async function DeleteNote(noteId: string, token: string): Promise<Note | null> {
     try {
         const res = await axios.delete(`${BASE_URL}/note/${noteId}`,
             {
                 headers: {
-                    Authorization: `Bearer ${uid}`
+                    Authorization: `Bearer ${token}`
                 },
             });
         const note = res.data.note as Note;

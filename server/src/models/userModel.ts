@@ -4,7 +4,6 @@ import { model, Schema, Types } from "mongoose"
 export interface IUser {
     name: string;               // Users display name
     email: string;              // Users email address
-    profile_picture?: string;   // Optional profile picture URL
     password_hash: string;      // Hashed password
 }
 
@@ -12,12 +11,14 @@ export interface IUser {
 export type User = IUser & {
     _id: Types.ObjectId
 }
+export type UserStringId = IUser & {
+    _id: string
+}
 
 // Mongoose schema for the User collection
 export const UserSchema = new Schema<IUser>({
     name: { type: String, required: true },
     email: { type: String, required: true },
-    profile_picture: { type: String, },
     password_hash: { type: String, required: true },
 });
 
