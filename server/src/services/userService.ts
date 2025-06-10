@@ -39,7 +39,7 @@ export class UserService extends Service<IUser> {
         // create jwt using user information
         const jwt = sign({
             data: payload
-        }, String(process.env.JWT_SECRET), { expiresIn: '1m' })
+        }, String(process.env.JWT_SECRET), { expiresIn: '1h' })
 
         return { jwt, user: newUser };
     }
@@ -67,7 +67,7 @@ export class UserService extends Service<IUser> {
                 // create jwt using user information
                 const jwt = sign({
                     data: payload
-                }, String(process.env.JWT_SECRET), { expiresIn: '1hr' })
+                }, String(process.env.JWT_SECRET), { expiresIn: '1h' })
 
                 return { jwt, user: payload };
             }
