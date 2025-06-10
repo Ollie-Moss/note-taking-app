@@ -5,26 +5,46 @@ import { AppDispatch } from "../../store";
 import { loginAction } from "../../slices/userSlice";
 import { useNavigate } from "react-router";
 import { userSelector } from "../../selectors/userSelector";
+import { unwrapResult } from "@reduxjs/toolkit";
 
-// Placeholder login page
+// Basic login page
+// Display error messages on login fail
+// Redirects to notes page
+// Login functionality
 export default function Login() {
+    // Field value state
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
 
+    // Helpers
     const dispatch = useDispatch<AppDispatch>()
     const navigate = useNavigate();
 
+    // User data
     const { user, loading } = useSelector(userSelector);
+
+    // Redirect to notes page if user is logged in 
     useEffect(() => {
         if (user) {
             navigate('/notes/home')
         }
     }, [user])
 
+    // Makes login request, redirecting on success, updating error on fail
     const login = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        dispatch(loginAction({ email, password }));
+        // Make login request
+        const result = await dispatch(loginAction({ email, password }))
+        const data = unwrapResult(result)
+
+        // Set error if fail
+        if (data.status != 200) {
+            setError(data.message)
+            return
+        }
+
+        // Navigate home
         navigate('/notes/home');
     }
 

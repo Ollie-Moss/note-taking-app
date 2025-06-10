@@ -4,8 +4,10 @@ import { authHandler } from "../middlewares/authorization";
 
 const UserRouter: Router = Router()
 
+// Apply user authentication to all user routes
 UserRouter.use(authHandler);
 
+// GET a user
 UserRouter.get('/', GetUserHandler)
 
 export { UserRouter };

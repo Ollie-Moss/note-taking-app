@@ -5,30 +5,50 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../store";
 import { useNavigate } from "react-router";
 import { userSelector } from "../../selectors/userSelector";
+import { unwrapResult } from "@reduxjs/toolkit";
 
-// Placeholder signup page
+// Basic signup page
+// Display error messages on signup fail
+// Redirects to notes page
+// Re-enter password for validation
+// Signup functionality
 export default function Signup() {
+    // Field value state
     const [name, setName] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [reEnterPassword, setReEnterPassword] = useState<string>("")
     const [error, setError] = useState("")
 
+    // User data
     const { user, loading } = useSelector(userSelector);
+
+    // Redirect to notes page if user is logged in 
     useEffect(() => {
         if (user) {
             navigate('/notes/home')
         }
     }, [user])
 
-
+    // Helpers
     const dispatch = useDispatch<AppDispatch>()
     const navigate = useNavigate();
 
+    // Makes signup request, redirecting on success, updating error on fail
     const signup = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
+
+        // Ensure password and second password field are the same
         if (password === reEnterPassword) {
-            dispatch(signupAction({ name, email, password }))
+            // Make signup request
+            const result = await dispatch(signupAction({ name, email, password }))
+            const data = unwrapResult(result);
+            // Update error if fail
+            if(data.status != 200){
+                setError(data.message)
+                return 
+            }
+            // Navigate to notes on success
             navigate('/notes/home');
         }
     }
@@ -68,6 +88,7 @@ export default function Signup() {
                             type="password"
                             value={password}
                             onChange={(e) => {
+                                // Sets error if passwords do not match
                                 setPassword(e.target.value)
                                 if (e.target.value !== reEnterPassword && e.target.value !== "") {
                                     setError("Passwords do not match!")
@@ -85,6 +106,7 @@ export default function Signup() {
                             type="password"
                             value={reEnterPassword}
                             onChange={(e) => {
+                                // Sets error if passwords do not match
                                 setReEnterPassword(e.target.value)
                                 if (e.target.value !== password && e.target.value !== "") {
                                     setError("Passwords do not match!")
@@ -95,9 +117,6 @@ export default function Signup() {
                             }}
                         />
                     </div>
-
-
-
                     <button
                         className="w-full p-1 py-2 rounded-md bg-white text-bg-dark"
                     >Signup</button>

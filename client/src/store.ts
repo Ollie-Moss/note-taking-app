@@ -16,6 +16,7 @@ export const store = configureStore({
     reducer,
 })
 
+// Updates 'token' cookie with state.user.token when store is updated
 store.subscribe(() => {
     const token = store.getState().user.token;
     setCookie('token', token ?? '', 7);

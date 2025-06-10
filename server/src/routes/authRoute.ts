@@ -6,7 +6,9 @@ const AuthRouter: Router = Router()
 
 AuthRouter.use(authParser);
 
+// Login a user
 AuthRouter.post('/login', LoginHandler)
+// Signup and create a user
 AuthRouter.post('/signup', SignupHandler)
 
 export { AuthRouter };

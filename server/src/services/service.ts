@@ -1,6 +1,6 @@
 import { Model, Types } from "mongoose";
 
-// Generic base service class for handling common database operations
+// Generic base service class for basic crud operations
 export class Service<T> {
     constructor(public model: Model<T>) { }
 
@@ -10,7 +10,7 @@ export class Service<T> {
         return model.toObject() as (T & { _id: Types.ObjectId })
     }
 
-    // Find a single document by ID, scoped to current user
+    // Find a single document by ID 
     async findById(id: string) {
         return this.model.findOne({ _id: id }).lean<T & { _id: Types.ObjectId }>();
     }
@@ -20,12 +20,12 @@ export class Service<T> {
         return this.model.find({ ...filter }).lean<(T & { _id: Types.ObjectId })[]>();
     }
 
-    // Update a document by ID, scoped to current user
+    // Update a document by ID
     async update(id: string, data: Partial<T>) {
         return this.model.findOneAndUpdate({ _id: id }, data, { new: true }).lean<T & { _id: Types.ObjectId }>();
     }
 
-    // Delete a document by ID, scoped to current user
+    // Delete a document by ID
     async delete(id: string) {
         return this.model.findOneAndDelete({ _id: id }).lean<T & { _id: Types.ObjectId }>();
     }

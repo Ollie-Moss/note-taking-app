@@ -1,7 +1,5 @@
 import { useDispatch } from "react-redux"
 import { AppDispatch } from "./store"
-import { fetchGroupsAsync } from "./slices/groupSlice"
-import { fetchNotesAsync } from "./slices/noteSlice"
 import { useEffect } from "react"
 import { ToastProvider } from "./lib/toastProvider"
 import { ConfirmationProvider } from "./lib/confirmationProvider"
@@ -12,14 +10,15 @@ import Login from "./pages/auth/loginPage"
 import Error from "./pages/error/errorPage"
 import { SidebarProvider } from "./lib/sidebarProvider"
 import Signup from "./pages/auth/signupPage"
-import { fetchUserAction, setToken } from "./slices/userSlice"
-import { getCookie } from "./lib/cookies"
+import { fetchUserAction } from "./slices/userSlice"
 
 // Main App
 // Global providers 
 // Routing
 export default function App() {
     const dispatch = useDispatch<AppDispatch>()
+
+    // Get user data
     useEffect(() => {
         dispatch(fetchUserAction());
     }, [dispatch]);

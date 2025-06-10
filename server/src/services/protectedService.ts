@@ -1,6 +1,6 @@
 import { Model, Types } from "mongoose";
 
-// Generic base service class for handling common database operations
+// Service for documents owned by a specific user
 export class ProtectedService<T> {
     constructor(public model: Model<T>) { }
 

@@ -15,7 +15,6 @@ import { userSelector } from "../../selectors/userSelector";
 import Header from "../../components/header";
 import { Link } from "react-router";
 import LoadingSpinner from "../../components/spinner";
-import { fetchUserAction } from "../../slices/userSlice";
 
 // Main Notes page component
 // Displays sidebar (always visible on large screens)
@@ -24,9 +23,11 @@ export default function Notes({ home }: { home: boolean }) {
     const query: URLSearchParams = useQueryParams();
 
     const { toggleSidebar } = useSidebar()
+
     const dispatch = useDispatch<AppDispatch>()
     const { user, loading, error } = useSelector(userSelector);
 
+    // Get user data notes, and groups
     useEffect(() => {
         if (user) {
             dispatch(fetchGroupsAsync())
@@ -34,6 +35,7 @@ export default function Notes({ home }: { home: boolean }) {
         }
     }, [dispatch, user])
 
+    // Display loading spinner if user data is loading
     if (loading) return (
         <div>
             <Header />
@@ -43,6 +45,7 @@ export default function Notes({ home }: { home: boolean }) {
         </div>
     )
 
+    // Display error page if user is not logged in
     if (!user) return (
         <div>
             <Header />
@@ -61,6 +64,7 @@ export default function Notes({ home }: { home: boolean }) {
         </div>
     )
 
+    // Notes page
     return (
         <SearchProvider>
             <Header>
