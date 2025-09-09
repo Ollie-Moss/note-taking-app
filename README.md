@@ -8,7 +8,7 @@ Fullstack application, for taking notes.
 - In the server directory create a `.env` file.
 - Add a `ATLAS_URI` variable containing a mongodb connection string.
 - Add a `JWT_SECRET` variable containing a secure JWT secret key.
-- Optionally add a `PORT` variable to set the servers port. The frontend uses port 5000 to interact with the backend.
+- Optionally add a `PORT` variable to set the servers port. The frontend defaults to `localhost:5000` to interact with the backend.
 - Run `npm run dev` in both the client and server terminals to start the application.
 - Open `localhost:3000` to view the application.
 
