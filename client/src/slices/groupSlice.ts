@@ -47,8 +47,8 @@ export const updateGroupAsync = createAsyncThunk("groups/updateAsync", async ({ 
 export const moveGroupAsync = createAsyncThunk("groups/moveAsync", async ({ id, targetId, position, finalPosition }: { id: string, targetId: string, position: 'before' | 'after', finalPosition: number }, { getState }) => {
     const state = getState() as RootState;
     const token = state.user.token;
-    const newNote = await MoveGroup(id, targetId, position, token)
-    return { id, note: newNote }
+    const newGroup = await MoveGroup(id, targetId, position, token)
+    return { id, group: newGroup }
 })
 
 // Move a group and regroup to its target parent 
@@ -146,18 +146,18 @@ export const groupSlice = createSlice({
             state[action.payload.group._id] = action.payload.group
         })
         // Optimistically update position on move
-        builder.addCase(moveGroupAsync.pending, (state, action) => {
-            state[action.meta.arg.id].position = action.meta.arg.finalPosition
+        builder.addCase(moveGroupAsync.fulfilled, (state, action) => {
+            state[action.payload.id].position = action.payload.group.position;
         })
         // Optimistically update group properties
-        builder.addCase(updateGroupAsync.pending, (state, action) => {
-            const updates = action.meta.arg.group;
-            const id = action.meta.arg.id;
+        builder.addCase(updateGroupAsync.fulfilled, (state, action) => {
+            const updates = action.payload.group;
+            const id = action.payload.id;
 
             if (checkInGroup(updates.parentId, id, Object.values(state))) {
                 delete updates.parentId;
             }
-            state[id] = { ...state[id], ...action.meta.arg.group }
+            state[id] = { ...state[id], ...action.payload.group }
 
             if (!updates.hasOwnProperty("parentId")) return
             for (const group of Object.values(state)) {
@@ -172,16 +172,17 @@ export const groupSlice = createSlice({
             }
 
         })
+
         // Optimistically remove group on delete
-        builder.addCase(deleteGroupAsync.pending, (state, action) => {
-            const id = action.meta.arg;
+        builder.addCase(deleteGroupAsync.fulfilled, (state, action) => {
+            const id = action.payload.id;
             delete state[id]
         })
 
         // Handle note updates that change group parent
-        builder.addCase(updateNoteAsync.pending, (state, action) => {
-            const updates = action.meta.arg.note;
-            const noteId = action.meta.arg.id;
+        builder.addCase(updateNoteAsync.fulfilled, (state, action) => {
+            const updates = action.payload.note;
+            const noteId = action.payload.id;
 
             if (!updates.hasOwnProperty("parentId")) return
             for (const group of Object.values(state)) {
