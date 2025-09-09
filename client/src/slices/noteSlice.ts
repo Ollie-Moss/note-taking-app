@@ -3,6 +3,7 @@ import { Note, NewNote } from "../models/note";
 import { CreateNote, DeleteNote, GetNote, GetNotes, MoveNote, UpdateNote } from "../controllers/noteController";
 import { RootState } from "../store";
 import { deleteGroupAsync } from "./groupSlice";
+import { logout } from "./userSlice";
 
 // Contains all logic pertaining to the notes state in redux
 // Note: Replicates all business logic
@@ -130,29 +131,38 @@ export const noteSlice = createSlice({
         })
 
         // Optimistically update note 
-        builder.addCase(updateNoteAsync.pending, (state, action) => {
-            const id = action.meta.arg.id;
-            const updatedNote = { ...state[id], ...action.meta.arg.note }
+        builder.addCase(updateNoteAsync.fulfilled, (state, action) => {
+            const id = action.payload.id;
+            const updatedNote = { ...state[id], ...action.payload.note }
             state[id] = updatedNote
         })
 
-        // Optimistically move note
-        builder.addCase(moveNoteAsync.pending, (state, action) => {
-            state[action.meta.arg.id].position = action.meta.arg.finalPosition
+        builder.addCase(moveNoteAsync.fulfilled, (state, action) => {
+            state[action.payload.id].position = action.payload.note.position;
         })
 
-        // Optimistically remove a note
-        builder.addCase(deleteNoteAsync.pending, (state, action) => {
-            const id = action.meta.arg;
-            delete state[id]
+        builder.addCase(deleteNoteAsync.fulfilled, (state, action) => {
+            const id = action.payload.id;
+            if (state[id] != null) {
+                delete state[id]
+            }
         })
+
 
         // Delete notes in a deleted group
-        builder.addCase(deleteGroupAsync.pending, (state, action) => {
-            const id = action.meta.arg
+        builder.addCase(deleteGroupAsync.fulfilled, (state, action) => {
+            const id = action.payload.id
             for (const note of Object.values(state)) {
                 if (note.parentId == id) {
                     delete state[note._id];
+                }
+            }
+        })
+
+        builder.addCase(logout, (state, action) => {
+            for (const key in state) {
+                if (state.hasOwnProperty(key)) {
+                    delete state[key];
                 }
             }
         })
