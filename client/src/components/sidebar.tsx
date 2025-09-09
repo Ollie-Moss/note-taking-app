@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence } from "motion/react";
 import { useSidebar } from "../lib/sidebarProvider";
 import SidebarNavigation from "./sidebarNavigation";
 import UserProfile from "./userProfile";
@@ -31,7 +31,7 @@ export default function Sidebar() {
         return () => mediaQuery.removeEventListener("change", handleChange);
     }, []);
     return (
-        <div className={`z-10 absolute w-full h-full lg:relative lg:w-[25%] ${isSidebarOpen || isLargeScreen ? "pointer-events-auto" : "pointer-events-none"}`}>
+        <div className={`z-10 absolute w-full h-full lg:relative lg:w-[15%] ${isSidebarOpen || isLargeScreen ? "pointer-events-auto" : "pointer-events-none"}`}>
             {/* Sidebar animation */}
             <div
                 style={{ gridTemplateColumns: isLargeScreen ? "1fr" : isSidebarOpen ? "1fr" : "0fr" }}
