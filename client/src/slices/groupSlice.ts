@@ -3,6 +3,7 @@ import { Group, NewGroup } from "../models/group";
 import { CreateGroup, DeleteGroup, GetGroups, MoveGroup, UpdateGroup } from "../controllers/groupController";
 import { RootState } from "../store";
 import { updateNoteAsync } from "./noteSlice";
+import { logout } from "./userSlice";
 
 // Contains all logic pertaining to the groups state in redux
 // Note: Replicates all business logic
@@ -193,6 +194,14 @@ export const groupSlice = createSlice({
                 // add note to new group
                 if (group._id == updates.parentId && !group.notes.includes(noteId)) {
                     state[group._id].notes.push(noteId)
+                }
+            }
+        })
+
+        builder.addCase(logout, (state, action) => {
+            for (const key in state) {
+                if (state.hasOwnProperty(key)) {
+                    delete state[key];
                 }
             }
         })

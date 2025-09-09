@@ -16,7 +16,7 @@ export default function Header({ children }: Readonly<{ children?: React.ReactNo
     return (
         <header className="bg-bg-dark shadow">
             {/* Wrapper, adds spacing & centers */}
-            <div className="max-w-7xl mx-auto px-4 py-6 flex justify-between items-center">
+            <div className="max-w-full mx-auto px-4 py-6 flex justify-between items-center">
                 <div className="flex gap-4 items-center">
                     {children}
                     {/* Site title linking to the home page */}

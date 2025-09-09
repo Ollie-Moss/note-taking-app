@@ -3,6 +3,7 @@ import { Note, NewNote } from "../models/note";
 import { CreateNote, DeleteNote, GetNote, GetNotes, MoveNote, UpdateNote } from "../controllers/noteController";
 import { RootState } from "../store";
 import { deleteGroupAsync } from "./groupSlice";
+import { logout } from "./userSlice";
 
 // Contains all logic pertaining to the notes state in redux
 // Note: Replicates all business logic
@@ -154,6 +155,14 @@ export const noteSlice = createSlice({
             for (const note of Object.values(state)) {
                 if (note.parentId == id) {
                     delete state[note._id];
+                }
+            }
+        })
+
+        builder.addCase(logout, (state, action) => {
+            for (const key in state) {
+                if (state.hasOwnProperty(key)) {
+                    delete state[key];
                 }
             }
         })

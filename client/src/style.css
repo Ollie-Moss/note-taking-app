@@ -1,51 +1,51 @@
-@import '/node_modules/quill/dist/quill.core.css';
-@import '/node_modules/quill/dist/quill.bubble.css';
-@import '/node_modules/quill/dist/quill.snow.css';
+@import "/node_modules/quill/dist/quill.core.css";
+@import "/node_modules/quill/dist/quill.bubble.css";
+@import "/node_modules/quill/dist/quill.snow.css";
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 * {
-    -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
-    -moz-box-sizing: border-box; /* Firefox, other Gecko */
-    box-sizing: border-box;
+  -webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
+  -moz-box-sizing: border-box; /* Firefox, other Gecko */
+  box-sizing: border-box;
 }
 :root {
-    --hl: theme(colors.gray.300);
-    --bg-hl: theme(colors.hl-light);
-    --bg-dark: theme(colors.bg-dark);
-    --green: theme(colors.green.600);
-    --blue: theme(colors.blue.500);
-    --red: theme(colors.red.500);
+  --hl: theme(colors.gray.300);
+  --bg-hl: theme(colors.hl-light);
+  --bg-dark: theme(colors.bg-dark);
+  --green: theme(colors.green.600);
+  --blue: theme(colors.blue.500);
+  --red: theme(colors.red.500);
 }
 
 .quill > .ql-container > .ql-editor.ql-blank::before {
-    color: rgba(211, 211, 211, 0.6);
+  color: rgba(211, 211, 211, 0.6);
 }
 
 @keyframes fadeAndSquash {
-    0% {
-        opacity: 1;
-        max-height: 76px;
-    }
-    50% {
-        opacity: 0;
-        max-height: 76px;
-    }
-    100% {
-        opacity: 0;
-        max-height: 0px;
-    }
+  0% {
+    opacity: 1;
+    max-height: 76px;
+  }
+  50% {
+    opacity: 0;
+    max-height: 76px;
+  }
+  100% {
+    opacity: 0;
+    max-height: 0px;
+  }
 }
 .highlight-drop-target {
-    background-color: var(--bg-hl) !important;
+  background-color: var(--bg-hl) !important;
 }
 .highlight-top-drop-target {
-    background-color: var(--bg-dark) !important;
-    border-top: 3px solid var(--hl);
+  background-color: var(--bg-dark) !important;
+  border-top: 3px solid var(--hl);
 }
 .highlight-bottom-drop-target {
-    background-color: var(--bg-dark) !important;
-    border-bottom: 3px solid var(--hl);
+  background-color: var(--bg-dark) !important;
+  border-bottom: 3px solid var(--hl);
 }
