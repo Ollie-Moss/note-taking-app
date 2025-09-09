@@ -1,3 +1,7 @@
+# Note Taking App
+Fullstack application, for taking notes.
+
+![Screenshot of the note taking app.](/notes-app.png)
 # Quickstart
 - Open the client and server directories in the terminal.
 - Run `npm install` to install required dependencies.
