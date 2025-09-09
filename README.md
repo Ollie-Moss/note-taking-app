@@ -3,8 +3,8 @@
 - Run `npm install` to install required dependencies.
 - In the server directory create a `.env` file.
 - Add a `ATLAS_URI` variable containing a mongodb connection string.
-- *Note: You will need to create a User in the `users` document in your mongodb database.*
-- *This user must have the same `_id` as the UID provided in `client/src/lib/apiConfig.ts`*
+- Add a `JWT_SECRET` variable containing a secure JWT secret key.
+- Optionally add a `PORT` variable to set the servers port. The frontend uses port 5000 to interact with the backend.
 - Run `npm run dev` in both the client and server terminals to start the application.
 - Open `localhost:3000` to view the application.
 
